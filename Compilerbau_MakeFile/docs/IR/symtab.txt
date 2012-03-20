@@ -1,0 +1,8 @@
+Internal SymTab-Types: int, int[], int*
+
+int arr[10];
+
+void func (int arr_local[10])
+  arr -> int*
+  arr_local -> int[]
+  arr_local[0] -> int

@@ -1,0 +1,18 @@
+func:
+	i = 0
+	sum = 0
+  .l0:  IF i >= len GOTO .l2
+	.t0 = i * 4
+	.t1 = ADDR(arr)
+	.t2 = .t1 + .t0
+	.t3 = [.t2]
+	IF .t3 < threshold GOTO .l1
+	sum = sum + 1
+  .l1:  i = i + 1
+  .l2:  RETURN sum
+
+main:
+	global = 1
+	.t0 = 5 + 5
+	.t1 = CALL .f_func,(a,.t0,5)
+	RETURN .t1

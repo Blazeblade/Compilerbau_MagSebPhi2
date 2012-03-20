@@ -1,0 +1,92 @@
+.data
+global:
+  .word 0
+  .align 4
+a:
+  .word 0 : 10
+  .align 4
+
+.text
+
+_start:
+  JAL main
+
+func:
+  ### function prolog ###
+  ADDI $sp, $sp, -8
+  SW $31, 4($sp)
+  SW $fp, 0($sp)
+  MOVE $fp, $sp
+
+  ### create local variables ####
+  ADDI $sp, $sp, -8
+  LI $5, 0
+  SW $5, 4($sp)           # i = 0
+  LI $5, 0
+  SW $5, 0($sp)           # sum = 0
+l0:
+  LW $5, 4($sp)           # load val of i
+  LW $6, 12($fp)          # load val of len
+  SUB $7, $5, $6 
+  BGEZ $7, l2             # if i >= len goto l2
+  LW $5, 4($sp)           # load val of i
+  LI $6, 4                # load constant 4
+  MUL $7, $5, $6
+  LW $5, 8($fp)           # load addr of array
+  ADD $6, $7, $5  
+  LW $5, 0($6)            # load val of arr[i]
+  LW $6, 16($fp)          # load val of threshold
+  SUB $7, $5, $6
+  BLTZ $7, l1             # if arr[i] < threshold
+  LW $5, 0($sp)           # load val of sum
+  LI $6, 1
+  ADD $7, $5, $6          # increment sum by 1
+  SW $7, 0($sp)           # store val of sum
+l1:
+  LW $5, 4($sp)           # load val of i
+  LI $6, 1 
+  ADD $7, $5, $6          # increment i by 1
+  SW $7, 4($sp)           # store val of i
+  J l0                    # jump back to loop cond evaluation
+l2:
+  LW $5, 0($sp)           # load val of sum
+  MOVE $2, $5             # 'return' sum
+  ADDI $sp, $sp, 8        # delete local variables
+ 
+  ### function epilog ###
+  LW $fp, 0($sp)   
+  LW $31, 4($sp)
+  ADDI $sp, $sp, 8
+  JR $31
+
+main:
+  ### function prolog ###
+  ADDI $sp, $sp, -8
+  SW $31, 4($sp)
+  SW $fp, 0($sp)
+  MOVE $fp, $sp
+
+  LA $5, global           # load addr of global variable 'global'
+  LI $6, 1
+  SW $6, 0($5)            # store 1 to 'global'
+
+  ### setup stack for function call ###
+  ADDI $sp, $sp, -12
+  LI $5, 5
+  LI $6, 5
+  ADD $7, $5, $6          # sum of 5+5
+  LI $5, 5
+  SW $5, 8($sp)           # 3rd parameter
+  SW $7, 4($sp)           # 2nd parameter
+  LA $5, a                # load addr of global array 'a'
+  SW $5, 0($sp)           # 1st parameter
+  JAL func                # function call to 'func'
+  MOVE $5, $2             # fetch return value
+  MOVE $2, $5             # set return value of this function
+  ADDI $sp, $sp, 12       # clean up stack after function call is done
+
+  ### function epilog ###
+  LW $fp, 0($sp)
+  LW $31, 4($sp)
+  ADDI $sp, $sp, 8
+  JR $31
