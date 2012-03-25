@@ -5,11 +5,11 @@
  *      Author: philipp
  */
 
-# include <stdio.h>
-# include <conio.h>
-# include <alloc.h>
-# include <string.h>
-# define null 0
+#include <stdio.h>
+#include <conio.h>
+#include <alloc.h>
+#include <string.h>
+#define null 0
 int size = 0;
 void insert();
 void del();

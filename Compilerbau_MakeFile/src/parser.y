@@ -18,7 +18,6 @@
  */
 %expect 1
 
-%token COMMENT
 %token DO WHILE
 %token IF ELSE
 %token INT VOID
@@ -36,9 +35,10 @@
 %left LOGICAL_AND
 %left EQ NE
 %left LS LSEQ GTEQ GT
+%left SHIFT_LEFT SHIFT_RIGHT
 %left PLUS MINUS
 %left MUL DIV MOD 
-%right NOT LOGICAL_NOT UNARY_MINUS UNARY_PLUS
+%right LOGICAL_NOT UNARY_MINUS UNARY_PLUS
 %left BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
 %%
@@ -266,4 +266,5 @@ function_call_parameters
 
 void yyerror (const char *msg)
 {
+	printf("ERROR: %s\n", msg);
 }

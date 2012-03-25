@@ -19,8 +19,9 @@
 %option noyywrap		
 
 %%
-\n	/* new line */
-[\t ]+	/* ignore white spaces */
+\n			/* new line */
+[\t ]+		/* ignore white spaces */
+\/\/.*\n 	/* ignore comments */
 
 do 	return DO;
 while 	return WHILE;
@@ -34,16 +35,17 @@ return	return RETURN;
 ; 	return SEMICOLON;
 \{ 	return BRACE_OPEN;
 \} 	return BRACE_CLOSE;
-<<EOF>> return END_OF_FILE;
+<<EOF>> return 0;
 
 [a-zA-Z_][a-zA-Z0-9_]* 	return ID;
 0|[1-9][0-9]*		return NUM;
-\/\/.*\n 		return COMMENT;
 
 = 		return ASSIGN;
 \|\|	return LOGICAL_OR;
-!		return NOT;
+!		return LOGICAL_NOT;
 &&		return LOGICAL_AND;
+\<\<	return SHIFT_LEFT;
+\>\>	return SHIFT_RIGHT;
 ==		return EQ;
 !=		return NE;
 \<		return LS;
