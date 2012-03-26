@@ -55,8 +55,6 @@ return	return RETURN;
 \+		return PLUS;
 \-		return MINUS;
 \*		return MUL;
-\/		return DIV;
-\%		return MOD;
 \-\-	return UNARY_MINUS;
 \+\+	return UNARY_PLUS;
 \[		return BRACKET_OPEN;

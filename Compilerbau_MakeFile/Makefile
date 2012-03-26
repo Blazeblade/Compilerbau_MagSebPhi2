@@ -31,6 +31,7 @@ compiler: $(OBJDIR)/dhbwcc
 cc_objects: $(GENERATED_OBJECTS)
 parser: $(OBJDIR)/parser.c $(OBJDIR)/parser.h
 scanner: $(OBJDIR)/scanner.c
+symtab: $(SRCDIR)/symtab.c $(SRCDIR)/symtab.h
 
 $(OBJDIR)/dhbwcc: $(DHBWCC_OBJECTS) 
 	$(CC) $(CFLAGS) -o $@ $+

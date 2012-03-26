@@ -51,39 +51,49 @@
      SEMICOLON = 267,
      BRACE_OPEN = 268,
      BRACE_CLOSE = 269,
-     END_OF_FILE = 270,
-     ID = 271,
-     NUM = 272,
-     ASSIGN = 273,
-     LOGICAL_OR = 274,
-     LOGICAL_AND = 275,
-     NE = 276,
-     EQ = 277,
-     GT = 278,
-     GTEQ = 279,
-     LSEQ = 280,
-     LS = 281,
-     SHIFT_RIGHT = 282,
-     SHIFT_LEFT = 283,
-     MINUS = 284,
-     PLUS = 285,
-     MOD = 286,
-     DIV = 287,
-     MUL = 288,
-     UNARY_PLUS = 289,
-     UNARY_MINUS = 290,
-     LOGICAL_NOT = 291,
-     PARA_CLOSE = 292,
-     PARA_OPEN = 293,
-     BRACKET_CLOSE = 294,
-     BRACKET_OPEN = 295
+     ID = 270,
+     NUM = 271,
+     ASSIGN = 272,
+     LOGICAL_OR = 273,
+     LOGICAL_AND = 274,
+     NE = 275,
+     EQ = 276,
+     GT = 277,
+     GTEQ = 278,
+     LSEQ = 279,
+     LS = 280,
+     SHIFT_RIGHT = 281,
+     SHIFT_LEFT = 282,
+     MINUS = 283,
+     PLUS = 284,
+     MUL = 285,
+     UNARY_PLUS = 286,
+     UNARY_MINUS = 287,
+     LOGICAL_NOT = 288,
+     PARA_CLOSE = 289,
+     PARA_OPEN = 290,
+     BRACKET_CLOSE = 291,
+     BRACKET_OPEN = 292
    };
 #endif
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+typedef union YYSTYPE
+{
+
+/* Line 1676 of yacc.c  */
+#line 8 "src/parser.y"
+
+  int i;
+  char *id;
+
+
+
+/* Line 1676 of yacc.c  */
+#line 96 "bin/parser.h"
+} YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

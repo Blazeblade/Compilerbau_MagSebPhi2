@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "main.h"
+#include "uthash.h"
 
 /* Constants */
 static const char *C_EXT = ".c";
