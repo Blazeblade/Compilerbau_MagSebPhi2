@@ -1,18 +1,38 @@
-Global setup:
-  git config --global user.name "Your Name"
-  git config --global user.email "youremail@mail.com"
+Download Egit/Jgit (Eclipse): 
+  - http://www.eclipse.org/egit/download/  
+    or
+  - In Eclipse Install: http://download.eclipse.org/egit/updates
+
+Load Repository from git:
+  - File->Import->Git->Projects from Git->URI
+  - Copy Git link in URI field (try http)
+  - Problems with that then use ssh:
+    -follow this guide: http://help.github.com/win-set-up-git/
+
+Work with Git:
+  - select Project and Right Click, Team->Pull
+  - edit the code
+  - Team->Commit
+  - Team->Push to Upstream
+
+
+_______________________________________________________________________________________
+Linux:
+  Global setup:
+    git config --global user.name "Your Name"
+    git config --global user.email "youremail@mail.com"
       
-Next steps:
-  mkdir projectname
-  cd projectname
-  git init
-  touch README
-  git add README
-  git commit -m 'first commit'
-  git remote add origin git@github.com:Username/projectname.git
-  git push -u origin master
+  Next steps:
+    mkdir projectname
+    cd projectname
+    git init
+    touch README
+    git add README
+    git commit -m 'first commit'
+    git remote add origin git@github.com:Username/projectname.git
+    git push -u origin master
       
-Existing Git Repo?
-  cd existing_git_repo
-  git remote add origin git@github.com:Username/projectname.git
-  git push -u origin master
+  Existing Git Repo?
+    cd existing_git_repo
+    git remote add origin git@github.com:Username/projectname.git
+    git push -u origin master
