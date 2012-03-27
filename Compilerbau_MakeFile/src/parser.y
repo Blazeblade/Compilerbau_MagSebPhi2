@@ -30,7 +30,7 @@
 %token COLON COMMA SEMICOLON
 %token BRACE_OPEN BRACE_CLOSE
 
-%token ID
+%token <id>ID
 %token NUM
 
 %right ASSIGN 
