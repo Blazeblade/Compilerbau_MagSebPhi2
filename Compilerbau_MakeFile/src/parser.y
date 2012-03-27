@@ -2,12 +2,17 @@
  * parser.y - Parser utility for the DHBW compiler
  */
  
+ 
+ 
 %{
+#include "unions.h";
+
 %}
 
 %union {
   int i;
   char *id;
+  struct functpar par;
 }
  
 %debug
@@ -43,6 +48,7 @@
 %left  MUL
 %right LOGICAL_NOT UNARY_MINUS UNARY_PLUS
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
+%type <par> function_parameter
 
 %%
 
@@ -82,7 +88,7 @@ function_definition
      | type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
      ;
 
-function_declaration
+function_declaration 
      : type ID PARA_OPEN PARA_CLOSE
      | type ID PARA_OPEN function_parameter_list PARA_CLOSE
      ;
@@ -93,7 +99,7 @@ function_parameter_list
      ;
 	
 function_parameter
-     : type identifier_declaration
+     : type identifier_declaration{$$.type=$1.xxx;$$.name=$2.name;}
      ;
 									
 stmt_list
