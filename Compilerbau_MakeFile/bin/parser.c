@@ -500,12 +500,12 @@ static const yytype_int8 yyrhs[] =
 static const yytype_uint8 yyrline[] =
 {
        0,    71,    71,    75,    76,    80,    81,    82,    83,    87,
-      88,    92,    93,    97,    98,   102,   103,   107,   108,   112,
-     113,   117,   120,   122,   126,   127,   128,   129,   130,   131,
-     132,   133,   137,   141,   142,   146,   147,   151,   152,   153,
-     154,   155,   156,   157,   158,   159,   160,   161,   162,   163,
-     164,   165,   166,   167,   168,   172,   173,   177,   178,   182,
-     183
+      88,    92,    93,   102,   103,   107,   108,   112,   113,   117,
+     118,   122,   133,   135,   139,   140,   141,   142,   143,   144,
+     145,   146,   150,   154,   155,   159,   160,   164,   165,   166,
+     167,   168,   169,   170,   171,   172,   173,   174,   175,   176,
+     177,   178,   179,   180,   181,   185,   186,   190,   191,   195,
+     196
 };
 #endif
 
@@ -1566,17 +1566,35 @@ yyreduce:
     {(yyval.num)=2;;}
     break;
 
+  case 12:
+
+/* Line 1455 of yacc.c  */
+#line 94 "src/parser.y"
+    {
+			if((yyvsp[(1) - (2)].num)=2) {
+				printf("ERROR - Variables can not be of type void.\n");
+			} 
+		;}
+    break;
+
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 117 "src/parser.y"
-    {(yyval.par)->type=(yyvsp[(1) - (2)].num);(yyval.par)->name=(yyvsp[(2) - (2)].var)->varname;;}
+#line 123 "src/parser.y"
+    {
+			(yyval.par)->name = (yyvsp[(2) - (2)].var)->varname; 
+			if((yyvsp[(1) - (2)].num)==0) { 
+				printf("ERROR You can not declare a variable as void.\n"); 
+			} 
+			else 
+				(yyval.par)->type=(yyvsp[(1) - (2)].num); 
+		;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 1580 "bin/parser.c"
+#line 1598 "bin/parser.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1795,7 +1813,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 186 "src/parser.y"
+#line 199 "src/parser.y"
 
 
 void yyerror (const char *msg)

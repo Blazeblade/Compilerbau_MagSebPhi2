@@ -90,7 +90,12 @@ type
 
 variable_declaration
      : variable_declaration COMMA identifier_declaration
-     | type identifier_declaration
+     | type identifier_declaration 
+		{
+			if($1=2) {
+				printf("ERROR - Variables can not be of type void.\n");
+			} 
+		}
      ;
 
 identifier_declaration
@@ -114,7 +119,15 @@ function_parameter_list
      ;
 	
 function_parameter
-     : type identifier_declaration{$$->type=$1;$$->name=$2->varname;}
+     : type identifier_declaration	
+		{
+			$$->name = $2->varname; 
+			if($1==0) { 
+				printf("ERROR You can not declare a variable as void.\n"); 
+			} 
+			else 
+				$$->type=$1; 
+		}
      ;
 									
 stmt_list
