@@ -8,10 +8,6 @@
 #ifndef UNIONS_H_
 #define UNIONS_H_
 
-struct functpar{
-	int type;
-	char *name;
-};
 
 
 

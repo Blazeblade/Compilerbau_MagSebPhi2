@@ -68,12 +68,15 @@
 /* Copy the first part of user declarations.  */
 
 /* Line 189 of yacc.c  */
-#line 5 "src/parser.y"
+#line 7 "src/parser.y"
+
+#include "include/uthash.h";
+#include "symtab.h"
 
 
 
 /* Line 189 of yacc.c  */
-#line 77 "bin/parser.c"
+#line 80 "bin/parser.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -145,15 +148,16 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 8 "src/parser.y"
+#line 13 "src/parser.y"
 
   int i;
   char *id;
+  //functpar_t par;
 
 
 
 /* Line 214 of yacc.c  */
-#line 157 "bin/parser.c"
+#line 161 "bin/parser.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -178,7 +182,7 @@ typedef struct YYLTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 182 "bin/parser.c"
+#line 186 "bin/parser.c"
 
 #ifdef short
 # undef short
@@ -492,13 +496,13 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    50,    50,    54,    55,    59,    60,    61,    62,    66,
-      67,    71,    72,    76,    77,    81,    82,    86,    87,    91,
-      92,    96,    99,   101,   105,   106,   107,   108,   109,   110,
-     111,   112,   116,   120,   121,   125,   126,   130,   131,   132,
-     133,   134,   135,   136,   137,   138,   139,   140,   141,   142,
-     143,   144,   145,   146,   147,   151,   152,   156,   157,   161,
-     162
+       0,    58,    58,    62,    63,    67,    68,    69,    70,    74,
+      75,    79,    80,    84,    85,    89,    90,    94,    95,    99,
+     100,   104,   107,   109,   113,   114,   115,   116,   117,   118,
+     119,   120,   124,   128,   129,   133,   134,   138,   139,   140,
+     141,   142,   143,   144,   145,   146,   147,   148,   149,   150,
+     151,   152,   153,   154,   155,   159,   160,   164,   165,   169,
+     170
 };
 #endif
 
@@ -1548,7 +1552,7 @@ yyreduce:
       
 
 /* Line 1455 of yacc.c  */
-#line 1552 "bin/parser.c"
+#line 1556 "bin/parser.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1767,10 +1771,11 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 165 "src/parser.y"
+#line 173 "src/parser.y"
 
 
 void yyerror (const char *msg)
 {
   printf("ERROR: %s\n", msg);
 }
+

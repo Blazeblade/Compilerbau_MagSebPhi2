@@ -5,14 +5,15 @@
  
  
 %{
-#include "unions.h";
+#include "include/uthash.h";
+#include "symtab.h"
 
 %}
 
 %union {
   int i;
   char *id;
-  struct functpar par;
+  //functpar_t par;
 }
  
 %debug
@@ -48,6 +49,7 @@
 %left  MUL
 %right LOGICAL_NOT UNARY_MINUS UNARY_PLUS
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
+
 %type <par> function_parameter
 
 %%
@@ -99,7 +101,7 @@ function_parameter_list
      ;
 	
 function_parameter
-     : type identifier_declaration{$$.type=$1.xxx;$$.name=$2.name;}
+     : type identifier_declaration/*{$$.type=$1;$$.name=$2.name;}*/
      ;
 									
 stmt_list
