@@ -86,14 +86,17 @@ typedef union YYSTYPE
 /* Line 1676 of yacc.c  */
 #line 13 "src/parser.y"
 
-  int i;
-  char *id;
-  //functpar_t par;
+  int 				num;
+  char 				*id;
+  struct funcpar 	*par;
+  struct varentry 	*var;
+  struct funcentry 	*func;
+  struct symentry	*sym;  
 
 
 
 /* Line 1676 of yacc.c  */
-#line 97 "bin/parser.h"
+#line 100 "bin/parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

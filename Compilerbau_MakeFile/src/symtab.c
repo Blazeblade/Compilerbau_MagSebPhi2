@@ -30,7 +30,7 @@ void add_var(char *varname, enum type vartype,int memory,int adress) {
     HASH_ADD_INT(symentries, id, s);
 }
 
-void add_func(char *funcname, enum type returntype,int dim,struct varentry *args) {
+void add_func(char *funcname, enum type returntype,int dim,struct varentry *par) {
     funcentry_t *f;
     symentry_t *s;
     f = malloc(sizeof(funcentry_t));
@@ -38,6 +38,7 @@ void add_func(char *funcname, enum type returntype,int dim,struct varentry *args
     f->returntype= returntype;
     f->dim = dim;
     HASH_ADD_STR(funcentries, funcname, f);
+    //TODO: ADD Arguments
     /*struct varentry *v = malloc(sizeof(*v));
       v->id= args->id;
       strcpy(v->varname, args->varname);

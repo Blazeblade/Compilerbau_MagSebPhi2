@@ -12,9 +12,9 @@
 
 enum type{
 	integer,intarray,voidtype
-};
+}types;
 
-typedef struct functpar{
+typedef struct funcpar{
 	int type;
 	char *name;
 }functpar_t;
@@ -23,7 +23,8 @@ typedef struct functpar{
 typedef struct varentry
 {
 	char *varname;		//name, key
-	enum type vartype;	//type
+	int vartype;		//type (enum type vartype;)
+						//0 - integer, 1- integerarray, 2 - void
 	int memory; 		//size
 	int adress;			//offset
     UT_hash_handle hh;
@@ -32,9 +33,10 @@ typedef struct varentry
 typedef struct funcentry
 {
 	char *funcname;		//name, key
-	enum type returntype;	//type
+	int returntype;	//type (enum type returntype;)
+							//0 - integer, 1- integerarray, 2 - void
 	int dim;				//dimension
-	varentry_t *args; 		//name, type and order of function args
+	varentry_t *par; 		//name, type and order of function parameters
 							//TODO: Reference to IR of function
     UT_hash_handle hh;
 }funcentry_t;

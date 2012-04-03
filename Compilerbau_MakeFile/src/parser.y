@@ -6,14 +6,17 @@
  
 %{
 #include "include/uthash.h";
-#include "symtab.h"
+#include "symtab.h";
 
 %}
 
 %union {
-  int i;
-  char *id;
-  //functpar_t par;
+  int 				num;
+  char 				*id;
+  struct funcpar 	*par;
+  struct varentry 	*var;
+  struct funcentry 	*func;
+  struct symentry	*sym;  
 }
  
 %debug
@@ -31,13 +34,13 @@
 
 %token DO WHILE
 %token IF ELSE
-%token INT VOID
+%token <id>INT <id>VOID
 %token RETURN
 %token COLON COMMA SEMICOLON
 %token BRACE_OPEN BRACE_CLOSE
 
 %token <id>ID
-%token NUM
+%token <num>NUM
 
 %right ASSIGN 
 %left  LOGICAL_OR
@@ -50,7 +53,17 @@
 %right LOGICAL_NOT UNARY_MINUS UNARY_PLUS
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
-%type <par> function_parameter
+%type <par> 	function_call_parameters
+%type <num> 	type
+%type <func> 	function_definition
+%type <func> 	function_parameter_list
+%type <func> 	function_declaration
+%type <var> 	function_call
+%type <par> 	function_parameter
+%type <var> 	identifier_declaration
+%type <var> 	expression
+%type <var> 	primary
+
 
 %%
 
@@ -71,8 +84,8 @@ program_element
      ;
 									
 type
-     : INT
-     | VOID
+     : INT	{$$=0;}
+     | VOID {$$=2;}
      ;
 
 variable_declaration
@@ -101,7 +114,7 @@ function_parameter_list
      ;
 	
 function_parameter
-     : type identifier_declaration/*{$$.type=$1;$$.name=$2.name;}*/
+     : type identifier_declaration{$$->type=$1;$$->name=$2->varname;}
      ;
 									
 stmt_list
