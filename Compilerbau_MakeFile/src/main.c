@@ -21,11 +21,29 @@ cc_options_t cc_options = {
   .input_file = NULL,
   .output_file = NULL
 };
-
+/**
+ * @brief Duplicate the given string
+ * This function is standard in some compilers, but not all...
+ * This is why it produces warnings...
+ * As it it is a very simple function, it is just defined here
+ * to avoid the warnings
+ *
+ * @param str string to duplicate
+ * @return reference to the duplicated string
+ */
+char *strdup(const char *str) {
+	int n = strlen(str) + 1;
+	char *dup = malloc(n);
+	if (dup) {
+		strcpy(dup, str);
+	}
+	return dup;
+}
 /** 
  * \brief Print the help.
  * \param prg_name The file name of the executable.
  */
+
 void print_usage (const char *prg_name) {
   fprintf(stderr, "Usage: %s [-p] [-o output] [-h] file\n", prg_name);
 }
@@ -91,7 +109,7 @@ char *get_file_basename (const char *file) {
   }
   else {
     /* No file extensions found */
-    char *tmp = strdup(file);
+    char *tmp = (char*)strdup(file);
     if (tmp == NULL) {
       FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "get_file_basename -> strdup");
       return NULL;
@@ -282,6 +300,8 @@ int main (int argc, char *argv[]) {
   printf("IR: %s\n", cc_options.ir_file);
 
   rm_cleanup_resources(&resource_mgr);
+  printf("main finished");
   return 0;
+
 }
 

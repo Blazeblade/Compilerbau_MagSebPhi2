@@ -87,7 +87,7 @@ typedef union YYSTYPE
 #line 13 "src/parser.y"
 
   int 				num;
-  char 				*id;
+  char*				id;
   struct funcpar 	*par;
   struct varentry 	*var;
   struct funcentry 	*func;

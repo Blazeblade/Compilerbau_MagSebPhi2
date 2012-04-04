@@ -10,9 +10,10 @@
 #include "include/uthash.h"
 
 
-enum type{
+/*enum type{
 	integer,intarray,voidtype
 }types;
+*/
 
 typedef struct funcpar{
 	int type;

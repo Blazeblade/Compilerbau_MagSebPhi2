@@ -31,15 +31,14 @@ compiler: $(OBJDIR)/dhbwcc
 cc_objects: $(GENERATED_OBJECTS)
 parser: $(OBJDIR)/parser.c $(OBJDIR)/parser.h
 scanner: $(OBJDIR)/scanner.c
-symtab: $(SRCDIR)/symtab.c $(SRCDIR)/symtab.h
 
 $(OBJDIR)/dhbwcc: $(DHBWCC_OBJECTS) 
 	$(CC) $(CFLAGS) -o $@ $+
 
-$(OBJDIR)/diag.o: $(SRCDIR)/diag.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
 $(OBJDIR)/symtab.o: $(SRCDIR)/symtab.c
+	$(CC) $(CFLAGS) -c $< -o $@
+	
+$(OBJDIR)/diag.o: $(SRCDIR)/diag.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJDIR)/resource_manager.o: $(SRCDIR)/resource_manager.c
@@ -59,7 +58,7 @@ $(OBJDIR)/parser.c $(OBJDIR)/parser.h: $(SRCDIR)/parser.y
 	  -o $(OBJDIR)/parser.c -rall --report-file=$(OBJDIR)/bison.out $<
 
 $(OBJDIR)/scanner.c: $(SRCDIR)/scanner.l
-	$(FLEX) -d -o $(OBJDIR)/scanner.c --bison-bridge --bison-locations $<
+	$(FLEX) -d -o $(OBJDIR)/scanner.c $<
 
 .PHONY: clean_compiler
 clean_compiler:

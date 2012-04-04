@@ -12,7 +12,7 @@
 
 %union {
   int 				num;
-  char 				*id;
+  char*				id;
   struct funcpar 	*par;
   struct varentry 	*var;
   struct funcentry 	*func;
@@ -92,7 +92,7 @@ variable_declaration
      : variable_declaration COMMA identifier_declaration
      | type identifier_declaration 
 		{
-			if($1=2) {
+			if($1==2) {
 				printf("ERROR - Variables can not be of type void.\n");
 			} 
 		}
@@ -100,7 +100,7 @@ variable_declaration
 
 identifier_declaration
      : ID BRACKET_OPEN NUM BRACKET_CLOSE
-     | ID
+     | ID {$$=malloc(sizeof($$));$$->varname=$1;printf("wE RECOGNISED A VARIABLE:\n");}
      ;
 
 function_definition
@@ -120,10 +120,10 @@ function_parameter_list
 	
 function_parameter
      : type identifier_declaration	
-		{
+		{$$=malloc(sizeof($$));
 			$$->name = $2->varname; 
 			if($1==0) { 
-				printf("ERROR You can not declare a variable as void.\n"); 
+				printf("ERROR - Function parameters can not be of type void.\n"); 
 			} 
 			else 
 				$$->type=$1; 

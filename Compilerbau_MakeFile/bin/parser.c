@@ -151,7 +151,7 @@ typedef union YYSTYPE
 #line 13 "src/parser.y"
 
   int 				num;
-  char 				*id;
+  char*				id;
   struct funcpar 	*par;
   struct varentry 	*var;
   struct funcentry 	*func;
@@ -1571,20 +1571,27 @@ yyreduce:
 /* Line 1455 of yacc.c  */
 #line 94 "src/parser.y"
     {
-			if((yyvsp[(1) - (2)].num)=2) {
+			if((yyvsp[(1) - (2)].num)==2) {
 				printf("ERROR - Variables can not be of type void.\n");
 			} 
 		;}
+    break;
+
+  case 14:
+
+/* Line 1455 of yacc.c  */
+#line 103 "src/parser.y"
+    {(yyval.var)=malloc(sizeof((yyval.var)));(yyval.var)->varname=(yyvsp[(1) - (1)].id);printf("wE RECOGNISED A VARIABLE:\n");;}
     break;
 
   case 21:
 
 /* Line 1455 of yacc.c  */
 #line 123 "src/parser.y"
-    {
+    {(yyval.par)=malloc(sizeof((yyval.par)));
 			(yyval.par)->name = (yyvsp[(2) - (2)].var)->varname; 
 			if((yyvsp[(1) - (2)].num)==0) { 
-				printf("ERROR You can not declare a variable as void.\n"); 
+				printf("ERROR - Function parameters can not be of type void.\n"); 
 			} 
 			else 
 				(yyval.par)->type=(yyvsp[(1) - (2)].num); 
@@ -1594,7 +1601,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 1598 "bin/parser.c"
+#line 1605 "bin/parser.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);

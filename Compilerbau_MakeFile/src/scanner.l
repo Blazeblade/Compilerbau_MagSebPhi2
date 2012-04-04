@@ -1,9 +1,12 @@
 /* 
- * scanner.l - Scanner utility for the DHBW compiler
+ * scanner.l - Scanner utility for the BA compiler
  */
 
 %{
 	#include "parser.h"
+	#include <stdio.h>
+	#include <string.h>
+	
 %}
 
 /* 
@@ -18,46 +21,58 @@
 /* finish after scanning the provided file */
 %option noyywrap		
 
+identifier		[_a-zA-Z][_a-zA-Z0-9]*
+number			[1-9][0-9]*|0	
+comment			\/\/.*\n	 
 %%
-\n			/* new line */
-[\t ]+		/* ignore white spaces */
-\/\/.*\n 	/* ignore comments */
 
-do 	return DO;
-while 	return WHILE;
-if	return IF;
-else 	return ELSE;
-int 	return INT;
-void 	return VOID;
-return	return RETURN;
-: 	return COLON;
-, 	return COMMA;
-; 	return SEMICOLON;
-\{ 	return BRACE_OPEN;
-\} 	return BRACE_CLOSE;
-<<EOF>> return 0;
+\n	/* new line */
+[\t ]+	/* ignore white spaces */
 
-[a-zA-Z_][a-zA-Z0-9_]* 	return ID;
-0|[1-9][0-9]*		return NUM;
+do { return DO; }
+else { return ELSE; }
+if { return IF; }
+int { return INT; }
+return { return RETURN; }
+void { return VOID; }
+while { return WHILE; }
 
-= 		return ASSIGN;
-\|\|	return LOGICAL_OR;
-!		return LOGICAL_NOT;
-&&		return LOGICAL_AND;
-\<\<	return SHIFT_LEFT;
-\>\>	return SHIFT_RIGHT;
-==		return EQ;
-!=		return NE;
-\<		return LS;
-\<=		return LSEQ;
-\>=		return GTEQ;
-\>		return GT;
-\+		return PLUS;
-\-		return MINUS;
-\*		return MUL;
-\-\-	return UNARY_MINUS;
-\+\+	return UNARY_PLUS;
-\[		return BRACKET_OPEN;
-\]		return BRACKET_CLOSE;
-\(		return PARA_OPEN;
-\)		return PARA_CLOSE;
+; { return SEMICOLON; }
+: { return COLON; }
+, { return COMMA; }
+
+&& { return LOGICAL_AND; }
+\|\| { return LOGICAL_OR; }
+! { return LOGICAL_NOT; }
+= { return ASSIGN; }
+!= { return NE; }
+==  { return EQ; }
+\> { return GT; }
+\>= { return GTEQ; }
+\< { return LS; }
+\<= { return LSEQ; }
+
+\+ { return PLUS; }
+\- { return MINUS; }
+\* { return MUL; }
+\<\< {return  SHIFT_LEFT;}
+\>\> {return SHIFT_RIGHT;}
+
+\{ { return BRACE_OPEN; }
+\} { return BRACE_CLOSE; }
+\( { return PARA_OPEN; }
+\) { return PARA_CLOSE; }
+\[ { return BRACKET_OPEN; }
+\] { return BRACKET_CLOSE; }
+
+{identifier} {yylval.id = strdup(yytext);
+	return ID;
+	}
+{number} { yylval.num = atoi(yytext);
+	return NUM;
+	}
+{comment} 
+							
+<<EOF>>		{ return 0; }
+
+.
