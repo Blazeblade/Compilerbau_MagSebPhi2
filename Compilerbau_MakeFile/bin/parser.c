@@ -1556,14 +1556,14 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 87 "src/parser.y"
-    {(yyval.num)=0;;}
+    {(yyval.id)=integer;;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
 #line 88 "src/parser.y"
-    {(yyval.num)=2;;}
+    {(yyval.id)=voidtype;;}
     break;
 
   case 12:
@@ -1571,8 +1571,8 @@ yyreduce:
 /* Line 1455 of yacc.c  */
 #line 94 "src/parser.y"
     {
-			if((yyvsp[(1) - (2)].num)==2) {
-				printf("ERROR - Variables can not be of type void.\n");
+			if((yyvsp[(1) - (2)].id)==voidtype) {
+				fprintf(stderr,"Variables can not be of type void.\n");
 			} 
 		;}
     break;
@@ -1581,7 +1581,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 103 "src/parser.y"
-    {(yyval.var)=malloc(sizeof((yyval.var)));(yyval.var)->varname=(yyvsp[(1) - (1)].id);printf("wE RECOGNISED A VARIABLE:\n");;}
+    {(yyval.var)=malloc(sizeof((yyval.var)));(yyval.var)->varname=(yyvsp[(1) - (1)].id);printf("WE RECOGNISED A VARIABLE:\n");;}
     break;
 
   case 21:
@@ -1590,11 +1590,11 @@ yyreduce:
 #line 123 "src/parser.y"
     {(yyval.par)=malloc(sizeof((yyval.par)));
 			(yyval.par)->name = (yyvsp[(2) - (2)].var)->varname; 
-			if((yyvsp[(1) - (2)].num)==0) { 
-				printf("ERROR - Function parameters can not be of type void.\n"); 
+			if((yyvsp[(1) - (2)].id)==voidtype) { 
+				fprintf(stderr,"Function parameters can not be of type void.\n"); 
 			} 
 			else 
-				(yyval.par)->type=(yyvsp[(1) - (2)].num); 
+				(yyval.par)->type=(int)(yyvsp[(1) - (2)].id); 
 		;}
     break;
 

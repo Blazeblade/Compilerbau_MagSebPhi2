@@ -7,6 +7,7 @@
 
 #include "main.h"
 #include "uthash.h"
+#include "symtab.h"
 
 /* Constants */
 static const char *C_EXT = ".c";
@@ -273,6 +274,7 @@ int process_options (int argc, char *argv[]) {
  * \param argv The input parameters.
  */
 int main (int argc, char *argv[]) {
+	init_table();
   /* the resource manager must be initialized before any 
    * further actions are implemented */
   rm_init(&resource_mgr);

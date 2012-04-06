@@ -54,11 +54,11 @@
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
 %type <par> 	function_call_parameters
-%type <num> 	type
+%type <id> 		type
 %type <func> 	function_definition
 %type <func> 	function_parameter_list
 %type <func> 	function_declaration
-%type <var> 	function_call
+%type <func> 	function_call
 %type <par> 	function_parameter
 %type <var> 	identifier_declaration
 %type <var> 	expression
@@ -84,23 +84,23 @@ program_element
      ;
 									
 type
-     : INT	{$$=0;}
-     | VOID {$$=2;}
+     : INT	{$$=integer;}
+     | VOID {$$=voidtype;}
      ;
 
 variable_declaration
      : variable_declaration COMMA identifier_declaration
      | type identifier_declaration 
 		{
-			if($1==2) {
-				printf("ERROR - Variables can not be of type void.\n");
+			if($1==voidtype) {
+				fprintf(stderr,"Variables can not be of type void.\n");
 			} 
 		}
      ;
 
 identifier_declaration
      : ID BRACKET_OPEN NUM BRACKET_CLOSE
-     | ID {$$=malloc(sizeof($$));$$->varname=$1;printf("wE RECOGNISED A VARIABLE:\n");}
+     | ID {$$=malloc(sizeof($$));$$->varname=$1;printf("WE RECOGNISED A VARIABLE:\n");}
      ;
 
 function_definition
@@ -122,11 +122,11 @@ function_parameter
      : type identifier_declaration	
 		{$$=malloc(sizeof($$));
 			$$->name = $2->varname; 
-			if($1==0) { 
-				printf("ERROR - Function parameters can not be of type void.\n"); 
+			if($1==voidtype) { 
+				fprintf(stderr,"Function parameters can not be of type void.\n"); 
 			} 
 			else 
-				$$->type=$1; 
+				$$->type=(int)$1; 
 		}
      ;
 									
