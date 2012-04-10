@@ -32,19 +32,21 @@ void init_table ()
 
 /**************************************        ADD ITEMS          *******************************************/
 
-void add_var(char *varname, enum type vartype) {
+void add_var(char *varname, enum type vartype,int arrdim) {
     varentry_t *v;
     symentry_t *s;
     v = malloc(sizeof(varentry_t));
     v->varname = malloc(sizeof(varname));
     strcpy(v->varname, varname);
     v->vartype=vartype;
+    v->arrdim=arrdim;
     //HASH_ADD_STR(varentries, varname, v);
     HASH_ADD_KEYPTR(hh, varentries, v->varname, strlen(v->varname), v );
     s = malloc(sizeof(symentry_t));
     s->name = malloc(sizeof(varname));
     strcpy(s->name, varname);
     s->type=0;							//0=var, 1=func
+    s->arrdim=arrdim;
     s->sym.var=v;
     //HASH_ADD_STR(symentries, name, s);
     HASH_ADD_KEYPTR(hh, symentries, s->name, strlen(s->name), s );
@@ -205,7 +207,7 @@ void print_vars(){
 	else{
 		varentry_t *v, *tmp;
 		HASH_ITER(hh, varentries, v, tmp) {
-			printf("Variable: %s, type: %d\n", v->varname, v->vartype);
+			printf("Variable: %s, type: %d, [%d]\n", v->varname, v->vartype,v->arrdim);
 		}
 	}
 }
@@ -250,7 +252,7 @@ void print_all(){
 		symentry_t *s, *tmp;
 		HASH_ITER(hh, symentries, s, tmp) {
 			if(s->type==0)
-				printf("Variable: %s, type: %d\n", s->sym.var->varname, s->sym.var->vartype);
+				printf("Variable: %s, type: %d, [%d]\n", s->sym.var->varname, s->sym.var->vartype,s->sym.var->arrdim);
 			else
 				printf("Function: %s(), type: %d, dimension: %d\n",
 						s->sym.func->funcname,  s->sym.func->returntype, s->sym.func->dim);

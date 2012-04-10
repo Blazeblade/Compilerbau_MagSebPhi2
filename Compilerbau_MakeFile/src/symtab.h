@@ -28,6 +28,7 @@ typedef struct varentry
 {
 	char *varname;		//name, key
 	enum type vartype;	//0 - integer, 1- intarray, 2 - void
+	int arrdim;			//array dimension
 	//int memory; 		//size
 	//int adress;		//offset
 	funcpar_t *var;		//if varentry == array
@@ -48,6 +49,7 @@ typedef struct symentry
 {
 	char *name;
 	int type;			//identifier for var or func
+	int arrdim;			//array dimension
 	union {
 		varentry_t *var;
 		funcentry_t *func;
@@ -56,7 +58,7 @@ typedef struct symentry
 }symentry_t;
 
 void init_table();
-void add_var(char *varname, enum type vartype);
+void add_var(char *varname, enum type vartype,int arrdim);
 void add_func(char *funcname, enum type returntype,int dim);
 void add_funcpar(char *funcname,char *parname, enum type partype);
 struct varentry *find_var(char *var_name);

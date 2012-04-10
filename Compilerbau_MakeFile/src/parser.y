@@ -16,7 +16,7 @@
   struct funcpar 	*par;
   struct varentry 	*var;
   struct funcentry 	*func;
-  struct symentry	*sym;  
+  struct symentry	*sym;
 }
  
 %debug
@@ -101,8 +101,14 @@ variable_declaration
 		{
 			$$=malloc(sizeof($$));
 			$$->varname=$3->name;
-			$$->vartype=$1->vartype;
-			add_var($$->varname, $$->vartype);
+			if($3->arrdim>=0){
+					$$->vartype=1;
+					add_var($$->varname, $$->vartype,$3->arrdim);
+				}
+				else {
+					$$->vartype=0;
+					add_var($$->varname, $$->vartype,-1);
+				}
 			printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
 		}
      | type identifier_declaration 
@@ -113,10 +119,16 @@ variable_declaration
 			} 
 			else {
 				$$->varname=$2->name;
-				$$->vartype=$2->type;
-				add_var($$->varname, $$->vartype);
+				if($2->arrdim>=0){
+					$$->vartype=1;
+					add_var($$->varname, $$->vartype,$2->arrdim);
+				}
+				else {
+					$$->vartype=0;
+					add_var($$->varname, $$->vartype,-1);
+				}
 				printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
-				printf("DEBUG --- ");
+				printf("DEBUG --- Symboltable: ");
 				print_vars();
 			}
 		}
@@ -124,6 +136,18 @@ variable_declaration
 
 identifier_declaration
      : ID BRACKET_OPEN NUM BRACKET_CLOSE	//TODO: Arrays 
+		{
+			$$=malloc(sizeof($$));
+			if(find_sym($1)){
+				$$=find_sym($1);
+				fprintf(stderr,"This Symbol was already defined.\n");
+			}	
+			else{
+				$$->name=$1;
+				$$->arrdim= $3;
+				printf("DEBUG --- We have recognised a Symbol: %s\n",$1);
+			}
+		}   
      | ID 
 		{
 			$$=malloc(sizeof($$));
@@ -133,6 +157,7 @@ identifier_declaration
 			}	
 			else{
 				$$->name=$1;
+				$$->arrdim=-1;
 				printf("DEBUG --- We have recognised a Symbol: %s\n",$1);
 			}
 		}   
@@ -166,7 +191,9 @@ function_parameter
 			} 
 			else {
 				$$->type=(int)$1;
-			} 
+			}
+			printf("DEBUG --- Symboltable: ");
+			print_all(); 
 		}
      ;
 									
