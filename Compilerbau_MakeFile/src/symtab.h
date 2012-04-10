@@ -30,6 +30,7 @@ typedef struct varentry
 	enum type vartype;	//0 - integer, 1- intarray, 2 - void
 	//int memory; 		//size
 	//int adress;		//offset
+	funcpar_t *var;		//if varentry == array
     UT_hash_handle hh;
 } varentry_t;
 
@@ -61,6 +62,7 @@ void add_funcpar(char *funcname,char *parname, enum type partype);
 struct varentry *find_var(char *var_name);
 struct funcentry *find_func(char *func_name);
 struct funcpar *find_funcpar(char *par_name, char *func_name);
+struct symentry *find_sym(char *sym_name);
 void delete_var(struct varentry *var);
 void delete_func(struct funcentry *func);
 void delete_funcpar(struct funcpar *par, char *func_name) ;

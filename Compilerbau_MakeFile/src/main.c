@@ -26,7 +26,7 @@ cc_options_t cc_options = {
  * @brief Duplicate the given string
  * This function is standard in some compilers, but not all...
  * This is why it produces warnings...
- * As it it is a very simple function, it is just defined here
+ * As it is a very simple function, it is just defined here
  * to avoid the warnings
  *
  * @param str string to duplicate
@@ -285,15 +285,13 @@ int main (int argc, char *argv[]) {
   }
   //yyin
   yyin=fopen(cc_options.input_file,"r");
-  if(yyin==NULL)
-  {
-	  printf("Input Error!\n");
+  if(yyin==NULL){
+	  printf("Main: Input Error!\n");
   }
-  else //yyparse
-  {
-	  printf("Parsing");
+  else{
+	  printf("Main: Parsing\n");
       yyparse();
-      //fclose
+	  printf("Main: File Closing\n");
       fclose(yyin);
   }
 

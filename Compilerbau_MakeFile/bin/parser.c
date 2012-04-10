@@ -499,13 +499,13 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    71,    71,    75,    76,    80,    81,    82,    83,    87,
-      88,    92,    93,   102,   103,   107,   108,   112,   113,   117,
-     118,   122,   133,   135,   139,   140,   141,   142,   143,   144,
-     145,   146,   150,   154,   155,   159,   160,   164,   165,   166,
-     167,   168,   169,   170,   171,   172,   173,   174,   175,   176,
-     177,   178,   179,   180,   181,   185,   186,   190,   191,   195,
-     196
+       0,    72,    72,    76,    84,    88,    89,    90,    91,    95,
+      96,   100,   108,   126,   127,   142,   143,   147,   148,   155,
+     156,   160,   173,   175,   179,   180,   181,   182,   183,   184,
+     185,   186,   190,   194,   195,   199,   200,   204,   205,   206,
+     207,   208,   209,   210,   211,   212,   213,   214,   215,   216,
+     217,   218,   219,   220,   221,   225,   226,   230,   231,   235,
+     236
 };
 #endif
 
@@ -1552,56 +1552,112 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-        case 9:
+        case 3:
 
 /* Line 1455 of yacc.c  */
-#line 87 "src/parser.y"
+#line 77 "src/parser.y"
+    {
+		printf("----------DEBUG printing all functions and variables:\n\n");
+		printf("----------DEBUG Functions:\n");
+		print_funcs();
+		printf("----------DEBUG Variables:\n");
+		print_vars();
+		;}
+    break;
+
+  case 9:
+
+/* Line 1455 of yacc.c  */
+#line 95 "src/parser.y"
     {(yyval.id)=integer;;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 88 "src/parser.y"
+#line 96 "src/parser.y"
     {(yyval.id)=voidtype;;}
+    break;
+
+  case 11:
+
+/* Line 1455 of yacc.c  */
+#line 101 "src/parser.y"
+    {
+			(yyval.var)=malloc(sizeof((yyval.var)));
+			(yyval.var)->varname=(yyvsp[(3) - (3)].sym)->name;
+			(yyval.var)->vartype=(yyvsp[(1) - (3)].var)->vartype;
+			add_var((yyval.var)->varname, (yyval.var)->vartype);
+			printf("DEBUG --- Variable was added to Symboltable: %s\n",(yyval.var)->varname);
+		;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 94 "src/parser.y"
+#line 109 "src/parser.y"
     {
+			(yyval.var)=malloc(sizeof((yyval.var)));
 			if((yyvsp[(1) - (2)].id)==voidtype) {
-				fprintf(stderr,"Variables can not be of type void.\n");
+				fprintf(stderr,"Variables can not be of type void (%s).\n",(yyvsp[(2) - (2)].sym)->name);
 			} 
+			else {
+				(yyval.var)->varname=(yyvsp[(2) - (2)].sym)->name;
+				(yyval.var)->vartype=(yyvsp[(2) - (2)].sym)->type;
+				add_var((yyval.var)->varname, (yyval.var)->vartype);
+				printf("DEBUG --- Variable was added to Symboltable: %s\n",(yyval.var)->varname);
+				printf("DEBUG --- ");
+				print_vars();
+			}
 		;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 103 "src/parser.y"
-    {(yyval.var)=malloc(sizeof((yyval.var)));(yyval.var)->varname=(yyvsp[(1) - (1)].id);printf("WE RECOGNISED A VARIABLE:\n");;}
+#line 128 "src/parser.y"
+    {
+			(yyval.sym)=malloc(sizeof((yyval.sym)));
+			if(find_sym((yyvsp[(1) - (1)].id))){
+				(yyval.sym)=find_sym((yyvsp[(1) - (1)].id));
+				fprintf(stderr,"This Symbol was already defined.\n");
+			}	
+			else{
+				(yyval.sym)->name=(yyvsp[(1) - (1)].id);
+				printf("DEBUG --- We have recognised a Symbol: %s\n",(yyvsp[(1) - (1)].id));
+			}
+		;}
+    break;
+
+  case 18:
+
+/* Line 1455 of yacc.c  */
+#line 149 "src/parser.y"
+    {
+			add_funcpar((yyvsp[(2) - (5)].id),(yyvsp[(4) - (5)].par)->name, (yyvsp[(4) - (5)].par)->type); //TODO: Don't know how to do this with Parameters
+		;}
     break;
 
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 123 "src/parser.y"
-    {(yyval.par)=malloc(sizeof((yyval.par)));
-			(yyval.par)->name = (yyvsp[(2) - (2)].var)->varname; 
+#line 161 "src/parser.y"
+    {
+			(yyval.par)=malloc(sizeof((yyval.par)));
+			(yyval.par)->name = (yyvsp[(2) - (2)].sym)->name; 
 			if((yyvsp[(1) - (2)].id)==voidtype) { 
 				fprintf(stderr,"Function parameters can not be of type void.\n"); 
 			} 
-			else 
-				(yyval.par)->type=(int)(yyvsp[(1) - (2)].id); 
+			else {
+				(yyval.par)->type=(int)(yyvsp[(1) - (2)].id);
+			} 
 		;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 1605 "bin/parser.c"
+#line 1661 "bin/parser.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1820,7 +1876,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 199 "src/parser.y"
+#line 239 "src/parser.y"
 
 
 void yyerror (const char *msg)

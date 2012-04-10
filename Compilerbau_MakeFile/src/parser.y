@@ -56,14 +56,15 @@
 %type <par> 	function_call_parameters
 %type <id> 		type
 %type <func> 	function_definition
-%type <func> 	function_parameter_list
+%type <par> 	function_parameter_list
 %type <func> 	function_declaration
 %type <func> 	function_call
 %type <par> 	function_parameter
-%type <var> 	identifier_declaration
+%type <sym> 	identifier_declaration
 %type <var> 	expression
 %type <var> 	primary
 
+%type <var>		variable_declaration
 
 %%
 
@@ -73,6 +74,13 @@ program
 
 program_element_list
      : program_element_list program_element 
+		{
+		printf("----------DEBUG printing all functions and variables:\n\n");
+		printf("----------DEBUG Functions:\n");
+		print_funcs();
+		printf("----------DEBUG Variables:\n");
+		print_vars();
+		}
      | program_element 
      ;
 
@@ -90,17 +98,44 @@ type
 
 variable_declaration
      : variable_declaration COMMA identifier_declaration
+		{
+			$$=malloc(sizeof($$));
+			$$->varname=$3->name;
+			$$->vartype=$1->vartype;
+			add_var($$->varname, $$->vartype);
+			printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
+		}
      | type identifier_declaration 
 		{
+			$$=malloc(sizeof($$));
 			if($1==voidtype) {
-				fprintf(stderr,"Variables can not be of type void.\n");
+				fprintf(stderr,"Variables can not be of type void (%s).\n",$2->name);
 			} 
+			else {
+				$$->varname=$2->name;
+				$$->vartype=$2->type;
+				add_var($$->varname, $$->vartype);
+				printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
+				printf("DEBUG --- ");
+				print_vars();
+			}
 		}
      ;
 
 identifier_declaration
-     : ID BRACKET_OPEN NUM BRACKET_CLOSE
-     | ID {$$=malloc(sizeof($$));$$->varname=$1;printf("WE RECOGNISED A VARIABLE:\n");}
+     : ID BRACKET_OPEN NUM BRACKET_CLOSE	//TODO: Arrays 
+     | ID 
+		{
+			$$=malloc(sizeof($$));
+			if(find_sym($1)){
+				$$=find_sym($1);
+				fprintf(stderr,"This Symbol was already defined.\n");
+			}	
+			else{
+				$$->name=$1;
+				printf("DEBUG --- We have recognised a Symbol: %s\n",$1);
+			}
+		}   
      ;
 
 function_definition
@@ -110,7 +145,10 @@ function_definition
 
 function_declaration 
      : type ID PARA_OPEN PARA_CLOSE
-     | type ID PARA_OPEN function_parameter_list PARA_CLOSE
+     | type ID PARA_OPEN function_parameter_list PARA_CLOSE 
+		{
+			add_funcpar($2,$4->name, $4->type); //TODO: Don't know how to do this with Parameters
+		}
      ;
 
 function_parameter_list
@@ -120,13 +158,15 @@ function_parameter_list
 	
 function_parameter
      : type identifier_declaration	
-		{$$=malloc(sizeof($$));
-			$$->name = $2->varname; 
+		{
+			$$=malloc(sizeof($$));
+			$$->name = $2->name; 
 			if($1==voidtype) { 
 				fprintf(stderr,"Function parameters can not be of type void.\n"); 
 			} 
-			else 
-				$$->type=(int)$1; 
+			else {
+				$$->type=(int)$1;
+			} 
 		}
      ;
 									
