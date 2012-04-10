@@ -11,7 +11,7 @@
 ***
 **/
 
-//enum for 3-adress code representation:
+//enum for 3-adress code representation, same operators as in scanner.l
 enum code_ops
 {
 	opASSIGN, opADD, opSUB, opMUL, opMINUS, opSHIFT_LEFT, opSHIFT_RIGHT,
@@ -34,10 +34,13 @@ static char* enumStrings[] = {
 
 						};
 
+/**
+ * Not all have to be used in every opcode
+ */
 struct strCode
 {
 	enum code_ops op;
-	struct symInt *int0;		//Note: not all of these have to be in use for every opcode...
+	struct symInt *int0;
 	struct symInt *int1;
 	struct symInt *int2;
 	struct symFunc *func;
