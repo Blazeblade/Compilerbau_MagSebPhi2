@@ -155,12 +155,13 @@ typedef union YYSTYPE
   struct funcpar 	*par;
   struct varentry 	*var;
   struct funcentry 	*func;
-  struct symentry	*sym;  
+  struct symentry	*sym;
+  struct symentry *test;  
 
 
 
 /* Line 214 of yacc.c  */
-#line 164 "bin/parser.c"
+#line 165 "bin/parser.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -185,7 +186,7 @@ typedef struct YYLTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 189 "bin/parser.c"
+#line 190 "bin/parser.c"
 
 #ifdef short
 # undef short
@@ -499,13 +500,13 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    72,    72,    76,    84,    88,    89,    90,    91,    95,
-      96,   100,   108,   126,   127,   142,   143,   147,   148,   155,
-     156,   160,   173,   175,   179,   180,   181,   182,   183,   184,
-     185,   186,   190,   194,   195,   199,   200,   204,   205,   206,
-     207,   208,   209,   210,   211,   212,   213,   214,   215,   216,
-     217,   218,   219,   220,   221,   225,   226,   230,   231,   235,
-     236
+       0,    73,    73,    77,    85,    89,    90,    91,    92,    96,
+      97,   101,   109,   127,   128,   143,   144,   148,   149,   156,
+     157,   161,   174,   176,   180,   181,   182,   183,   184,   185,
+     186,   187,   191,   195,   196,   200,   201,   205,   206,   207,
+     208,   209,   210,   211,   212,   213,   214,   215,   216,   217,
+     218,   219,   220,   221,   222,   226,   227,   231,   232,   236,
+     237
 };
 #endif
 
@@ -1555,7 +1556,7 @@ yyreduce:
         case 3:
 
 /* Line 1455 of yacc.c  */
-#line 77 "src/parser.y"
+#line 78 "src/parser.y"
     {
 		printf("----------DEBUG printing all functions and variables:\n\n");
 		printf("----------DEBUG Functions:\n");
@@ -1568,21 +1569,21 @@ yyreduce:
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 95 "src/parser.y"
+#line 96 "src/parser.y"
     {(yyval.id)=integer;;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 96 "src/parser.y"
+#line 97 "src/parser.y"
     {(yyval.id)=voidtype;;}
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 101 "src/parser.y"
+#line 102 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof((yyval.var)));
 			(yyval.var)->varname=(yyvsp[(3) - (3)].sym)->name;
@@ -1595,7 +1596,7 @@ yyreduce:
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 109 "src/parser.y"
+#line 110 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof((yyval.var)));
 			if((yyvsp[(1) - (2)].id)==voidtype) {
@@ -1615,7 +1616,7 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 128 "src/parser.y"
+#line 129 "src/parser.y"
     {
 			(yyval.sym)=malloc(sizeof((yyval.sym)));
 			if(find_sym((yyvsp[(1) - (1)].id))){
@@ -1632,7 +1633,7 @@ yyreduce:
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 149 "src/parser.y"
+#line 150 "src/parser.y"
     {
 			add_funcpar((yyvsp[(2) - (5)].id),(yyvsp[(4) - (5)].par)->name, (yyvsp[(4) - (5)].par)->type); //TODO: Don't know how to do this with Parameters
 		;}
@@ -1641,7 +1642,7 @@ yyreduce:
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 161 "src/parser.y"
+#line 162 "src/parser.y"
     {
 			(yyval.par)=malloc(sizeof((yyval.par)));
 			(yyval.par)->name = (yyvsp[(2) - (2)].sym)->name; 
@@ -1657,7 +1658,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 1661 "bin/parser.c"
+#line 1662 "bin/parser.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1876,7 +1877,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 239 "src/parser.y"
+#line 240 "src/parser.y"
 
 
 void yyerror (const char *msg)

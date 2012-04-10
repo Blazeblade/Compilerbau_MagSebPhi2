@@ -16,7 +16,8 @@
   struct funcpar 	*par;
   struct varentry 	*var;
   struct funcentry 	*func;
-  struct symentry	*sym;  
+  struct symentry	*sym;
+  struct symentry *test;  
 }
  
 %debug
