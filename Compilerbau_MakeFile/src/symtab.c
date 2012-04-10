@@ -12,6 +12,7 @@
  *
  */
 #include "symtab.h"
+#include <assert.h>
 #include <stdio.h>   /* gets,printf */
 #include <stdlib.h>  /* atoi, malloc */
 #include <string.h>  /* strcpy */
@@ -32,7 +33,7 @@ void init_table ()
 
 /**************************************        ADD ITEMS          *******************************************/
 
-void add_var(char *varname, enum type vartype,int arrdim) {
+void add_var(char *varname, enum type vartype,int arrdim,int scope) {
     varentry_t *v;
     symentry_t *s;
     v = malloc(sizeof(varentry_t));
@@ -40,6 +41,7 @@ void add_var(char *varname, enum type vartype,int arrdim) {
     strcpy(v->varname, varname);
     v->vartype=vartype;
     v->arrdim=arrdim;
+    v->scope=scope;
     //HASH_ADD_STR(varentries, varname, v);
     HASH_ADD_KEYPTR(hh, varentries, v->varname, strlen(v->varname), v );
     s = malloc(sizeof(symentry_t));
@@ -53,7 +55,7 @@ void add_var(char *varname, enum type vartype,int arrdim) {
     return;
 }
 
-void add_func(char *funcname, enum type returntype,int dim) {
+void add_func(char *funcname, enum type returntype,int dim, int arrdim,funcpar_t *par) {
     funcentry_t *f;
     symentry_t *s;
     f = malloc(sizeof(funcentry_t));
@@ -61,27 +63,30 @@ void add_func(char *funcname, enum type returntype,int dim) {
     strcpy(f->funcname, funcname);
     f->returntype= returntype;
     f->dim = dim;
-    f->par = NULL;
+    f->arrdim=arrdim;
+    f->par = par;
     //HASH_ADD_STR(funcentries, funcname, f);
     HASH_ADD_KEYPTR(hh, funcentries, f->funcname, strlen(f->funcname), f );
     s = malloc(sizeof(symentry_t));
 	s->name = malloc(sizeof(funcname));
     strcpy(s->name,funcname);
-    s->type=1;							//0=var, 1=func
+    s->type=1;	//0=var, 1=func
+    s->arrdim=arrdim;
     s->sym.func=f;
     //HASH_ADD_STR(symentries, name, s);
     HASH_ADD_KEYPTR(hh, symentries, s->name, strlen(s->name), s );
     return;
 
 }
-void add_funcpar(char *funcname,char *parname, enum type partype) {
+void add_funcpar(char *funcname,char *parname, enum type partype, int arrdim) {
 	 funcpar_t *p;
 	 funcentry_t *f;
 	 p = malloc(sizeof(funcpar_t));
 	 p->name = malloc(sizeof(parname));
 	 strcpy(p->name, parname);
 	 p->type=partype;
-	 HASH_FIND_PTR(symentries, &funcname, f);
+	 p->arrdim=arrdim;
+	 HASH_FIND(hh,funcentries, funcname,strlen(funcname), f);
 	 //HASH_ADD_STR(f->par, name, p);
      HASH_ADD_KEYPTR(hh, f->par, p->name, strlen(p->name), p);
      return;
@@ -92,27 +97,27 @@ void add_funcpar(char *funcname,char *parname, enum type partype) {
 
 struct varentry *find_var(char *var_name) {
     struct varentry *v;
-    HASH_FIND_PTR(symentries, &var_name, v); 	/* v: output pointer */
+    HASH_FIND(hh,varentries, var_name,strlen(var_name), v); 	/* v: output pointer */
     return v;
 }
 
 struct funcentry *find_func(char *func_name) {
     struct funcentry *f;
-    HASH_FIND_PTR(symentries, &func_name, f);  	/* f: output pointer */
+    HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);  	/* f: output pointer */
     return f;
 }
 
 struct funcpar *find_funcpar(char *par_name, char *func_name) {
     struct funcpar *p;
     struct funcentry *f;
-    HASH_FIND_PTR(symentries, &func_name, f);  	/* f: output pointer */
-    HASH_FIND_PTR(f->par, &par_name, p);  		/* P: output pointer */
+    HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);  	/* f: output pointer */
+    HASH_FIND(hh,f->par, par_name,strlen(par_name), p);  		/* P: output pointer */
     return p;
 }
 
 struct symentry *find_sym(char *sym_name) {
     symentry_t *s;
-    HASH_FIND_PTR(symentries, &sym_name, s);  	/* s: output pointer */
+    HASH_FIND(hh,symentries, sym_name,strlen(sym_name), s);  	/* s: output pointer */
     return s;
 }
 
@@ -125,12 +130,12 @@ void delete_var(struct varentry *var) {
     free(var);             			 /* optional; it's up to you! */
 }
 void delete_func(struct funcentry *func) {
-    HASH_DEL(symentries, func);  	/* var: pointer to delete */
+    HASH_DEL(funcentries, func);  	/* var: pointer to delete */
     free(func);             			 /* optional; it's up to you! */
 }
 void delete_funcpar(struct funcpar *par, char *func_name) {
     struct funcentry *f;
-    HASH_FIND_PTR(symentries, &func_name, f);  	/* f: output pointer */
+    HASH_FIND(hh,funcentries, func_name, strlen(func_name), f);  	/* f: output pointer */
     HASH_DEL(f->par, par);
     free(par);
 }
@@ -157,7 +162,7 @@ void delete_all_funcs() {
 void delete_all_pars(char *func_name) {
   funcpar_t *p, *tmp;
   struct funcentry *f;
-  HASH_FIND_PTR(symentries, &func_name, f);  	/* f: output pointer */
+  HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);  	/* f: output pointer */
   HASH_ITER(hh, f->par, p, tmp) {
     HASH_DEL(f->par,p);  		/* delete; f->par advances to next */
     free(p);
@@ -186,7 +191,8 @@ unsigned int count_funcs(){
 
 unsigned int count_pars(char *func_name) {
 	struct funcentry *f;
-	HASH_FIND_PTR(symentries, &func_name, f);
+	HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);
+	assert(f!=NULL);
 	return HASH_COUNT(f->par);
 }
 
@@ -222,13 +228,17 @@ void print_funcs(){
 		funcentry_t *f, *tmp;
 		HASH_ITER(hh, funcentries, f, tmp) {
 			printf("Function: %s(), type: %d, dimension: %d\n", f->funcname, f->returntype,f->dim);
+			funcpar_t *p, *tmp;
+			HASH_ITER(hh, f->par, p, tmp) {
+				printf("\tParameter of %s: %s, type: %d, [%d]\n",f->funcname ,p->name, p->type,p->arrdim);
+			}
 		}
 	}
 }
 
 void print_pars(char *func_name){
 	struct funcentry *f;
-	HASH_FIND_PTR(symentries, &func_name, f);
+	HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);
 	if(f->par==NULL)
 			{
 				printf("No Parameters in table for %s.\n",func_name);
@@ -237,7 +247,7 @@ void print_pars(char *func_name){
 	else{
 		funcpar_t *p, *tmp;
 		HASH_ITER(hh, f->par, p, tmp) {
-			printf("Parameter of %s: %s, type: %d\n",func_name ,p->name, p->type);
+			printf("Parameter of %s: %s, type: %d, [%d]\n",func_name ,p->name, p->type,p->arrdim);
 		}
 	}
 }
@@ -283,4 +293,45 @@ int name_sort_all(symentry_t *a, symentry_t *b) {
 }
 void sort_all() {
     HASH_SORT(symentries, name_sort_all);
+}
+
+
+
+/**************************************       CHECK ITEMS         *******************************************/
+
+unsigned int check_funccallpar(funcentry_t *func0, struct funccallparlist *params){
+	if(func0->dim != params->count){
+		return 0;
+	}
+	funcpar_t *param0 = func0->par;
+	funcpar_t *param1 = params->par;
+	for(int i=0;i<func0->dim;i++){
+		if(param0->arrdim != param1->arrdim){
+			return 0;
+		}
+		if(param0->type != param1->type){
+			return 0;
+		}
+		if(param0->hh.next!=NULL){
+			param0 = param0->hh.next;
+		}
+		else{
+			break;
+		}
+		if(param1->hh.next!=NULL){
+			param1 = param1->hh.next;
+		}
+		else{
+			break;
+		}
+	}
+	return 1;
+}
+struct funccallparlist *createParamList(funcpar_t *par)
+{
+	struct funccallparlist *ptr;
+	ptr = (struct funccallparlist *) malloc (sizeof (struct funccallparlist));
+	ptr->count = 1;
+	ptr->par = par;
+	return ptr;
 }

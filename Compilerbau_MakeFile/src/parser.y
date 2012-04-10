@@ -17,6 +17,7 @@
   struct varentry 	*var;
   struct funcentry 	*func;
   struct symentry	*sym;
+  struct funccallparlist *plist;
 }
  
 %debug
@@ -53,10 +54,10 @@
 %right LOGICAL_NOT UNARY_MINUS UNARY_PLUS
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
-%type <par> 	function_call_parameters
+%type <plist> 	function_call_parameters
 %type <id> 		type
 %type <func> 	function_definition
-%type <par> 	function_parameter_list
+%type <func> 	function_parameter_list
 %type <func> 	function_declaration
 %type <func> 	function_call
 %type <par> 	function_parameter
@@ -75,11 +76,12 @@ program
 program_element_list
      : program_element_list program_element 
 		{
-		printf("----------DEBUG printing all functions and variables:\n\n");
-		printf("----------DEBUG Functions:\n");
+		printf("\n\n----------DEBUG printing all functions and variables----------:\n");
+		printf("<<----------DEBUG Functions---------->>:\n");
 		print_funcs();
-		printf("----------DEBUG Variables:\n");
+		printf("<<----------DEBUG Variables---------->>:\n");
 		print_vars();
+		printf("<<----------DEBUG END---------->>:\n");
 		}
      | program_element 
      ;
@@ -103,13 +105,13 @@ variable_declaration
 			$$->varname=$3->name;
 			if($3->arrdim>=0){
 					$$->vartype=1;
-					add_var($$->varname, $$->vartype,$3->arrdim);
+					add_var($$->varname, $$->vartype,$3->arrdim,0);
 				}
 				else {
 					$$->vartype=0;
-					add_var($$->varname, $$->vartype,-1);
+					add_var($$->varname, $$->vartype,-1,0);
 				}
-			printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
+			//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
 		}
      | type identifier_declaration 
 		{
@@ -121,21 +123,21 @@ variable_declaration
 				$$->varname=$2->name;
 				if($2->arrdim>=0){
 					$$->vartype=1;
-					add_var($$->varname, $$->vartype,$2->arrdim);
+					add_var($$->varname, $$->vartype,$2->arrdim,0);
 				}
 				else {
 					$$->vartype=0;
-					add_var($$->varname, $$->vartype,-1);
+					add_var($$->varname, $$->vartype,-1,0);
 				}
-				printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
-				printf("DEBUG --- Symboltable: ");
-				print_vars();
+				//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
+				//printf("DEBUG --- Symboltable: ");
+				//print_vars();
 			}
 		}
      ;
 
 identifier_declaration
-     : ID BRACKET_OPEN NUM BRACKET_CLOSE	//TODO: Arrays 
+     : ID BRACKET_OPEN NUM BRACKET_CLOSE
 		{
 			$$=malloc(sizeof($$));
 			if(find_sym($1)){
@@ -145,7 +147,7 @@ identifier_declaration
 			else{
 				$$->name=$1;
 				$$->arrdim= $3;
-				printf("DEBUG --- We have recognised a Symbol: %s\n",$1);
+				//printf("DEBUG --- We have recognised a Symbol: %s\n",$1);
 			}
 		}   
      | ID 
@@ -158,27 +160,96 @@ identifier_declaration
 			else{
 				$$->name=$1;
 				$$->arrdim=-1;
-				printf("DEBUG --- We have recognised a Symbol: %s\n",$1);
+				//printf("DEBUG --- We have recognised a Symbol: %s\n",$1);
 			}
 		}   
      ;
 
-function_definition
+function_definition		//TODO: stmt_list
      : type ID PARA_OPEN PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
+		{
+			$$=malloc(sizeof($$));
+			$$->funcname=$2;
+			$$->returntype=(int)$1;
+			$$->dim=0;
+			$$->arrdim=-1;
+			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,NULL);
+		}
      | type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
+     	{
+			$$=find_func("temp1");
+			$$->funcname=$2;
+			$$->returntype=(int)$1;
+			$$->dim=0;							//TODO: count_pars($2);
+			$$->arrdim=-1;
+			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,$$->par);
+			$$=find_func("temp1");
+			$$->par=NULL;
+			
+		}
      ;
 
 function_declaration 
      : type ID PARA_OPEN PARA_CLOSE
+		{
+			$$=malloc(sizeof($$));
+			$$->funcname=$2;
+			$$->returntype=(int)$1;
+			$$->dim=0;
+			$$->arrdim=-1;
+			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,NULL);
+			//printf("DEBUG --- Function was added to Symboltable: %s\n",$$->funcname);
+			//printf("DEBUG --- Symboltable: ");
+			//print_funcs();
+		}
      | type ID PARA_OPEN function_parameter_list PARA_CLOSE 
 		{
-			add_funcpar($2,$4->name, $4->type); //TODO: Don't know how to do this with Parameters
+			$$=find_func("temp1");
+			$$->funcname=$2;
+			$$->returntype=(int)$1;
+			$$->dim=0;							//TODO: count_pars($2);
+			$$->arrdim=-1;
+			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,$$->par);
+			//delete_func("temp1");
+			$$=find_func("temp1");
+			$$->par=NULL;
+			//printf("DEBUG --- Function was added to Symboltable: %s\n",$$->funcname);
+			//printf("DEBUG --- Symboltable: ");
+			//print_funcs();			
 		}
      ;
 
 function_parameter_list
-     : function_parameter
+     : function_parameter	
+		{
+			$$=malloc(sizeof($$));
+			if(!find_func("temp1"))
+			{
+				add_func("temp1", 0,0,-1,NULL);
+				$$=find_func("temp1");
+				add_funcpar("temp1",$1->name, $1->type, $1->arrdim);
+			} 
+			else 
+			{	
+				$$=find_func("temp1");
+				add_funcpar("temp1",$1->name, $1->type, $1->arrdim);
+			}
+		}
      | function_parameter_list COMMA function_parameter
+		{
+			$$=malloc(sizeof($$));
+			if(!find_func("temp1"))
+			{
+				add_func("temp1", 0,0,-1,NULL);
+				$$=find_func("temp1");
+				add_funcpar("temp1",$3->name, $3->type, $3->arrdim);
+			} 
+			else 
+			{
+				$$=find_func("temp1");
+				add_funcpar("temp1",$3->name, $3->type, $3->arrdim);
+			}
+		}
      ;
 	
 function_parameter
@@ -190,10 +261,19 @@ function_parameter
 				fprintf(stderr,"Function parameters can not be of type void.\n"); 
 			} 
 			else {
-				$$->type=(int)$1;
-			}
-			printf("DEBUG --- Symboltable: ");
-			print_all(); 
+				if($2->arrdim>=0){
+						$$->type=1;
+						$$->arrdim=$2->arrdim;
+						//add_funcpar(funcname, $$->name, $$->type, $2->arrdim);
+					}
+				else {
+						$$->type=0;
+						$$->arrdim=-1;
+						//add_var($$->varname, $$->vartype,-1);
+					}
+				}
+			//printf("DEBUG --- Symboltable: ");
+			//print_all(); 
 		}
      ;
 									
@@ -208,7 +288,7 @@ stmt
      | expression SEMICOLON
      | stmt_conditional
      | stmt_loop
-     | RETURN expression SEMICOLON
+     | RETURN expression SEMICOLON 
      | RETURN SEMICOLON
      | SEMICOLON /* empty statement */
      ;
@@ -255,12 +335,44 @@ primary
 
 function_call
       : ID PARA_OPEN PARA_CLOSE
+		{
+			funcentry_t *f;
+			printf("DEBUG --- Function call regocnised[%s()].\n",$1);
+			if(find_func($1)){
+				f = find_func($1);
+			}
+			else{
+				fprintf(stderr,"ERROR! Function was not declared before the call!\n");
+			}
+		}
       | ID PARA_OPEN function_call_parameters PARA_CLOSE
+      	{
+			funcentry_t *f;
+			printf("DEBUG --- Parameterise Function call regocnised[%s()].\n",$1);
+			if(find_func($1)){
+				f = find_func($1);
+				if(check_funccallpar(f, $3)){
+					printf("Functional Call Param Check OK!\n");
+				}
+				else{
+					fprintf(stderr,"ERROR: Functional Call Param Check FAILED!\n");
+				}
+			}
+			else{
+				fprintf(stderr,"ERROR! Function was not declared before the call!\n");
+			}
+		}
       ;
 
 function_call_parameters
-     : function_call_parameters COMMA expression
+     : function_call_parameters COMMA expression	
+		{
+			$$->count += 1;
+		}
      | expression
+		{
+			$$ = createParamList($1);
+		}
      ;
 
 %%

@@ -156,11 +156,12 @@ typedef union YYSTYPE
   struct varentry 	*var;
   struct funcentry 	*func;
   struct symentry	*sym;
+  struct funccallparlist *plist;
 
 
 
 /* Line 214 of yacc.c  */
-#line 164 "bin/parser.c"
+#line 165 "bin/parser.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -185,7 +186,7 @@ typedef struct YYLTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 189 "bin/parser.c"
+#line 190 "bin/parser.c"
 
 #ifdef short
 # undef short
@@ -499,13 +500,13 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    72,    72,    76,    84,    88,    89,    90,    91,    95,
-      96,   100,   114,   138,   151,   167,   168,   172,   173,   180,
-     181,   185,   200,   202,   206,   207,   208,   209,   210,   211,
-     212,   213,   217,   221,   222,   226,   227,   231,   232,   233,
-     234,   235,   236,   237,   238,   239,   240,   241,   242,   243,
-     244,   245,   246,   247,   248,   252,   253,   257,   258,   262,
-     263
+       0,    73,    73,    77,    86,    90,    91,    92,    93,    97,
+      98,   102,   116,   140,   153,   169,   178,   193,   205,   223,
+     238,   256,   280,   282,   286,   287,   288,   289,   290,   291,
+     292,   293,   297,   301,   302,   306,   307,   311,   312,   313,
+     314,   315,   316,   317,   318,   319,   320,   321,   322,   323,
+     324,   325,   326,   327,   328,   332,   333,   337,   348,   368,
+     372
 };
 #endif
 
@@ -1555,53 +1556,54 @@ yyreduce:
         case 3:
 
 /* Line 1455 of yacc.c  */
-#line 77 "src/parser.y"
+#line 78 "src/parser.y"
     {
-		printf("----------DEBUG printing all functions and variables:\n\n");
-		printf("----------DEBUG Functions:\n");
+		printf("\n\n----------DEBUG printing all functions and variables----------:\n");
+		printf("<<----------DEBUG Functions---------->>:\n");
 		print_funcs();
-		printf("----------DEBUG Variables:\n");
+		printf("<<----------DEBUG Variables---------->>:\n");
 		print_vars();
+		printf("<<----------DEBUG END---------->>:\n");
 		;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 95 "src/parser.y"
+#line 97 "src/parser.y"
     {(yyval.id)=integer;;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 96 "src/parser.y"
+#line 98 "src/parser.y"
     {(yyval.id)=voidtype;;}
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 101 "src/parser.y"
+#line 103 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof((yyval.var)));
 			(yyval.var)->varname=(yyvsp[(3) - (3)].sym)->name;
 			if((yyvsp[(3) - (3)].sym)->arrdim>=0){
 					(yyval.var)->vartype=1;
-					add_var((yyval.var)->varname, (yyval.var)->vartype,(yyvsp[(3) - (3)].sym)->arrdim);
+					add_var((yyval.var)->varname, (yyval.var)->vartype,(yyvsp[(3) - (3)].sym)->arrdim,0);
 				}
 				else {
 					(yyval.var)->vartype=0;
-					add_var((yyval.var)->varname, (yyval.var)->vartype,-1);
+					add_var((yyval.var)->varname, (yyval.var)->vartype,-1,0);
 				}
-			printf("DEBUG --- Variable was added to Symboltable: %s\n",(yyval.var)->varname);
+			//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
 		;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 115 "src/parser.y"
+#line 117 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof((yyval.var)));
 			if((yyvsp[(1) - (2)].id)==voidtype) {
@@ -1611,15 +1613,15 @@ yyreduce:
 				(yyval.var)->varname=(yyvsp[(2) - (2)].sym)->name;
 				if((yyvsp[(2) - (2)].sym)->arrdim>=0){
 					(yyval.var)->vartype=1;
-					add_var((yyval.var)->varname, (yyval.var)->vartype,(yyvsp[(2) - (2)].sym)->arrdim);
+					add_var((yyval.var)->varname, (yyval.var)->vartype,(yyvsp[(2) - (2)].sym)->arrdim,0);
 				}
 				else {
 					(yyval.var)->vartype=0;
-					add_var((yyval.var)->varname, (yyval.var)->vartype,-1);
+					add_var((yyval.var)->varname, (yyval.var)->vartype,-1,0);
 				}
-				printf("DEBUG --- Variable was added to Symboltable: %s\n",(yyval.var)->varname);
-				printf("DEBUG --- Symboltable: ");
-				print_vars();
+				//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
+				//printf("DEBUG --- Symboltable: ");
+				//print_vars();
 			}
 		;}
     break;
@@ -1627,7 +1629,7 @@ yyreduce:
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 139 "src/parser.y"
+#line 141 "src/parser.y"
     {
 			(yyval.sym)=malloc(sizeof((yyval.sym)));
 			if(find_sym((yyvsp[(1) - (4)].id))){
@@ -1637,7 +1639,7 @@ yyreduce:
 			else{
 				(yyval.sym)->name=(yyvsp[(1) - (4)].id);
 				(yyval.sym)->arrdim= (yyvsp[(3) - (4)].num);
-				printf("DEBUG --- We have recognised a Symbol: %s\n",(yyvsp[(1) - (4)].id));
+				//printf("DEBUG --- We have recognised a Symbol: %s\n",$1);
 			}
 		;}
     break;
@@ -1645,7 +1647,7 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 152 "src/parser.y"
+#line 154 "src/parser.y"
     {
 			(yyval.sym)=malloc(sizeof((yyval.sym)));
 			if(find_sym((yyvsp[(1) - (1)].id))){
@@ -1655,24 +1657,123 @@ yyreduce:
 			else{
 				(yyval.sym)->name=(yyvsp[(1) - (1)].id);
 				(yyval.sym)->arrdim=-1;
-				printf("DEBUG --- We have recognised a Symbol: %s\n",(yyvsp[(1) - (1)].id));
+				//printf("DEBUG --- We have recognised a Symbol: %s\n",$1);
 			}
+		;}
+    break;
+
+  case 15:
+
+/* Line 1455 of yacc.c  */
+#line 170 "src/parser.y"
+    {
+			(yyval.func)=malloc(sizeof((yyval.func)));
+			(yyval.func)->funcname=(yyvsp[(2) - (7)].id);
+			(yyval.func)->returntype=(int)(yyvsp[(1) - (7)].id);
+			(yyval.func)->dim=0;
+			(yyval.func)->arrdim=-1;
+			add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->arrdim,NULL);
+		;}
+    break;
+
+  case 16:
+
+/* Line 1455 of yacc.c  */
+#line 179 "src/parser.y"
+    {
+			(yyval.func)=find_func("temp1");
+			(yyval.func)->funcname=(yyvsp[(2) - (8)].id);
+			(yyval.func)->returntype=(int)(yyvsp[(1) - (8)].id);
+			(yyval.func)->dim=0;							//TODO: count_pars($2);
+			(yyval.func)->arrdim=-1;
+			add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->arrdim,(yyval.func)->par);
+			(yyval.func)=find_func("temp1");
+			(yyval.func)->par=NULL;
+			
+		;}
+    break;
+
+  case 17:
+
+/* Line 1455 of yacc.c  */
+#line 194 "src/parser.y"
+    {
+			(yyval.func)=malloc(sizeof((yyval.func)));
+			(yyval.func)->funcname=(yyvsp[(2) - (4)].id);
+			(yyval.func)->returntype=(int)(yyvsp[(1) - (4)].id);
+			(yyval.func)->dim=0;
+			(yyval.func)->arrdim=-1;
+			add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->arrdim,NULL);
+			//printf("DEBUG --- Function was added to Symboltable: %s\n",$$->funcname);
+			//printf("DEBUG --- Symboltable: ");
+			//print_funcs();
 		;}
     break;
 
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 174 "src/parser.y"
+#line 206 "src/parser.y"
     {
-			add_funcpar((yyvsp[(2) - (5)].id),(yyvsp[(4) - (5)].par)->name, (yyvsp[(4) - (5)].par)->type); //TODO: Don't know how to do this with Parameters
+			(yyval.func)=find_func("temp1");
+			(yyval.func)->funcname=(yyvsp[(2) - (5)].id);
+			(yyval.func)->returntype=(int)(yyvsp[(1) - (5)].id);
+			(yyval.func)->dim=0;							//TODO: count_pars($2);
+			(yyval.func)->arrdim=-1;
+			add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->arrdim,(yyval.func)->par);
+			//delete_func("temp1");
+			(yyval.func)=find_func("temp1");
+			(yyval.func)->par=NULL;
+			//printf("DEBUG --- Function was added to Symboltable: %s\n",$$->funcname);
+			//printf("DEBUG --- Symboltable: ");
+			//print_funcs();			
+		;}
+    break;
+
+  case 19:
+
+/* Line 1455 of yacc.c  */
+#line 224 "src/parser.y"
+    {
+			(yyval.func)=malloc(sizeof((yyval.func)));
+			if(!find_func("temp1"))
+			{
+				add_func("temp1", 0,0,-1,NULL);
+				(yyval.func)=find_func("temp1");
+				add_funcpar("temp1",(yyvsp[(1) - (1)].par)->name, (yyvsp[(1) - (1)].par)->type, (yyvsp[(1) - (1)].par)->arrdim);
+			} 
+			else 
+			{	
+				(yyval.func)=find_func("temp1");
+				add_funcpar("temp1",(yyvsp[(1) - (1)].par)->name, (yyvsp[(1) - (1)].par)->type, (yyvsp[(1) - (1)].par)->arrdim);
+			}
+		;}
+    break;
+
+  case 20:
+
+/* Line 1455 of yacc.c  */
+#line 239 "src/parser.y"
+    {
+			(yyval.func)=malloc(sizeof((yyval.func)));
+			if(!find_func("temp1"))
+			{
+				add_func("temp1", 0,0,-1,NULL);
+				(yyval.func)=find_func("temp1");
+				add_funcpar("temp1",(yyvsp[(3) - (3)].par)->name, (yyvsp[(3) - (3)].par)->type, (yyvsp[(3) - (3)].par)->arrdim);
+			} 
+			else 
+			{
+				(yyval.func)=find_func("temp1");
+				add_funcpar("temp1",(yyvsp[(3) - (3)].par)->name, (yyvsp[(3) - (3)].par)->type, (yyvsp[(3) - (3)].par)->arrdim);
+			}
 		;}
     break;
 
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 186 "src/parser.y"
+#line 257 "src/parser.y"
     {
 			(yyval.par)=malloc(sizeof((yyval.par)));
 			(yyval.par)->name = (yyvsp[(2) - (2)].sym)->name; 
@@ -1680,17 +1781,82 @@ yyreduce:
 				fprintf(stderr,"Function parameters can not be of type void.\n"); 
 			} 
 			else {
-				(yyval.par)->type=(int)(yyvsp[(1) - (2)].id);
+				if((yyvsp[(2) - (2)].sym)->arrdim>=0){
+						(yyval.par)->type=1;
+						(yyval.par)->arrdim=(yyvsp[(2) - (2)].sym)->arrdim;
+						//add_funcpar(funcname, $$->name, $$->type, $2->arrdim);
+					}
+				else {
+						(yyval.par)->type=0;
+						(yyval.par)->arrdim=-1;
+						//add_var($$->varname, $$->vartype,-1);
+					}
+				}
+			//printf("DEBUG --- Symboltable: ");
+			//print_all(); 
+		;}
+    break;
+
+  case 57:
+
+/* Line 1455 of yacc.c  */
+#line 338 "src/parser.y"
+    {
+			funcentry_t *f;
+			printf("DEBUG --- Function call regocnised[%s()].\n",(yyvsp[(1) - (3)].id));
+			if(find_func((yyvsp[(1) - (3)].id))){
+				f = find_func((yyvsp[(1) - (3)].id));
 			}
-			printf("DEBUG --- Symboltable: ");
-			print_all(); 
+			else{
+				fprintf(stderr,"ERROR! Function was not declared before the call!\n");
+			}
+		;}
+    break;
+
+  case 58:
+
+/* Line 1455 of yacc.c  */
+#line 349 "src/parser.y"
+    {
+			funcentry_t *f;
+			printf("DEBUG --- Parameterise Function call regocnised[%s()].\n",(yyvsp[(1) - (4)].id));
+			if(find_func((yyvsp[(1) - (4)].id))){
+				f = find_func((yyvsp[(1) - (4)].id));
+				if(check_funccallpar(f, (yyvsp[(3) - (4)].plist))){
+					printf("Functional Call Param Check OK!\n");
+				}
+				else{
+					fprintf(stderr,"ERROR: Functional Call Param Check FAILED!\n");
+				}
+			}
+			else{
+				fprintf(stderr,"ERROR! Function was not declared before the call!\n");
+			}
+		;}
+    break;
+
+  case 59:
+
+/* Line 1455 of yacc.c  */
+#line 369 "src/parser.y"
+    {
+			(yyval.plist)->count += 1;
+		;}
+    break;
+
+  case 60:
+
+/* Line 1455 of yacc.c  */
+#line 373 "src/parser.y"
+    {
+			(yyval.plist) = createParamList((yyvsp[(1) - (1)].var));
 		;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 1694 "bin/parser.c"
+#line 1860 "bin/parser.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1909,7 +2075,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 266 "src/parser.y"
+#line 378 "src/parser.y"
 
 
 void yyerror (const char *msg)
