@@ -92,12 +92,11 @@ typedef union YYSTYPE
   struct varentry 	*var;
   struct funcentry 	*func;
   struct symentry	*sym;
-  struct symentry *test;  
 
 
 
 /* Line 1676 of yacc.c  */
-#line 101 "bin/parser.h"
+#line 100 "bin/parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
