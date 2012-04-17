@@ -40,41 +40,41 @@ static char* enumStrings[] = {
 struct strCode
 {
 	enum code_ops op;
-	struct symInt *int0;
-	struct symInt *int1;
-	struct symInt *int2;
-	struct symFunc *func;
+	struct varentry *int0;
+	struct varentry *int1;
+	struct varentry *int2;
+	struct funcentry *func;
 	int jmpLabel;
 	int jmpTo;
 };
 
-void addcodeass(struct symInt *int0, struct symInt *int1);
-struct symInt *addcodeopexp1(enum code_ops operation, struct symInt *int1);
-struct symInt *addcodeopexp2(enum code_ops operation, struct symInt *int1, struct symInt *int2);
-struct symInt * addcodeloadarr(struct symInt *int1, struct symInt *int2);
-void addcodeopfunc(enum code_ops operation, struct symInt *int0, struct symFunc *func, int jmpTo);
-void addcodeop1(enum code_ops operation, struct symInt *int0);
-void addcodeop2(enum code_ops operation, struct symInt *int0, struct symInt *int1);
-int opcodeFindFunctionDef(struct symFunc *func);
-void addif(struct symInt *int0);
+void addcodeass(struct varentry *int0, struct varentry *int1);
+struct varentry *addcodeopexp1(enum code_ops operation, struct varentry *int1);
+struct varentry *addcodeopexp2(enum code_ops operation, struct varentry *int1, struct varentry *int2);
+struct varentry * addcodeloadarr(struct varentry *int1, struct varentry *int2);
+void addcodeopfunc(enum code_ops operation, struct varentry *int0, struct funcentry *func, int jmpTo);
+void addcodeop1(enum code_ops operation, struct varentry *int0);
+void addcodeop2(enum code_ops operation, struct varentry *int0, struct varentry *int1);
+int opcodeFindFunctionDef(struct funcentry *func);
+void addif(struct varentry *int0);
 void addifgoto();
 void backpatchif(int shift);
-void addwhile(struct symInt *int0);
+void addwhile(struct varentry *int0);
 void addwhilebegin();
 void addwhilegotobegin();
 void backpatchwhile();
 void adddowhile();
-void adddowhileend(struct symInt *int0);
+void adddowhileend(struct varentry *int0);
 int setJmpLabel(int cpos, int jmpLabel);
 void setCodeToNOP(int pos);
-int addcodeopfunccall(enum code_ops operation, struct symInt *int0, struct symFunc *func, int jmpTo);
+int addcodeopfunccall(enum code_ops operation, struct varentry *int0, struct funcentry *func, int jmpTo);
 void resetTempCount();
 void backpatchreturn();
 
 void printcode();
 void debugPrintAllopcodes();
 
-struct strCode  *getopcodeArray();
+struct strCode *getopcodeArray();
 int getopcodeCount();
 
 #endif

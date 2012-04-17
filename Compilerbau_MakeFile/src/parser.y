@@ -7,6 +7,8 @@
 %{
 #include "include/uthash.h";
 #include "symtab.h";
+#include "ir_code_gen.h";
+
 
 %}
 
@@ -105,11 +107,11 @@ variable_declaration
 			$$->varname=$3->name;
 			if($3->arrdim>=0){
 					$$->vartype=1;
-					add_var($$->varname, $$->vartype,$3->arrdim,0);
+					add_var($$->varname, $$->vartype,$3->arrdim,0,NULL);
 				}
 				else {
 					$$->vartype=0;
-					add_var($$->varname, $$->vartype,-1,0);
+					add_var($$->varname, $$->vartype,-1,0,NULL);
 				}
 			//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
 		}
@@ -123,11 +125,11 @@ variable_declaration
 				$$->varname=$2->name;
 				if($2->arrdim>=0){
 					$$->vartype=1;
-					add_var($$->varname, $$->vartype,$2->arrdim,0);
+					add_var($$->varname, $$->vartype,$2->arrdim,0,NULL);
 				}
 				else {
 					$$->vartype=0;
-					add_var($$->varname, $$->vartype,-1,0);
+					add_var($$->varname, $$->vartype,-1,0,NULL);
 				}
 				//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
 				//printf("DEBUG --- Symboltable: ");
@@ -182,9 +184,9 @@ function_definition		//TODO: stmt_list
 			$$->returntype=(int)$1;
 			$$->dim=0;							//TODO: count_pars($2);
 			$$->arrdim=-1;
-			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,$$->par);
+			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,$$->var);
 			$$=find_func("temp1");
-			$$->par=NULL;
+			$$->var=NULL;
 			
 		}
      ;
@@ -209,10 +211,10 @@ function_declaration
 			$$->returntype=(int)$1;
 			$$->dim=0;							//TODO: count_pars($2);
 			$$->arrdim=-1;
-			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,$$->par);
+			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,$$->var);
 			//delete_func("temp1");
 			$$=find_func("temp1");
-			$$->par=NULL;
+			$$->var=NULL;
 			//printf("DEBUG --- Function was added to Symboltable: %s\n",$$->funcname);
 			//printf("DEBUG --- Symboltable: ");
 			//print_funcs();			
@@ -307,31 +309,53 @@ stmt_loop
      | DO stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON
      ;
 									
-expression
-     : expression ASSIGN expression
-     | expression LOGICAL_OR expression
-     | expression LOGICAL_AND expression
-     | LOGICAL_NOT expression
-     | expression EQ expression
-     | expression NE expression
-     | expression LS expression 
-     | expression LSEQ expression 
-     | expression GTEQ expression 
-     | expression GT expression
-     | expression PLUS expression
-     | expression MINUS expression
-     | expression MUL expression
-     | MINUS expression %prec UNARY_MINUS
-     | ID BRACKET_OPEN primary BRACKET_CLOSE
-     | PARA_OPEN expression PARA_CLOSE
-     | function_call
-     | primary
+expression								// 0 = "false", nonzero = "true"
+     : expression ASSIGN expression				{$$ = $3;addcodeass($1, $3);if($1->tempCodePos>-1) {setCodeToNOP($1->tempCodePos);}}	//WARNING: Ambigious! You dont know if you have to assign to/load from an array or if it is an normal int at this point. check this when generating final code
+     | expression LOGICAL_OR expression			{$$ = addcodeopexp2(opLOGICAL_OR, $1, $3);}
+     | expression LOGICAL_AND expression		{$$ = addcodeopexp2(opLOGICAL_AND, $1, $3);}
+     | LOGICAL_NOT expression					{$$ = addcodeopexp1(opLOGICAL_NOT, $2);}
+     | expression EQ expression					{$$ = addcodeopexp2(opEQ, $1, $3);}
+     | expression NE expression					{$$ = addcodeopexp2(opNE, $1, $3);}
+     | expression LS expression 					{$$ = addcodeopexp2(opLS, $1, $3);}
+     | expression LSEQ expression 				{	//$$ = $1 <= $2 -> $$ = $1 < $2 || $1 == $2;
+											struct varentry *t0;struct varentry *t1;
+											t0 = addcodeopexp2(opLS, $1, $3);
+											t1 = addcodeopexp2(opEQ, $1, $3);
+											$$ = addcodeopexp2(opLOGICAL_OR, t0, t1);
+											//$$ = addcodeopexp2(opLSEQ, $1, $3);
+										}
+     | expression GTEQ expression 				{	//$$ = $1 >= $2 -> $$ = $1 > $2 || $1 == $2;
+											struct varentry *t0;struct varentry *t1;
+											t0 = addcodeopexp2(opGT, $1, $3);
+											t1 = addcodeopexp2(opEQ, $1, $3);
+											$$ = addcodeopexp2(opLOGICAL_OR, t0, t1);
+											//$$ = addcodeopexp2(opGTEQ, $1, $3);
+										}
+     | expression GT expression					{$$ = addcodeopexp2(opGT, $1, $3);}
+     | expression PLUS expression				{$$ = addcodeopexp2(opADD, $1, $3);}
+     | expression MINUS expression				{$$ = addcodeopexp2(opSUB, $1, $3);}
+     | expression MUL expression				{$$ = addcodeopexp2(opMUL, $1, $3);}
+     | MINUS expression %prec UNARY_MINUS		{$$ = addcodeopexp1(opMINUS, $2);}
+     | ID BRACKET_OPEN primary BRACKET_CLOSE	{$$ = addcodeloadarr(find_var($1), $3);$$->tempArrPos=$3->var;$$->tempArrPos2=$3;} /*In c there is no check whether the array acces in the valid bounds*/
+     | PARA_OPEN expression PARA_CLOSE			{$$ = $2}
+     | function_call							{$$ = $1;/*$$ = irtempInt();*//*TODO: Check whether v0 or v1 is needed as a temp register. for e.g. i = f() + g() -> i = v0 + v1*/}
+     | primary									{$$ = $1}
      ;
 
+
 primary
-     : NUM
-     | ID
-     ;
+     : NUM {add_var("int",0, -1,0, $1);$$ = find_var("int");}
+     | ID {	if(find_var($1)) {
+			$$ = find_var($1);
+		} else {
+			//TODO: It seems that global variables are not recognised, check this!
+			printf("ERROR! The variable %s was not declared. Line: %d Column: %d \n", $1, @1.first_line, @1.first_column);
+			//We assume the variable should have been declared. so we declare it for the user...
+			add_var ($1, 0,-1, 0,0);
+			$$= find_var($1);
+			//yyerror("syntax error");
+		}
+	  }
 
 function_call
       : ID PARA_OPEN PARA_CLOSE

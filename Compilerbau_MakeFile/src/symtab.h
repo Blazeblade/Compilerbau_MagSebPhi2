@@ -31,6 +31,10 @@ typedef struct varentry
 	enum type vartype;	//0 - integer, 1- intarray, 2 - void
 	int arrdim;			//array dimension
 	int scope;			//0 - global, 1 - local
+	int var;			//VALUE
+	int tempArrPos;
+	struct varentry *tempArrPos2;
+	int tempCodePos;
 	//int memory; 		//size
 	//int adress;		//offset
 	//funcpar_t *var;		//if varentry == array
@@ -43,7 +47,7 @@ typedef struct funcentry
 	enum type returntype;	//0 - integer, 1- intarray, 2 - void
 	int dim;		//dimension
 	int arrdim;			//array dimension
-	funcpar_t *par; 		//name, type and order of function parameters
+	varentry_t *var; 		//name, type and order of function parameters
 							//TODO: Reference to IR of function
     UT_hash_handle hh;
 }funcentry_t;
@@ -62,21 +66,21 @@ typedef struct symentry
 
 struct funccallparlist
 {
-	funcpar_t *par;
+	varentry_t *var;
 	int count;
 };
 
 void init_table();
-void add_var(char *varname, enum type vartype,int arrdim,int scope);
-void add_func(char *funcname, enum type returntype,int dim, int arrdim,funcpar_t *par);
+void add_var(char *varname, enum type vartype,int arrdim,int scope, int value);
+void add_func(char *funcname, enum type returntype,int dim, int arrdim,varentry_t *par);
 void add_funcpar(char *funcname,char *parname, enum type partype, int arrdim);
 struct varentry *find_var(char *var_name);
 struct funcentry *find_func(char *func_name);
-struct funcpar *find_funcpar(char *par_name, char *func_name);
+struct varentry *find_funcpar(char *var_name, char *func_name);
 struct symentry *find_sym(char *sym_name);
 void delete_var(struct varentry *var);
 void delete_func(struct funcentry *func);
-void delete_funcpar(struct funcpar *par, char *func_name) ;
+void delete_funcpar(struct varentry *var, char *func_name) ;
 void delete_all_vars();
 void delete_all_funcs();
 void delete_all_pars(char *func_name);
@@ -96,6 +100,6 @@ void sort_funcs();
 int name_sort_all(symentry_t *a, symentry_t *b);
 void sort_all();
 unsigned int check_funccallpar(funcentry_t *func0, struct funccallparlist *params);
-struct funccallparlist *createParamList(funcpar_t *par);
+struct funccallparlist *createParamList(varentry_t *var);
 
 #endif /* SYMTAB_H_ */

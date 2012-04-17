@@ -33,7 +33,7 @@ void init_table ()
 
 /**************************************        ADD ITEMS          *******************************************/
 
-void add_var(char *varname, enum type vartype,int arrdim,int scope) {
+void add_var(char *varname, enum type vartype,int arrdim,int scope, int value) {
     varentry_t *v;
     symentry_t *s;
     v = malloc(sizeof(varentry_t));
@@ -42,6 +42,7 @@ void add_var(char *varname, enum type vartype,int arrdim,int scope) {
     v->vartype=vartype;
     v->arrdim=arrdim;
     v->scope=scope;
+    v->var=value;
     //HASH_ADD_STR(varentries, varname, v);
     HASH_ADD_KEYPTR(hh, varentries, v->varname, strlen(v->varname), v );
     s = malloc(sizeof(symentry_t));
@@ -55,7 +56,7 @@ void add_var(char *varname, enum type vartype,int arrdim,int scope) {
     return;
 }
 
-void add_func(char *funcname, enum type returntype,int dim, int arrdim,funcpar_t *par) {
+void add_func(char *funcname, enum type returntype,int dim, int arrdim,varentry_t *var) {
     funcentry_t *f;
     symentry_t *s;
     f = malloc(sizeof(funcentry_t));
@@ -64,7 +65,7 @@ void add_func(char *funcname, enum type returntype,int dim, int arrdim,funcpar_t
     f->returntype= returntype;
     f->dim = dim;
     f->arrdim=arrdim;
-    f->par = par;
+    f->var = var;
     //HASH_ADD_STR(funcentries, funcname, f);
     HASH_ADD_KEYPTR(hh, funcentries, f->funcname, strlen(f->funcname), f );
     s = malloc(sizeof(symentry_t));
@@ -78,17 +79,17 @@ void add_func(char *funcname, enum type returntype,int dim, int arrdim,funcpar_t
     return;
 
 }
-void add_funcpar(char *funcname,char *parname, enum type partype, int arrdim) {
-	 funcpar_t *p;
+void add_funcpar(char *funcname,char *varname, enum type partype, int arrdim) {
+	 varentry_t *p;
 	 funcentry_t *f;
-	 p = malloc(sizeof(funcpar_t));
-	 p->name = malloc(sizeof(parname));
-	 strcpy(p->name, parname);
-	 p->type=partype;
+	 p = malloc(sizeof(varentry_t));
+	 p->varname = malloc(sizeof(varname));
+	 strcpy(p->varname, varname);
+	 p->vartype=partype;
 	 p->arrdim=arrdim;
 	 HASH_FIND(hh,funcentries, funcname,strlen(funcname), f);
-	 //HASH_ADD_STR(f->par, name, p);
-     HASH_ADD_KEYPTR(hh, f->par, p->name, strlen(p->name), p);
+	 //HASH_ADD_STR(f->var, name, p);
+     HASH_ADD_KEYPTR(hh, f->var, p->varname, strlen(p->varname), p);
      return;
 }
 
@@ -107,12 +108,12 @@ struct funcentry *find_func(char *func_name) {
     return f;
 }
 
-struct funcpar *find_funcpar(char *par_name, char *func_name) {
-    struct funcpar *p;
+struct varentry *find_funcpar(char *var_name, char *func_name) {
+    struct varentry *v;
     struct funcentry *f;
     HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);  	/* f: output pointer */
-    HASH_FIND(hh,f->par, par_name,strlen(par_name), p);  		/* P: output pointer */
-    return p;
+    HASH_FIND(hh,f->var, var_name,strlen(var_name), v);  		/* P: output pointer */
+    return v;
 }
 
 struct symentry *find_sym(char *sym_name) {
@@ -131,13 +132,13 @@ void delete_var(struct varentry *var) {
 }
 void delete_func(struct funcentry *func) {
     HASH_DEL(funcentries, func);  	/* var: pointer to delete */
-    free(func);             			 /* optional; it's up to you! */
+    free(func);     				/* optional; it's up to you! */
 }
-void delete_funcpar(struct funcpar *par, char *func_name) {
+void delete_funcpar(struct varentry *var, char *func_name) {
     struct funcentry *f;
     HASH_FIND(hh,funcentries, func_name, strlen(func_name), f);  	/* f: output pointer */
-    HASH_DEL(f->par, par);
-    free(par);
+    HASH_DEL(f->var, var);
+    free(var);
 }
 
 
@@ -160,12 +161,12 @@ void delete_all_funcs() {
   }
 }
 void delete_all_pars(char *func_name) {
-  funcpar_t *p, *tmp;
+  varentry_t *v, *tmp;
   struct funcentry *f;
   HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);  	/* f: output pointer */
-  HASH_ITER(hh, f->par, p, tmp) {
-    HASH_DEL(f->par,p);  		/* delete; f->par advances to next */
-    free(p);
+  HASH_ITER(hh, f->var, v, tmp) {
+    HASH_DEL(f->var,v);  		/* delete; f->var advances to next */
+    free(v);
   }
 }
 
@@ -193,7 +194,7 @@ unsigned int count_pars(char *func_name) {
 	struct funcentry *f;
 	HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);
 	assert(f!=NULL);
-	return HASH_COUNT(f->par);
+	return HASH_COUNT(f->var);
 }
 
 unsigned int count_all(){
@@ -228,9 +229,9 @@ void print_funcs(){
 		funcentry_t *f, *tmp;
 		HASH_ITER(hh, funcentries, f, tmp) {
 			printf("Function: %s(), type: %d, dimension: %d\n", f->funcname, f->returntype,f->dim);
-			funcpar_t *p, *tmp;
-			HASH_ITER(hh, f->par, p, tmp) {
-				printf("\tParameter of %s: %s, type: %d, [%d]\n",f->funcname ,p->name, p->type,p->arrdim);
+			varentry_t *p, *tmp;
+			HASH_ITER(hh, f->var, p, tmp) {
+				printf("\tParameter of %s: %s, type: %d, [%d]\n",f->funcname ,p->varname, p->vartype,p->arrdim);
 			}
 		}
 	}
@@ -239,15 +240,15 @@ void print_funcs(){
 void print_pars(char *func_name){
 	struct funcentry *f;
 	HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);
-	if(f->par==NULL)
+	if(f->var==NULL)
 			{
 				printf("No Parameters in table for %s.\n",func_name);
 				return;
 			}
 	else{
-		funcpar_t *p, *tmp;
-		HASH_ITER(hh, f->par, p, tmp) {
-			printf("Parameter of %s: %s, type: %d, [%d]\n",func_name ,p->name, p->type,p->arrdim);
+		varentry_t *p, *tmp;
+		HASH_ITER(hh, f->var, p, tmp) {
+			printf("Parameter of %s: %s, type: %d, [%d]\n",func_name ,p->varname, p->vartype,p->arrdim);
 		}
 	}
 }
@@ -303,13 +304,13 @@ unsigned int check_funccallpar(funcentry_t *func0, struct funccallparlist *param
 	if(func0->dim != params->count){
 		return 0;
 	}
-	funcpar_t *param0 = func0->par;
-	funcpar_t *param1 = params->par;
+	varentry_t *param0 = func0->var;
+	varentry_t *param1 = params->var;
 	for(int i=0;i<func0->dim;i++){
 		if(param0->arrdim != param1->arrdim){
 			return 0;
 		}
-		if(param0->type != param1->type){
+		if(param0->vartype != param1->vartype){
 			return 0;
 		}
 		if(param0->hh.next!=NULL){
@@ -327,11 +328,35 @@ unsigned int check_funccallpar(funcentry_t *func0, struct funccallparlist *param
 	}
 	return 1;
 }
-struct funccallparlist *createParamList(funcpar_t *par)
+struct funccallparlist *createParamList(varentry_t *var)
 {
 	struct funccallparlist *ptr;
 	ptr = (struct funccallparlist *) malloc (sizeof (struct funccallparlist));
 	ptr->count = 1;
-	ptr->par = par;
+	ptr->var = var;
+	return ptr;
+}
+/**************************************       TEMP VAR         *******************************************/
+
+struct varentry *tempInt (char const *name)
+{
+	struct varentry *ptr;
+	//set name
+    ptr = malloc(sizeof(varentry_t));
+    ptr->varname = malloc(sizeof(name));
+	strcpy (ptr->varname,name);
+
+	ptr->arrdim = -1;
+	ptr->scope = NULL;
+//
+//	ptr->isParam = 0;
+//	ptr->stackpos = 0;
+//	ptr->isTemp = 1;
+	ptr->tempArrPos = -1;
+	ptr->tempArrPos2=NULL;
+	ptr->tempCodePos=-1;
+
+//	ptr->next = 137; //Temp Var Marker...
+
 	return ptr;
 }
