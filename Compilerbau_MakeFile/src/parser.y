@@ -15,7 +15,6 @@
 %union {
   int 				num;
   char*				id;
-  struct funcpar 	*par;
   struct varentry 	*var;
   struct funcentry 	*func;
   struct symentry	*sym;
@@ -62,7 +61,7 @@
 %type <func> 	function_parameter_list
 %type <func> 	function_declaration
 %type <func> 	function_call
-%type <par> 	function_parameter
+%type <var> 	function_parameter
 %type <sym> 	identifier_declaration
 %type <var> 	expression
 %type <var> 	primary
@@ -176,17 +175,21 @@ function_definition		//TODO: stmt_list
 			$$->dim=0;
 			$$->arrdim=-1;
 			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,NULL);
+			addcodeopfunc(opFUNC_DEF, NULL, find_func($2), -1);
+
 		}
      | type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
      	{
 			$$=find_func("temp1");
+			$$->dim=count_pars($2);
 			$$->funcname=$2;
 			$$->returntype=(int)$1;
-			$$->dim=0;							//TODO: count_pars($2);
 			$$->arrdim=-1;
 			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,$$->var);
-			$$=find_func("temp1");
-			$$->var=NULL;
+			delete_func($$);
+			//$$=find_func("temp1");
+			//$$->var=NULL;
+			addcodeopfunc(opFUNC_DEF, NULL, find_func($2), -1);
 			
 		}
      ;
@@ -207,14 +210,14 @@ function_declaration
      | type ID PARA_OPEN function_parameter_list PARA_CLOSE 
 		{
 			$$=find_func("temp1");
+			$$->dim=count_pars($$->funcname);
 			$$->funcname=$2;
 			$$->returntype=(int)$1;
-			$$->dim=0;							//TODO: count_pars($2);
 			$$->arrdim=-1;
 			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,$$->var);
-			//delete_func("temp1");
-			$$=find_func("temp1");
-			$$->var=NULL;
+			delete_func($$);				//Deletes the temp function
+			//$$=find_func("temp1");
+			//$$->var=NULL;
 			//printf("DEBUG --- Function was added to Symboltable: %s\n",$$->funcname);
 			//printf("DEBUG --- Symboltable: ");
 			//print_funcs();			
@@ -229,12 +232,15 @@ function_parameter_list
 			{
 				add_func("temp1", 0,0,-1,NULL);
 				$$=find_func("temp1");
-				add_funcpar("temp1",$1->name, $1->type, $1->arrdim);
+				add_funcpar("temp1",$1->varname, $1->vartype, $1->arrdim);
+				add_var($1->varname, $1->vartype, $1->arrdim,0,0);
 			} 
 			else 
 			{	
 				$$=find_func("temp1");
-				add_funcpar("temp1",$1->name, $1->type, $1->arrdim);
+				add_funcpar("temp1",$1->varname, $1->vartype, $1->arrdim);
+				add_var($1->varname, $1->vartype, $1->arrdim,0,0);
+				
 			}
 		}
      | function_parameter_list COMMA function_parameter
@@ -244,12 +250,14 @@ function_parameter_list
 			{
 				add_func("temp1", 0,0,-1,NULL);
 				$$=find_func("temp1");
-				add_funcpar("temp1",$3->name, $3->type, $3->arrdim);
+				add_funcpar("temp1",$3->varname, $3->vartype, $3->arrdim);
+				add_var($3->varname, $3->vartype, $3->arrdim,0,0);
 			} 
 			else 
 			{
 				$$=find_func("temp1");
-				add_funcpar("temp1",$3->name, $3->type, $3->arrdim);
+				add_funcpar("temp1",$3->varname, $3->vartype, $3->arrdim);
+				add_var($3->varname, $3->vartype, $3->arrdim,0,0);
 			}
 		}
      ;
@@ -258,18 +266,18 @@ function_parameter
      : type identifier_declaration	
 		{
 			$$=malloc(sizeof($$));
-			$$->name = $2->name; 
+			$$->varname = $2->name; 
 			if($1==voidtype) { 
 				fprintf(stderr,"Function parameters can not be of type void.\n"); 
 			} 
 			else {
 				if($2->arrdim>=0){
-						$$->type=1;
+						$$->vartype=1;
 						$$->arrdim=$2->arrdim;
 						//add_funcpar(funcname, $$->name, $$->type, $2->arrdim);
 					}
 				else {
-						$$->type=0;
+						$$->vartype=0;
 						$$->arrdim=-1;
 						//add_var($$->varname, $$->vartype,-1);
 					}
@@ -286,27 +294,43 @@ stmt_list
 
 stmt
      : stmt_block
-     | variable_declaration SEMICOLON
-     | expression SEMICOLON
-     | stmt_conditional
-     | stmt_loop
-     | RETURN expression SEMICOLON 
-     | RETURN SEMICOLON
-     | SEMICOLON /* empty statement */
+     | variable_declaration SEMICOLON	{resetTempCount();}
+     | expression SEMICOLON			{resetTempCount();}
+     | stmt_conditional				{resetTempCount();}
+     | stmt_loop						{resetTempCount();}
+     | RETURN expression SEMICOLON		{
+									if($2->scope!=NULL)
+									{
+										if($2->vartype==0) //$2->scope->retType
+										{
+											printf("ERROR: Function was declarad as VOID. It can not return a value. Either use \"RETURN;\" or use type int for the func.\n");
+										}
+									}
+									addcodeop1(opRETURN, $2);
+									{resetTempCount();}
+								}
+     | RETURN SEMICOLON				{addcodeop1(opRETURN, NULL);{resetTempCount();}}
+     | SEMICOLON {resetTempCount();}
      ;
+
 
 stmt_block
      : BRACE_OPEN stmt_list BRACE_CLOSE
      ;
 	
 stmt_conditional
-     : IF PARA_OPEN expression PARA_CLOSE stmt
-     | IF PARA_OPEN expression PARA_CLOSE stmt ELSE stmt
+     : IF PARA_OPEN expression {addif($3);addifgoto();} PARA_CLOSE stmt_conditional_r //stmt
+     //| IF PARA_OPEN expression {addif($3);addifgoto();} PARA_CLOSE stmt ELSE stmt	//{addif($3);addifgoto();}
+     ;
+     
+stmt_conditional_r
+     : stmt {backpatchif(0);}
+     | stmt ELSE {backpatchif(1);addifgoto();} stmt {backpatchif(0);}
      ;
 									
 stmt_loop
-     : WHILE PARA_OPEN expression PARA_CLOSE stmt
-     | DO stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON
+     : WHILE {addwhilebegin();} PARA_OPEN expression PARA_CLOSE {addwhile($4);addwhilegotobegin();} stmt {backpatchwhile();}
+     | DO {adddowhile();} stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON {adddowhileend($6);}
      ;
 									
 expression								// 0 = "false", nonzero = "true"
@@ -368,6 +392,8 @@ function_call
 			else{
 				fprintf(stderr,"ERROR! Function was not declared before the call!\n");
 			}
+			//$$ = addcodeopfunccall(opCALL, putInt ("int", 0, 0), sFunc, opcodeFindFunctionDef(sFunc));
+
 		}
       | ID PARA_OPEN function_call_parameters PARA_CLOSE
       	{
@@ -385,6 +411,9 @@ function_call
 			else{
 				fprintf(stderr,"ERROR! Function was not declared before the call!\n");
 			}
+			varentry_t *v;
+			add_var
+			//$$ = addcodeopfunccall(opCALL, putInt ("int", 0, $3->count), f, opcodeFindFunctionDef(f));
 		}
       ;
 
@@ -392,10 +421,12 @@ function_call_parameters
      : function_call_parameters COMMA expression	
 		{
 			$$->count += 1;
+			addcodeop1(opPARAM, $3);
 		}
      | expression
 		{
 			$$ = createParamList($1);
+			addcodeop1(opPARAM, $1);
 		}
      ;
 

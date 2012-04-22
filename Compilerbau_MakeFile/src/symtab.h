@@ -16,15 +16,6 @@ enum type{
 	voidtype=2
 }types;
 
-
-typedef struct funcpar{
-	char *name;
-	enum type type;	//0 - integer, 1- intarray, 2 - void
-	int arrdim;			//array dimension
-    UT_hash_handle hh;
-}funcpar_t;
-
-
 typedef struct varentry
 {
 	char *varname;		//name, key
@@ -35,9 +26,6 @@ typedef struct varentry
 	int tempArrPos;
 	struct varentry *tempArrPos2;
 	int tempCodePos;
-	//int memory; 		//size
-	//int adress;		//offset
-	//funcpar_t *var;		//if varentry == array
     UT_hash_handle hh;
 } varentry_t;
 

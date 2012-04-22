@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct strCode  *code;
+struct strCode  *code=NULL;
 
 int code_count = 0;
 int temp_reg_count = -1;
@@ -25,7 +25,7 @@ varentry_t *irtempInt()
 	sprintf (buffer, ".t%d", temp_reg_count);
 
 	varentry_t *ptr;
-	ptr = tempInt (buffer);
+	ptr = tempInt(buffer);
 	ptr->arrdim = temp_reg_count;
 
 	return ptr;

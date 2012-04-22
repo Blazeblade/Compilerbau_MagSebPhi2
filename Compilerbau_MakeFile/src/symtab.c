@@ -79,15 +79,16 @@ void add_func(char *funcname, enum type returntype,int dim, int arrdim,varentry_
     return;
 
 }
-void add_funcpar(char *funcname,char *varname, enum type partype, int arrdim) {
+void add_funcpar(char *funcname,char *varname, enum type vartype, int arrdim) {
 	 varentry_t *p;
 	 funcentry_t *f;
 	 p = malloc(sizeof(varentry_t));
 	 p->varname = malloc(sizeof(varname));
 	 strcpy(p->varname, varname);
-	 p->vartype=partype;
+	 p->vartype=vartype;
 	 p->arrdim=arrdim;
 	 HASH_FIND(hh,funcentries, funcname,strlen(funcname), f);
+	assert(f!=NULL);
 	 //HASH_ADD_STR(f->var, name, p);
      HASH_ADD_KEYPTR(hh, f->var, p->varname, strlen(p->varname), p);
      return;
@@ -127,12 +128,21 @@ struct symentry *find_sym(char *sym_name) {
 /**************************************        DELETE ITEMS        *******************************************/
 
 void delete_var(struct varentry *var) {
-    HASH_DEL(symentries, var);  	/* var: pointer to delete */
+    struct symentry *s;
+    HASH_FIND(hh,symentries,var->varname,strlen(var->varname),s);
+    HASH_DEL(symentries, s);
+    free(s);
+    HASH_DEL(varentries,var);		/* var: pointer to delete */
     free(var);             			 /* optional; it's up to you! */
+
 }
 void delete_func(struct funcentry *func) {
-    HASH_DEL(funcentries, func);  	/* var: pointer to delete */
-    free(func);     				/* optional; it's up to you! */
+    struct symentry *s;
+    HASH_FIND(hh,symentries,func->funcname,strlen(func->funcname),s);
+    HASH_DEL(symentries, s);
+    free(s);
+    HASH_DEL(funcentries,func);		/* func: pointer to delete */
+    free(func);						/* optional; it's up to you! */
 }
 void delete_funcpar(struct varentry *var, char *func_name) {
     struct funcentry *f;
@@ -148,6 +158,7 @@ void delete_funcpar(struct varentry *var, char *func_name) {
 void delete_all_vars() {
   varentry_t *v, *tmp;
   HASH_ITER(hh, varentries, v, tmp) {
+	HASH_DEL(symentries,v);
     HASH_DEL(varentries,v);  /* delete; varentries advances to next */
     free(v);
   }
@@ -156,6 +167,7 @@ void delete_all_vars() {
 void delete_all_funcs() {
   funcentry_t *f, *tmp;
   HASH_ITER(hh, funcentries, f, tmp) {
+	HASH_DEL(symentries,f);
     HASH_DEL(funcentries,f);  /* delete; funcentries advances to next */
     free(f);
   }
@@ -213,8 +225,17 @@ void print_vars(){
 		}
 	else{
 		varentry_t *v, *tmp;
+		char* type;
 		HASH_ITER(hh, varentries, v, tmp) {
-			printf("Variable: %s, type: %d, [%d]\n", v->varname, v->vartype,v->arrdim);
+			switch (v->vartype){
+							case 0:type="Integer"; break;
+							case 1:type="Integer Array";;break;
+							case 2:type="Void";;break;
+						}
+			if(v->arrdim==-1)
+				printf("Variable: %s, type: %s\n", v->varname, type);
+			else
+				printf("Variable: %s, type: %s[%d]\n", v->varname, type,v->arrdim);
 		}
 	}
 }
@@ -227,11 +248,25 @@ void print_funcs(){
 			}
 	else{
 		funcentry_t *f, *tmp;
+		char* type;
 		HASH_ITER(hh, funcentries, f, tmp) {
-			printf("Function: %s(), type: %d, dimension: %d\n", f->funcname, f->returntype,f->dim);
-			varentry_t *p, *tmp;
-			HASH_ITER(hh, f->var, p, tmp) {
-				printf("\tParameter of %s: %s, type: %d, [%d]\n",f->funcname ,p->varname, p->vartype,p->arrdim);
+			switch (f->returntype){
+							case 0:type="Integer"; break;
+							case 1:type="Integer Array";;break;
+							case 2:type="Void";;break;
+						}
+			printf("Function: %s(), type: %s, dimension: %d\n", f->funcname, type,f->dim);
+			varentry_t *v, *tmp;
+			HASH_ITER(hh, f->var, v, tmp) {
+				switch (f->var->vartype){
+								case 0:type="Integer"; break;
+								case 1:type="Integer Array";;break;
+								case 2:type="Void";;break;
+							}
+				if(v->arrdim==-1)
+					printf("\tParameter of %s: %s, type: %s\n",f->funcname ,v->varname, type);
+				else
+					printf("\tParameter of %s: %s, type: %s[%d]\n",f->funcname ,v->varname, type,v->arrdim);
 			}
 		}
 	}
@@ -246,9 +281,18 @@ void print_pars(char *func_name){
 				return;
 			}
 	else{
-		varentry_t *p, *tmp;
-		HASH_ITER(hh, f->var, p, tmp) {
-			printf("Parameter of %s: %s, type: %d, [%d]\n",func_name ,p->varname, p->vartype,p->arrdim);
+		varentry_t *v, *tmp;
+		char* type;
+		HASH_ITER(hh, f->var, v, tmp) {
+			switch (v->vartype){
+				case 0:type="Integer"; break;
+				case 1:type="Integer Array";;break;
+				case 2:type="Void";;break;
+			}
+			if(v->arrdim==-1)
+				printf("Parameter of %s: %s, type: %s\n",func_name ,v->varname, type);
+			else
+				printf("Parameter of %s: %s, type: %s[%d]\n",func_name ,v->varname, type,v->arrdim);
 		}
 	}
 }
@@ -261,12 +305,29 @@ void print_all(){
 			}
 	else{
 		symentry_t *s, *tmp;
+		char* type;
 		HASH_ITER(hh, symentries, s, tmp) {
-			if(s->type==0)
-				printf("Variable: %s, type: %d, [%d]\n", s->sym.var->varname, s->sym.var->vartype,s->sym.var->arrdim);
-			else
-				printf("Function: %s(), type: %d, dimension: %d\n",
-						s->sym.func->funcname,  s->sym.func->returntype, s->sym.func->dim);
+			if(s->type==0){
+				switch (s->sym.var->vartype){
+								case 0:type="Integer"; break;
+								case 1:type="Integer Array";;break;
+								case 2:type="Void";;break;
+							}
+				if(s->sym.var->arrdim==-1)
+					printf("Variable: %s, type: %s\n", s->sym.var->varname, type);
+				else
+					printf("Variable: %s, type: %s[%d]\n", s->sym.var->varname, type,s->sym.var->arrdim);
+			}
+			else {
+				switch (s->sym.func->returntype){
+								case 0:type="Integer"; break;
+								case 1:type="Integer Array";;break;
+								case 2:type="Void";;break;
+							}
+				printf("Function: %s(), type: %s, dimension: %d\n",
+						s->sym.func->funcname,  type, s->sym.func->dim);
+			}
+
 		}
 	}
 }
@@ -347,7 +408,7 @@ struct varentry *tempInt (char const *name)
 	strcpy (ptr->varname,name);
 
 	ptr->arrdim = -1;
-	ptr->scope = NULL;
+	ptr->scope = 0;
 //
 //	ptr->isParam = 0;
 //	ptr->stackpos = 0;
