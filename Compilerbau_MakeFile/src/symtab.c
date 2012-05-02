@@ -38,7 +38,7 @@ void add_var(char *varname, enum type vartype,int arrdim,int scope, int value) {
     symentry_t *s;
     v = malloc(sizeof(varentry_t));
 	assert(v!=NULL);
-    v->varname = malloc(sizeof(varname));
+    v->varname = malloc(strlen(varname)+1);
 	assert(v->varname!=NULL);
     strcpy(v->varname, varname);
     v->vartype=vartype;
@@ -49,7 +49,7 @@ void add_var(char *varname, enum type vartype,int arrdim,int scope, int value) {
     HASH_ADD_KEYPTR(hh, varentries, v->varname, strlen(v->varname), v );
     s = malloc(sizeof(symentry_t));
 	assert(s!=NULL);
-    s->name = malloc(sizeof(varname));
+    s->name = malloc(strlen(varname)+1);
 	assert(s->name!=NULL);
     strcpy(s->name, varname);
     s->type=0;							//0=var, 1=func
@@ -65,7 +65,7 @@ void add_func(char *funcname, enum type returntype,int dim, int arrdim,varentry_
     symentry_t *s;
     f = malloc(sizeof(funcentry_t));
 	assert(f!=NULL);
-	f->funcname = malloc(sizeof(funcname));
+	f->funcname = malloc(strlen(funcname)+1);
 	assert(f->funcname!=NULL);
     strcpy(f->funcname, funcname);
     f->returntype= returntype;
@@ -76,7 +76,7 @@ void add_func(char *funcname, enum type returntype,int dim, int arrdim,varentry_
     HASH_ADD_KEYPTR(hh, funcentries, f->funcname, strlen(f->funcname), f );
     s = malloc(sizeof(symentry_t));
 	assert(s!=NULL);
-	s->name = malloc(sizeof(funcname));
+	s->name = malloc(strlen(funcname)+1);
 	assert(s->name!=NULL);
     strcpy(s->name,funcname);
     s->type=1;	//0=var, 1=func
@@ -92,7 +92,7 @@ void add_funcpar(char *funcname,char *varname, enum type vartype, int arrdim) {
 	funcentry_t *f;
 	p = malloc(sizeof(varentry_t));
 	assert(p!=NULL);
-	p->varname = malloc(sizeof(varname));
+	p->varname = malloc(strlen(varname)+1);
 	assert(p->varname!=NULL);
 	strcpy(p->varname, varname);
 	p->vartype=vartype;

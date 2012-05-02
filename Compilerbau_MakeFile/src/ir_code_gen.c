@@ -35,10 +35,10 @@ void gencode(enum code_ops operation, varentry_t *int0, varentry_t *int1, varent
 {
 	code_count += 1;
 	//malloc because realloc throws a "invalid next size"-error
-	struct strCode *codebuffer = malloc(code_count * sizeof(struct strCode));
-	//codebuffer = (struct strCode*) realloc (code, code_count * sizeof(struct strCode));
+	//struct strCode *codebuffer = malloc(code_count * sizeof(struct strCode));
+	struct strCode *codebuffer = (struct strCode*) realloc (code, code_count * sizeof(struct strCode));
 	assert(codebuffer!=NULL);
-
+	//memcpy(code,codebuffer,sizeof(struct strCode));
 	code = codebuffer;
 
 	code[code_count-1].op = operation;

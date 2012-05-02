@@ -110,7 +110,7 @@ type
 variable_declaration
      : variable_declaration COMMA identifier_declaration
 		{
-			$$=malloc(sizeof($$));
+			$$=malloc(sizeof(*$$));
 			assert($$!=NULL);
 			$$->varname=$3->name;
 			if($3->arrdim>=0){
@@ -125,7 +125,7 @@ variable_declaration
 		}
      | type identifier_declaration 
 		{
-			$$=malloc(sizeof($$));
+			$$=malloc(sizeof(*$$));
 			assert($$!=NULL);
 			if($1==voidtype) {
 				fprintf(stderr,"Variables can not be of type void (%s).\n",$2->name);
@@ -150,7 +150,7 @@ variable_declaration
 identifier_declaration
      : ID BRACKET_OPEN NUM BRACKET_CLOSE
 		{
-			$$=malloc(sizeof($$));
+			$$=malloc(sizeof(*$$));
 			assert($$!=NULL);
 			if(find_sym($1)){
 				$$=find_sym($1);
@@ -164,7 +164,7 @@ identifier_declaration
 		}   
      | ID 
 		{
-			$$=malloc(sizeof($$));
+			$$=malloc(sizeof(*$$));
 			assert($$!=NULL);
 			if(find_sym($1)){
 				$$=find_sym($1);
@@ -179,38 +179,41 @@ identifier_declaration
      ;
 
 function_definition		//TODO: stmt_list
-     : type ID PARA_OPEN PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
-		{
-			$$=malloc(sizeof($$));
-			assert($$!=NULL);
-			$$->funcname=$2;
-			$$->returntype=(int)$1;
-			$$->dim=0;
-			$$->arrdim=NOT_DEFINED;
-			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,NULL);
+     : type ID PARA_OPEN PARA_CLOSE BRACE_OPEN
+			{
+			$<func>$=malloc(sizeof(*$<func>$));
+			assert($<func>$!=NULL);
+			$<func>$->funcname=$2;
+			$<func>$->returntype=(int)$1;
+			$<func>$->dim=0;
+			$<func>$->arrdim=NOT_DEFINED;
+			add_func($<func>$->funcname, $<func>$->returntype,$<func>$->dim,$<func>$->arrdim,NULL);
 			gencodeopfunc(opFUNC_DEF, NULL, find_func($2), -1);
 
 		}
-     | type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
+		 stmt_list BRACE_CLOSE
+		
+     | type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN
      	{	
-			$$=find_func("temp1");
-			$$->dim=count_pars($$->funcname);
-			$$->funcname=$2;
-			$$->returntype=(int)$1;
-			$$->arrdim=NOT_DEFINED;
-			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,$$->var);
-			delete_func($$);
+			$<func>$=find_func("temp1");
+			$<func>$->dim=count_pars($<func>$->funcname);
+			$<func>$->funcname=$2;
+			$<func>$->returntype=(int)$1;
+			$<func>$->arrdim=NOT_DEFINED;
+			add_func($<func>$->funcname, $<func>$->returntype,$<func>$->dim,$<func>$->arrdim,$<func>$->var);
+			delete_func($<func>$);
 			//$$=find_func("temp1");
 			//$$->var=NULL;
 			gencodeopfunc(opFUNC_DEF, NULL, find_func($2), -1);
 			
 		}
+		 stmt_list BRACE_CLOSE
      ;
 
 function_declaration 
      : type ID PARA_OPEN PARA_CLOSE
 		{
-			$$=malloc(sizeof($$));
+			$$=malloc(sizeof(*$$));
 			assert($$!=NULL);
 			$$->funcname=$2;
 			$$->returntype=(int)$1;
@@ -241,7 +244,7 @@ function_declaration
 function_parameter_list
      : function_parameter	
 		{
-			$$=malloc(sizeof($$));
+			$$=malloc(sizeof(*$$));
 			assert($$!=NULL);
 			if(!find_func("temp1"))
 			{
@@ -260,7 +263,7 @@ function_parameter_list
 		}
      | function_parameter_list COMMA function_parameter
 		{
-			$$=malloc(sizeof($$));
+			$$=malloc(sizeof(*$$));
 			assert($$!=NULL);
 			if(!find_func("temp1"))
 			{
@@ -281,7 +284,7 @@ function_parameter_list
 function_parameter
      : type identifier_declaration	
 		{
-			$$=malloc(sizeof($$));
+			$$=malloc(sizeof(*$$));
 			assert($$!=NULL);
 			$$->varname = $2->name; 
 			if($1==voidtype) { 
@@ -318,7 +321,7 @@ stmt
      | RETURN expression SEMICOLON		{
 									if($2->scope!=NULL)
 									{
-										if($2->vartype==2) //$2->scope->retType
+										if($2->vartype==2)
 										{
 											printf("ERROR: Function was declarad as VOID. It can not return a value. Either use \"RETURN;\" or use type int for the func.\n");
 										}

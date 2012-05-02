@@ -24,6 +24,8 @@ typedef struct varentry
 	int scope;			//0 - global, 1 - local, 2 - parameter
 	int val;			//VALUE
 	int tempArrPos;
+	int offset;
+	int addr;
 	struct varentry *tempArrPos2;
 	int tempCodePos;
     UT_hash_handle hh;
