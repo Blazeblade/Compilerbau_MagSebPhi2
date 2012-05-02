@@ -8,6 +8,13 @@
 #include "include/uthash.h";
 #include "symtab.h";
 #include "ir_code_gen.h";
+#include <assert.h>
+
+
+#define NOT_DEFINED -1
+#define GLOBAL 0
+#define LOCAL 1
+#define PARAMETER 2
 
 
 %}
@@ -71,19 +78,20 @@
 %%
 
 program
-     : program_element_list
-     ;
-
-program_element_list
-     : program_element_list program_element 
-		{
+     : program_element_list{
 		printf("\n\n----------DEBUG printing all functions and variables----------:\n");
 		printf("<<----------DEBUG Functions---------->>:\n");
 		print_funcs();
 		printf("<<----------DEBUG Variables---------->>:\n");
 		print_vars();
-		printf("<<----------DEBUG END---------->>:\n");
+		printf("<<----------DEBUG IR---------->>:\n");
+		debugPrintAllopcodes();
+		printf("<<----------DEBUG END---------->>:\n\n\n");
 		}
+     ;
+
+program_element_list
+     : program_element_list program_element 
      | program_element 
      ;
 
@@ -103,20 +111,22 @@ variable_declaration
      : variable_declaration COMMA identifier_declaration
 		{
 			$$=malloc(sizeof($$));
+			assert($$!=NULL);
 			$$->varname=$3->name;
 			if($3->arrdim>=0){
 					$$->vartype=1;
-					add_var($$->varname, $$->vartype,$3->arrdim,0,NULL);
+					add_var($$->varname, $$->vartype,$3->arrdim,GLOBAL,NULL);
 				}
 				else {
 					$$->vartype=0;
-					add_var($$->varname, $$->vartype,-1,0,NULL);
+					add_var($$->varname, $$->vartype,NOT_DEFINED,GLOBAL,NULL);
 				}
 			//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
 		}
      | type identifier_declaration 
 		{
 			$$=malloc(sizeof($$));
+			assert($$!=NULL);
 			if($1==voidtype) {
 				fprintf(stderr,"Variables can not be of type void (%s).\n",$2->name);
 			} 
@@ -124,11 +134,11 @@ variable_declaration
 				$$->varname=$2->name;
 				if($2->arrdim>=0){
 					$$->vartype=1;
-					add_var($$->varname, $$->vartype,$2->arrdim,0,NULL);
+					add_var($$->varname, $$->vartype,$2->arrdim,GLOBAL,NULL);
 				}
 				else {
 					$$->vartype=0;
-					add_var($$->varname, $$->vartype,-1,0,NULL);
+					add_var($$->varname, $$->vartype,NOT_DEFINED,GLOBAL,NULL);
 				}
 				//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
 				//printf("DEBUG --- Symboltable: ");
@@ -141,9 +151,10 @@ identifier_declaration
      : ID BRACKET_OPEN NUM BRACKET_CLOSE
 		{
 			$$=malloc(sizeof($$));
+			assert($$!=NULL);
 			if(find_sym($1)){
 				$$=find_sym($1);
-				fprintf(stderr,"This Symbol was already defined.\n");
+				fprintf(stderr,"This Symbol was already defined.(%s)\n",$$->name);
 			}	
 			else{
 				$$->name=$1;
@@ -154,13 +165,14 @@ identifier_declaration
      | ID 
 		{
 			$$=malloc(sizeof($$));
+			assert($$!=NULL);
 			if(find_sym($1)){
 				$$=find_sym($1);
-				fprintf(stderr,"This Symbol was already defined.\n");
+				fprintf(stderr,"This Symbol was already defined.(%s)\n",$$->name);
 			}	
 			else{
 				$$->name=$1;
-				$$->arrdim=-1;
+				$$->arrdim=NOT_DEFINED;
 				//printf("DEBUG --- We have recognised a Symbol: %s\n",$1);
 			}
 		}   
@@ -170,26 +182,27 @@ function_definition		//TODO: stmt_list
      : type ID PARA_OPEN PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
 		{
 			$$=malloc(sizeof($$));
+			assert($$!=NULL);
 			$$->funcname=$2;
 			$$->returntype=(int)$1;
 			$$->dim=0;
-			$$->arrdim=-1;
+			$$->arrdim=NOT_DEFINED;
 			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,NULL);
-			addcodeopfunc(opFUNC_DEF, NULL, find_func($2), -1);
+			gencodeopfunc(opFUNC_DEF, NULL, find_func($2), -1);
 
 		}
      | type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
-     	{
+     	{	
 			$$=find_func("temp1");
-			$$->dim=count_pars($2);
+			$$->dim=count_pars($$->funcname);
 			$$->funcname=$2;
 			$$->returntype=(int)$1;
-			$$->arrdim=-1;
+			$$->arrdim=NOT_DEFINED;
 			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,$$->var);
 			delete_func($$);
 			//$$=find_func("temp1");
 			//$$->var=NULL;
-			addcodeopfunc(opFUNC_DEF, NULL, find_func($2), -1);
+			gencodeopfunc(opFUNC_DEF, NULL, find_func($2), -1);
 			
 		}
      ;
@@ -198,10 +211,11 @@ function_declaration
      : type ID PARA_OPEN PARA_CLOSE
 		{
 			$$=malloc(sizeof($$));
+			assert($$!=NULL);
 			$$->funcname=$2;
 			$$->returntype=(int)$1;
 			$$->dim=0;
-			$$->arrdim=-1;
+			$$->arrdim=NOT_DEFINED;
 			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,NULL);
 			//printf("DEBUG --- Function was added to Symboltable: %s\n",$$->funcname);
 			//printf("DEBUG --- Symboltable: ");
@@ -213,7 +227,7 @@ function_declaration
 			$$->dim=count_pars($$->funcname);
 			$$->funcname=$2;
 			$$->returntype=(int)$1;
-			$$->arrdim=-1;
+			$$->arrdim=NOT_DEFINED;
 			add_func($$->funcname, $$->returntype,$$->dim,$$->arrdim,$$->var);
 			delete_func($$);				//Deletes the temp function
 			//$$=find_func("temp1");
@@ -228,36 +242,38 @@ function_parameter_list
      : function_parameter	
 		{
 			$$=malloc(sizeof($$));
+			assert($$!=NULL);
 			if(!find_func("temp1"))
 			{
-				add_func("temp1", 0,0,-1,NULL);
+				add_func("temp1", 0,0,NOT_DEFINED,NULL);
 				$$=find_func("temp1");
 				add_funcpar("temp1",$1->varname, $1->vartype, $1->arrdim);
-				add_var($1->varname, $1->vartype, $1->arrdim,0,0);
+				//add_var($1->varname, $1->vartype, $1->arrdim,1,0);
 			} 
 			else 
 			{	
 				$$=find_func("temp1");
 				add_funcpar("temp1",$1->varname, $1->vartype, $1->arrdim);
-				add_var($1->varname, $1->vartype, $1->arrdim,0,0);
+				//add_var($1->varname, $1->vartype, $1->arrdim,1,0);
 				
 			}
 		}
      | function_parameter_list COMMA function_parameter
 		{
 			$$=malloc(sizeof($$));
+			assert($$!=NULL);
 			if(!find_func("temp1"))
 			{
-				add_func("temp1", 0,0,-1,NULL);
+				add_func("temp1", 0,0,NOT_DEFINED,NULL);
 				$$=find_func("temp1");
 				add_funcpar("temp1",$3->varname, $3->vartype, $3->arrdim);
-				add_var($3->varname, $3->vartype, $3->arrdim,0,0);
+				//add_var($3->varname, $3->vartype, $3->arrdim,1,0);
 			} 
 			else 
 			{
 				$$=find_func("temp1");
 				add_funcpar("temp1",$3->varname, $3->vartype, $3->arrdim);
-				add_var($3->varname, $3->vartype, $3->arrdim,0,0);
+				//add_var($3->varname, $3->vartype, $3->arrdim,1,0);
 			}
 		}
      ;
@@ -266,6 +282,7 @@ function_parameter
      : type identifier_declaration	
 		{
 			$$=malloc(sizeof($$));
+			assert($$!=NULL);
 			$$->varname = $2->name; 
 			if($1==voidtype) { 
 				fprintf(stderr,"Function parameters can not be of type void.\n"); 
@@ -278,7 +295,7 @@ function_parameter
 					}
 				else {
 						$$->vartype=0;
-						$$->arrdim=-1;
+						$$->arrdim=NOT_DEFINED;
 						//add_var($$->varname, $$->vartype,-1);
 					}
 				}
@@ -301,15 +318,15 @@ stmt
      | RETURN expression SEMICOLON		{
 									if($2->scope!=NULL)
 									{
-										if($2->vartype==0) //$2->scope->retType
+										if($2->vartype==2) //$2->scope->retType
 										{
 											printf("ERROR: Function was declarad as VOID. It can not return a value. Either use \"RETURN;\" or use type int for the func.\n");
 										}
 									}
-									addcodeop1(opRETURN, $2);
+									gencodeop1(opRETURN, $2);
 									{resetTempCount();}
 								}
-     | RETURN SEMICOLON				{addcodeop1(opRETURN, NULL);{resetTempCount();}}
+     | RETURN SEMICOLON				{gencodeop1(opRETURN, NULL);{resetTempCount();}}
      | SEMICOLON {resetTempCount();}
      ;
 
@@ -319,48 +336,55 @@ stmt_block
      ;
 	
 stmt_conditional
-     : IF PARA_OPEN expression {addif($3);addifgoto();} PARA_CLOSE stmt_conditional_r //stmt
-     //| IF PARA_OPEN expression {addif($3);addifgoto();} PARA_CLOSE stmt ELSE stmt	//{addif($3);addifgoto();}
+     : IF PARA_OPEN expression {genif($3);genifgoto();} PARA_CLOSE stmt_conditional_r //stmt
+     //| IF PARA_OPEN expression {genif($3);genifgoto();} PARA_CLOSE stmt ELSE stmt	//{genif($3);genifgoto();}
      ;
      
 stmt_conditional_r
      : stmt {backpatchif(0);}
-     | stmt ELSE {backpatchif(1);addifgoto();} stmt {backpatchif(0);}
+     | stmt ELSE {backpatchif(1);genifgoto();} stmt {backpatchif(0);}
      ;
 									
 stmt_loop
-     : WHILE {addwhilebegin();} PARA_OPEN expression PARA_CLOSE {addwhile($4);addwhilegotobegin();} stmt {backpatchwhile();}
-     | DO {adddowhile();} stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON {adddowhileend($6);}
+     : WHILE {genwhilebegin();} PARA_OPEN expression PARA_CLOSE {genwhile($4);genwhilegotobegin();} stmt {backpatchwhile();}
+     | DO {gendowhile();} stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON {gendowhileend($6);}
      ;
 									
 expression								// 0 = "false", nonzero = "true"
-     : expression ASSIGN expression				{$$ = $3;addcodeass($1, $3);if($1->tempCodePos>-1) {setCodeToNOP($1->tempCodePos);}}	//WARNING: Ambigious! You dont know if you have to assign to/load from an array or if it is an normal int at this point. check this when generating final code
-     | expression LOGICAL_OR expression			{$$ = addcodeopexp2(opLOGICAL_OR, $1, $3);}
-     | expression LOGICAL_AND expression		{$$ = addcodeopexp2(opLOGICAL_AND, $1, $3);}
-     | LOGICAL_NOT expression					{$$ = addcodeopexp1(opLOGICAL_NOT, $2);}
-     | expression EQ expression					{$$ = addcodeopexp2(opEQ, $1, $3);}
-     | expression NE expression					{$$ = addcodeopexp2(opNE, $1, $3);}
-     | expression LS expression 					{$$ = addcodeopexp2(opLS, $1, $3);}
+     : expression ASSIGN expression				{$$ = $3;gencodeass($1, $3);if($1->tempCodePos>-1) {setCodeToNOP($1->tempCodePos);}}	//WARNING: Ambigious! You dont know if you have to assign to/load from an array or if it is an normal int at this point. check this when generating final code
+     | expression LOGICAL_OR expression			{$$ = gencodeopexp2(opLOGICAL_OR, $1, $3);}
+     | expression LOGICAL_AND expression		{$$ = gencodeopexp2(opLOGICAL_AND, $1, $3);}
+     | LOGICAL_NOT expression					{$$ = gencodeopexp1(opLOGICAL_NOT, $2);}
+     | expression EQ expression					{$$ = gencodeopexp2(opEQ, $1, $3);}
+     | expression NE expression					{$$ = gencodeopexp2(opNE, $1, $3);}
+     | expression LS expression 					{$$ = gencodeopexp2(opLS, $1, $3);}
      | expression LSEQ expression 				{	//$$ = $1 <= $2 -> $$ = $1 < $2 || $1 == $2;
 											struct varentry *t0;struct varentry *t1;
-											t0 = addcodeopexp2(opLS, $1, $3);
-											t1 = addcodeopexp2(opEQ, $1, $3);
-											$$ = addcodeopexp2(opLOGICAL_OR, t0, t1);
-											//$$ = addcodeopexp2(opLSEQ, $1, $3);
+											t0 = gencodeopexp2(opLS, $1, $3);
+											t1 = gencodeopexp2(opEQ, $1, $3);
+											$$ = gencodeopexp2(opLOGICAL_OR, t0, t1);
+											//$$ = gencodeopexp2(opLSEQ, $1, $3);
 										}
      | expression GTEQ expression 				{	//$$ = $1 >= $2 -> $$ = $1 > $2 || $1 == $2;
 											struct varentry *t0;struct varentry *t1;
-											t0 = addcodeopexp2(opGT, $1, $3);
-											t1 = addcodeopexp2(opEQ, $1, $3);
-											$$ = addcodeopexp2(opLOGICAL_OR, t0, t1);
-											//$$ = addcodeopexp2(opGTEQ, $1, $3);
+											t0 = gencodeopexp2(opGT, $1, $3);
+											t1 = gencodeopexp2(opEQ, $1, $3);
+											$$ = gencodeopexp2(opLOGICAL_OR, t0, t1);
+											//$$ = gencodeopexp2(opGTEQ, $1, $3);
 										}
-     | expression GT expression					{$$ = addcodeopexp2(opGT, $1, $3);}
-     | expression PLUS expression				{$$ = addcodeopexp2(opADD, $1, $3);}
-     | expression MINUS expression				{$$ = addcodeopexp2(opSUB, $1, $3);}
-     | expression MUL expression				{$$ = addcodeopexp2(opMUL, $1, $3);}
-     | MINUS expression %prec UNARY_MINUS		{$$ = addcodeopexp1(opMINUS, $2);}
-     | ID BRACKET_OPEN primary BRACKET_CLOSE	{$$ = addcodeloadarr(find_var($1), $3);$$->tempArrPos=$3->var;$$->tempArrPos2=$3;} /*In c there is no check whether the array acces in the valid bounds*/
+     | expression GT expression					{$$ = gencodeopexp2(opGT, $1, $3);}
+     | expression PLUS expression				{$$ = gencodeopexp2(opADD, $1, $3);}
+     | expression MINUS expression				{$$ = gencodeopexp2(opSUB, $1, $3);}
+     | expression MUL expression				{$$ = gencodeopexp2(opMUL, $1, $3);}
+     | MINUS expression %prec UNARY_MINUS		{$$ = gencodeopexp1(opMINUS, $2);}
+     | ID BRACKET_OPEN primary BRACKET_CLOSE	{
+		if(!find_var($1))
+			$$ = gencodeloadarr(find_funcpar2($1), $3);
+		else
+			$$ = gencodeloadarr(find_var($1), $3);
+		$$->tempArrPos=$3->val;
+		$$->tempArrPos2=$3;
+		}
      | PARA_OPEN expression PARA_CLOSE			{$$ = $2}
      | function_call							{$$ = $1;/*$$ = irtempInt();*//*TODO: Check whether v0 or v1 is needed as a temp register. for e.g. i = f() + g() -> i = v0 + v1*/}
      | primary									{$$ = $1}
@@ -368,14 +392,15 @@ expression								// 0 = "false", nonzero = "true"
 
 
 primary
-     : NUM {add_var("int",0, -1,0, $1);$$ = find_var("int");}
-     | ID {	if(find_var($1)) {
+     : NUM {add_var("int",0, NOT_DEFINED,GLOBAL, $1);$$ = find_var("int");}
+     | ID {	
+			if(find_var($1)) {
 			$$ = find_var($1);
 		} else {
 			//TODO: It seems that global variables are not recognised, check this!
-			printf("ERROR! The variable %s was not declared. Line: %d Column: %d \n", $1, @1.first_line, @1.first_column);
+			fprintf(stderr,"ERROR! The variable %s was not declared. Line: %d Column: %d \n", $1, yylloc.first_line,yylloc.first_column);
 			//We assume the variable should have been declared. so we declare it for the user...
-			add_var ($1, 0,-1, 0,0);
+			add_var ($1, 0,NOT_DEFINED, GLOBAL,0);
 			$$= find_var($1);
 			//yyerror("syntax error");
 		}
@@ -392,7 +417,7 @@ function_call
 			else{
 				fprintf(stderr,"ERROR! Function was not declared before the call!\n");
 			}
-			//$$ = addcodeopfunccall(opCALL, putInt ("int", 0, 0), sFunc, opcodeFindFunctionDef(sFunc));
+			//$$ = gencodeopfunccall(opCALL, putInt ("int", 0, 0), sFunc, opcodeFindFunctionDef(sFunc));
 
 		}
       | ID PARA_OPEN function_call_parameters PARA_CLOSE
@@ -405,15 +430,13 @@ function_call
 					printf("Functional Call Param Check OK!\n");
 				}
 				else{
-					fprintf(stderr,"ERROR: Functional Call Param Check FAILED!\n");
+					fprintf(stderr,"ERROR: Functional Call Param Check FAILED![%s(%s)]\n",f->funcname,$3->var);
 				}
 			}
 			else{
 				fprintf(stderr,"ERROR! Function was not declared before the call!\n");
 			}
-			varentry_t *v;
-			add_var
-			//$$ = addcodeopfunccall(opCALL, putInt ("int", 0, $3->count), f, opcodeFindFunctionDef(f));
+			//$$ = gencodeopfunccall(opCALL, putInt ("int", 0, $3->count), f, opcodeFindFunctionDef(f));
 		}
       ;
 
@@ -421,12 +444,12 @@ function_call_parameters
      : function_call_parameters COMMA expression	
 		{
 			$$->count += 1;
-			addcodeop1(opPARAM, $3);
+			gencodeop1(opPARAM, $3);
 		}
      | expression
 		{
 			$$ = createParamList($1);
-			addcodeop1(opPARAM, $1);
+			gencodeop1(opPARAM, $1);
 		}
      ;
 

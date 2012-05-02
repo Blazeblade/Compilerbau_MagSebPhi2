@@ -73,12 +73,19 @@
 #include "include/uthash.h";
 #include "symtab.h";
 #include "ir_code_gen.h";
+#include <assert.h>
+
+
+#define NOT_DEFINED -1
+#define GLOBAL 0
+#define LOCAL 1
+#define PARAMETER 2
 
 
 
 
 /* Line 189 of yacc.c  */
-#line 82 "bin/parser.c"
+#line 89 "bin/parser.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -150,7 +157,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 15 "src/parser.y"
+#line 22 "src/parser.y"
 
   int 				num;
   char*				id;
@@ -162,7 +169,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 166 "bin/parser.c"
+#line 173 "bin/parser.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -187,7 +194,7 @@ typedef struct YYLTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 191 "bin/parser.c"
+#line 198 "bin/parser.c"
 
 #ifdef short
 # undef short
@@ -502,13 +509,13 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    74,    74,    78,    87,    91,    92,    93,    94,    98,
-      99,   103,   117,   141,   154,   170,   181,   198,   210,   228,
-     246,   266,   290,   292,   296,   297,   298,   299,   300,   301,
-     312,   313,   318,   322,   322,   327,   328,   328,   332,   332,
-     332,   333,   333,   337,   338,   339,   340,   341,   342,   343,
-     344,   351,   358,   359,   360,   361,   362,   363,   364,   365,
-     366,   371,   372,   385,   398,   421,   426
+       0,    81,    81,    94,    95,    99,   100,   101,   102,   106,
+     107,   111,   126,   151,   165,   182,   194,   211,   224,   242,
+     261,   282,   307,   309,   313,   314,   315,   316,   317,   318,
+     329,   330,   335,   339,   339,   344,   345,   345,   349,   349,
+     349,   350,   350,   354,   355,   356,   357,   358,   359,   360,
+     361,   368,   375,   376,   377,   378,   379,   380,   388,   389,
+     390,   395,   396,   410,   423,   444,   449
 };
 #endif
 
@@ -1559,48 +1566,51 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-        case 3:
+        case 2:
 
 /* Line 1455 of yacc.c  */
-#line 79 "src/parser.y"
+#line 81 "src/parser.y"
     {
 		printf("\n\n----------DEBUG printing all functions and variables----------:\n");
 		printf("<<----------DEBUG Functions---------->>:\n");
 		print_funcs();
 		printf("<<----------DEBUG Variables---------->>:\n");
 		print_vars();
-		printf("<<----------DEBUG END---------->>:\n");
+		printf("<<----------DEBUG IR---------->>:\n");
+		debugPrintAllopcodes();
+		printf("<<----------DEBUG END---------->>:\n\n\n");
 		;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 98 "src/parser.y"
+#line 106 "src/parser.y"
     {(yyval.id)=integer;;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 99 "src/parser.y"
+#line 107 "src/parser.y"
     {(yyval.id)=voidtype;;}
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 104 "src/parser.y"
+#line 112 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof((yyval.var)));
+			assert((yyval.var)!=NULL);
 			(yyval.var)->varname=(yyvsp[(3) - (3)].sym)->name;
 			if((yyvsp[(3) - (3)].sym)->arrdim>=0){
 					(yyval.var)->vartype=1;
-					add_var((yyval.var)->varname, (yyval.var)->vartype,(yyvsp[(3) - (3)].sym)->arrdim,0,NULL);
+					add_var((yyval.var)->varname, (yyval.var)->vartype,(yyvsp[(3) - (3)].sym)->arrdim,GLOBAL,NULL);
 				}
 				else {
 					(yyval.var)->vartype=0;
-					add_var((yyval.var)->varname, (yyval.var)->vartype,-1,0,NULL);
+					add_var((yyval.var)->varname, (yyval.var)->vartype,NOT_DEFINED,GLOBAL,NULL);
 				}
 			//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
 		;}
@@ -1609,9 +1619,10 @@ yyreduce:
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 118 "src/parser.y"
+#line 127 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof((yyval.var)));
+			assert((yyval.var)!=NULL);
 			if((yyvsp[(1) - (2)].id)==voidtype) {
 				fprintf(stderr,"Variables can not be of type void (%s).\n",(yyvsp[(2) - (2)].sym)->name);
 			} 
@@ -1619,11 +1630,11 @@ yyreduce:
 				(yyval.var)->varname=(yyvsp[(2) - (2)].sym)->name;
 				if((yyvsp[(2) - (2)].sym)->arrdim>=0){
 					(yyval.var)->vartype=1;
-					add_var((yyval.var)->varname, (yyval.var)->vartype,(yyvsp[(2) - (2)].sym)->arrdim,0,NULL);
+					add_var((yyval.var)->varname, (yyval.var)->vartype,(yyvsp[(2) - (2)].sym)->arrdim,GLOBAL,NULL);
 				}
 				else {
 					(yyval.var)->vartype=0;
-					add_var((yyval.var)->varname, (yyval.var)->vartype,-1,0,NULL);
+					add_var((yyval.var)->varname, (yyval.var)->vartype,NOT_DEFINED,GLOBAL,NULL);
 				}
 				//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
 				//printf("DEBUG --- Symboltable: ");
@@ -1635,12 +1646,13 @@ yyreduce:
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 142 "src/parser.y"
+#line 152 "src/parser.y"
     {
 			(yyval.sym)=malloc(sizeof((yyval.sym)));
+			assert((yyval.sym)!=NULL);
 			if(find_sym((yyvsp[(1) - (4)].id))){
 				(yyval.sym)=find_sym((yyvsp[(1) - (4)].id));
-				fprintf(stderr,"This Symbol was already defined.\n");
+				fprintf(stderr,"This Symbol was already defined.(%s)\n",(yyval.sym)->name);
 			}	
 			else{
 				(yyval.sym)->name=(yyvsp[(1) - (4)].id);
@@ -1653,16 +1665,17 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 155 "src/parser.y"
+#line 166 "src/parser.y"
     {
 			(yyval.sym)=malloc(sizeof((yyval.sym)));
+			assert((yyval.sym)!=NULL);
 			if(find_sym((yyvsp[(1) - (1)].id))){
 				(yyval.sym)=find_sym((yyvsp[(1) - (1)].id));
-				fprintf(stderr,"This Symbol was already defined.\n");
+				fprintf(stderr,"This Symbol was already defined.(%s)\n",(yyval.sym)->name);
 			}	
 			else{
 				(yyval.sym)->name=(yyvsp[(1) - (1)].id);
-				(yyval.sym)->arrdim=-1;
+				(yyval.sym)->arrdim=NOT_DEFINED;
 				//printf("DEBUG --- We have recognised a Symbol: %s\n",$1);
 			}
 		;}
@@ -1671,15 +1684,16 @@ yyreduce:
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 171 "src/parser.y"
+#line 183 "src/parser.y"
     {
 			(yyval.func)=malloc(sizeof((yyval.func)));
+			assert((yyval.func)!=NULL);
 			(yyval.func)->funcname=(yyvsp[(2) - (7)].id);
 			(yyval.func)->returntype=(int)(yyvsp[(1) - (7)].id);
 			(yyval.func)->dim=0;
-			(yyval.func)->arrdim=-1;
+			(yyval.func)->arrdim=NOT_DEFINED;
 			add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->arrdim,NULL);
-			addcodeopfunc(opFUNC_DEF, NULL, find_func((yyvsp[(2) - (7)].id)), -1);
+			gencodeopfunc(opFUNC_DEF, NULL, find_func((yyvsp[(2) - (7)].id)), -1);
 
 		;}
     break;
@@ -1687,18 +1701,18 @@ yyreduce:
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 182 "src/parser.y"
-    {
+#line 195 "src/parser.y"
+    {	
 			(yyval.func)=find_func("temp1");
-			(yyval.func)->dim=count_pars((yyvsp[(2) - (8)].id));
+			(yyval.func)->dim=count_pars((yyval.func)->funcname);
 			(yyval.func)->funcname=(yyvsp[(2) - (8)].id);
 			(yyval.func)->returntype=(int)(yyvsp[(1) - (8)].id);
-			(yyval.func)->arrdim=-1;
+			(yyval.func)->arrdim=NOT_DEFINED;
 			add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->arrdim,(yyval.func)->var);
 			delete_func((yyval.func));
 			//$$=find_func("temp1");
 			//$$->var=NULL;
-			addcodeopfunc(opFUNC_DEF, NULL, find_func((yyvsp[(2) - (8)].id)), -1);
+			gencodeopfunc(opFUNC_DEF, NULL, find_func((yyvsp[(2) - (8)].id)), -1);
 			
 		;}
     break;
@@ -1706,13 +1720,14 @@ yyreduce:
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 199 "src/parser.y"
+#line 212 "src/parser.y"
     {
 			(yyval.func)=malloc(sizeof((yyval.func)));
+			assert((yyval.func)!=NULL);
 			(yyval.func)->funcname=(yyvsp[(2) - (4)].id);
 			(yyval.func)->returntype=(int)(yyvsp[(1) - (4)].id);
 			(yyval.func)->dim=0;
-			(yyval.func)->arrdim=-1;
+			(yyval.func)->arrdim=NOT_DEFINED;
 			add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->arrdim,NULL);
 			//printf("DEBUG --- Function was added to Symboltable: %s\n",$$->funcname);
 			//printf("DEBUG --- Symboltable: ");
@@ -1723,13 +1738,13 @@ yyreduce:
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 211 "src/parser.y"
+#line 225 "src/parser.y"
     {
 			(yyval.func)=find_func("temp1");
 			(yyval.func)->dim=count_pars((yyval.func)->funcname);
 			(yyval.func)->funcname=(yyvsp[(2) - (5)].id);
 			(yyval.func)->returntype=(int)(yyvsp[(1) - (5)].id);
-			(yyval.func)->arrdim=-1;
+			(yyval.func)->arrdim=NOT_DEFINED;
 			add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->arrdim,(yyval.func)->var);
 			delete_func((yyval.func));				//Deletes the temp function
 			//$$=find_func("temp1");
@@ -1743,21 +1758,22 @@ yyreduce:
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 229 "src/parser.y"
+#line 243 "src/parser.y"
     {
 			(yyval.func)=malloc(sizeof((yyval.func)));
+			assert((yyval.func)!=NULL);
 			if(!find_func("temp1"))
 			{
-				add_func("temp1", 0,0,-1,NULL);
+				add_func("temp1", 0,0,NOT_DEFINED,NULL);
 				(yyval.func)=find_func("temp1");
 				add_funcpar("temp1",(yyvsp[(1) - (1)].var)->varname, (yyvsp[(1) - (1)].var)->vartype, (yyvsp[(1) - (1)].var)->arrdim);
-				add_var((yyvsp[(1) - (1)].var)->varname, (yyvsp[(1) - (1)].var)->vartype, (yyvsp[(1) - (1)].var)->arrdim,0,0);
+				//add_var($1->varname, $1->vartype, $1->arrdim,1,0);
 			} 
 			else 
 			{	
 				(yyval.func)=find_func("temp1");
 				add_funcpar("temp1",(yyvsp[(1) - (1)].var)->varname, (yyvsp[(1) - (1)].var)->vartype, (yyvsp[(1) - (1)].var)->arrdim);
-				add_var((yyvsp[(1) - (1)].var)->varname, (yyvsp[(1) - (1)].var)->vartype, (yyvsp[(1) - (1)].var)->arrdim,0,0);
+				//add_var($1->varname, $1->vartype, $1->arrdim,1,0);
 				
 			}
 		;}
@@ -1766,21 +1782,22 @@ yyreduce:
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 247 "src/parser.y"
+#line 262 "src/parser.y"
     {
 			(yyval.func)=malloc(sizeof((yyval.func)));
+			assert((yyval.func)!=NULL);
 			if(!find_func("temp1"))
 			{
-				add_func("temp1", 0,0,-1,NULL);
+				add_func("temp1", 0,0,NOT_DEFINED,NULL);
 				(yyval.func)=find_func("temp1");
 				add_funcpar("temp1",(yyvsp[(3) - (3)].var)->varname, (yyvsp[(3) - (3)].var)->vartype, (yyvsp[(3) - (3)].var)->arrdim);
-				add_var((yyvsp[(3) - (3)].var)->varname, (yyvsp[(3) - (3)].var)->vartype, (yyvsp[(3) - (3)].var)->arrdim,0,0);
+				//add_var($3->varname, $3->vartype, $3->arrdim,1,0);
 			} 
 			else 
 			{
 				(yyval.func)=find_func("temp1");
 				add_funcpar("temp1",(yyvsp[(3) - (3)].var)->varname, (yyvsp[(3) - (3)].var)->vartype, (yyvsp[(3) - (3)].var)->arrdim);
-				add_var((yyvsp[(3) - (3)].var)->varname, (yyvsp[(3) - (3)].var)->vartype, (yyvsp[(3) - (3)].var)->arrdim,0,0);
+				//add_var($3->varname, $3->vartype, $3->arrdim,1,0);
 			}
 		;}
     break;
@@ -1788,9 +1805,10 @@ yyreduce:
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 267 "src/parser.y"
+#line 283 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof((yyval.var)));
+			assert((yyval.var)!=NULL);
 			(yyval.var)->varname = (yyvsp[(2) - (2)].sym)->name; 
 			if((yyvsp[(1) - (2)].id)==voidtype) { 
 				fprintf(stderr,"Function parameters can not be of type void.\n"); 
@@ -1803,7 +1821,7 @@ yyreduce:
 					}
 				else {
 						(yyval.var)->vartype=0;
-						(yyval.var)->arrdim=-1;
+						(yyval.var)->arrdim=NOT_DEFINED;
 						//add_var($$->varname, $$->vartype,-1);
 					}
 				}
@@ -1815,44 +1833,44 @@ yyreduce:
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 297 "src/parser.y"
+#line 314 "src/parser.y"
     {resetTempCount();;}
     break;
 
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 298 "src/parser.y"
+#line 315 "src/parser.y"
     {resetTempCount();;}
     break;
 
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 299 "src/parser.y"
+#line 316 "src/parser.y"
     {resetTempCount();;}
     break;
 
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 300 "src/parser.y"
+#line 317 "src/parser.y"
     {resetTempCount();;}
     break;
 
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 301 "src/parser.y"
+#line 318 "src/parser.y"
     {
 									if((yyvsp[(2) - (3)].var)->scope!=NULL)
 									{
-										if((yyvsp[(2) - (3)].var)->vartype==0) //$2->scope->retType
+										if((yyvsp[(2) - (3)].var)->vartype==2) //$2->scope->retType
 										{
 											printf("ERROR: Function was declarad as VOID. It can not return a value. Either use \"RETURN;\" or use type int for the func.\n");
 										}
 									}
-									addcodeop1(opRETURN, (yyvsp[(2) - (3)].var));
+									gencodeop1(opRETURN, (yyvsp[(2) - (3)].var));
 									{resetTempCount();}
 								;}
     break;
@@ -1860,236 +1878,244 @@ yyreduce:
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 312 "src/parser.y"
-    {addcodeop1(opRETURN, NULL);{resetTempCount();};}
+#line 329 "src/parser.y"
+    {gencodeop1(opRETURN, NULL);{resetTempCount();};}
     break;
 
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 313 "src/parser.y"
+#line 330 "src/parser.y"
     {resetTempCount();;}
     break;
 
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 322 "src/parser.y"
-    {addif((yyvsp[(3) - (3)].var));addifgoto();;}
+#line 339 "src/parser.y"
+    {genif((yyvsp[(3) - (3)].var));genifgoto();;}
     break;
 
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 327 "src/parser.y"
+#line 344 "src/parser.y"
     {backpatchif(0);;}
     break;
 
   case 36:
 
 /* Line 1455 of yacc.c  */
-#line 328 "src/parser.y"
-    {backpatchif(1);addifgoto();;}
+#line 345 "src/parser.y"
+    {backpatchif(1);genifgoto();;}
     break;
 
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 328 "src/parser.y"
+#line 345 "src/parser.y"
     {backpatchif(0);;}
     break;
 
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 332 "src/parser.y"
-    {addwhilebegin();;}
+#line 349 "src/parser.y"
+    {genwhilebegin();;}
     break;
 
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 332 "src/parser.y"
-    {addwhile((yyvsp[(4) - (5)].var));addwhilegotobegin();;}
+#line 349 "src/parser.y"
+    {genwhile((yyvsp[(4) - (5)].var));genwhilegotobegin();;}
     break;
 
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 332 "src/parser.y"
+#line 349 "src/parser.y"
     {backpatchwhile();;}
     break;
 
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 333 "src/parser.y"
-    {adddowhile();;}
+#line 350 "src/parser.y"
+    {gendowhile();;}
     break;
 
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 333 "src/parser.y"
-    {adddowhileend((yyvsp[(6) - (8)].var));;}
+#line 350 "src/parser.y"
+    {gendowhileend((yyvsp[(6) - (8)].var));;}
     break;
 
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 337 "src/parser.y"
-    {(yyval.var) = (yyvsp[(3) - (3)].var);addcodeass((yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));if((yyvsp[(1) - (3)].var)->tempCodePos>-1) {setCodeToNOP((yyvsp[(1) - (3)].var)->tempCodePos);};}
+#line 354 "src/parser.y"
+    {(yyval.var) = (yyvsp[(3) - (3)].var);gencodeass((yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));if((yyvsp[(1) - (3)].var)->tempCodePos>-1) {setCodeToNOP((yyvsp[(1) - (3)].var)->tempCodePos);};}
     break;
 
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 338 "src/parser.y"
-    {(yyval.var) = addcodeopexp2(opLOGICAL_OR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 355 "src/parser.y"
+    {(yyval.var) = gencodeopexp2(opLOGICAL_OR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 339 "src/parser.y"
-    {(yyval.var) = addcodeopexp2(opLOGICAL_AND, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 356 "src/parser.y"
+    {(yyval.var) = gencodeopexp2(opLOGICAL_AND, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 340 "src/parser.y"
-    {(yyval.var) = addcodeopexp1(opLOGICAL_NOT, (yyvsp[(2) - (2)].var));;}
+#line 357 "src/parser.y"
+    {(yyval.var) = gencodeopexp1(opLOGICAL_NOT, (yyvsp[(2) - (2)].var));;}
     break;
 
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 341 "src/parser.y"
-    {(yyval.var) = addcodeopexp2(opEQ, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 358 "src/parser.y"
+    {(yyval.var) = gencodeopexp2(opEQ, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 342 "src/parser.y"
-    {(yyval.var) = addcodeopexp2(opNE, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 359 "src/parser.y"
+    {(yyval.var) = gencodeopexp2(opNE, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 343 "src/parser.y"
-    {(yyval.var) = addcodeopexp2(opLS, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 360 "src/parser.y"
+    {(yyval.var) = gencodeopexp2(opLS, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 344 "src/parser.y"
+#line 361 "src/parser.y"
     {	//$$ = $1 <= $2 -> $$ = $1 < $2 || $1 == $2;
 											struct varentry *t0;struct varentry *t1;
-											t0 = addcodeopexp2(opLS, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
-											t1 = addcodeopexp2(opEQ, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
-											(yyval.var) = addcodeopexp2(opLOGICAL_OR, t0, t1);
-											//$$ = addcodeopexp2(opLSEQ, $1, $3);
+											t0 = gencodeopexp2(opLS, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
+											t1 = gencodeopexp2(opEQ, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
+											(yyval.var) = gencodeopexp2(opLOGICAL_OR, t0, t1);
+											//$$ = gencodeopexp2(opLSEQ, $1, $3);
 										;}
     break;
 
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 351 "src/parser.y"
+#line 368 "src/parser.y"
     {	//$$ = $1 >= $2 -> $$ = $1 > $2 || $1 == $2;
 											struct varentry *t0;struct varentry *t1;
-											t0 = addcodeopexp2(opGT, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
-											t1 = addcodeopexp2(opEQ, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
-											(yyval.var) = addcodeopexp2(opLOGICAL_OR, t0, t1);
-											//$$ = addcodeopexp2(opGTEQ, $1, $3);
+											t0 = gencodeopexp2(opGT, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
+											t1 = gencodeopexp2(opEQ, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
+											(yyval.var) = gencodeopexp2(opLOGICAL_OR, t0, t1);
+											//$$ = gencodeopexp2(opGTEQ, $1, $3);
 										;}
     break;
 
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 358 "src/parser.y"
-    {(yyval.var) = addcodeopexp2(opGT, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 375 "src/parser.y"
+    {(yyval.var) = gencodeopexp2(opGT, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 359 "src/parser.y"
-    {(yyval.var) = addcodeopexp2(opADD, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 376 "src/parser.y"
+    {(yyval.var) = gencodeopexp2(opADD, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 360 "src/parser.y"
-    {(yyval.var) = addcodeopexp2(opSUB, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 377 "src/parser.y"
+    {(yyval.var) = gencodeopexp2(opSUB, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 361 "src/parser.y"
-    {(yyval.var) = addcodeopexp2(opMUL, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 378 "src/parser.y"
+    {(yyval.var) = gencodeopexp2(opMUL, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 56:
 
 /* Line 1455 of yacc.c  */
-#line 362 "src/parser.y"
-    {(yyval.var) = addcodeopexp1(opMINUS, (yyvsp[(2) - (2)].var));;}
+#line 379 "src/parser.y"
+    {(yyval.var) = gencodeopexp1(opMINUS, (yyvsp[(2) - (2)].var));;}
     break;
 
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 363 "src/parser.y"
-    {(yyval.var) = addcodeloadarr(find_var((yyvsp[(1) - (4)].id)), (yyvsp[(3) - (4)].var));(yyval.var)->tempArrPos=(yyvsp[(3) - (4)].var)->var;(yyval.var)->tempArrPos2=(yyvsp[(3) - (4)].var);;}
+#line 380 "src/parser.y"
+    {
+		if(!find_var((yyvsp[(1) - (4)].id)))
+			(yyval.var) = gencodeloadarr(find_funcpar2((yyvsp[(1) - (4)].id)), (yyvsp[(3) - (4)].var));
+		else
+			(yyval.var) = gencodeloadarr(find_var((yyvsp[(1) - (4)].id)), (yyvsp[(3) - (4)].var));
+		(yyval.var)->tempArrPos=(yyvsp[(3) - (4)].var)->val;
+		(yyval.var)->tempArrPos2=(yyvsp[(3) - (4)].var);
+		;}
     break;
 
   case 58:
 
 /* Line 1455 of yacc.c  */
-#line 364 "src/parser.y"
+#line 388 "src/parser.y"
     {(yyval.var) = (yyvsp[(2) - (3)].var);}
     break;
 
   case 59:
 
 /* Line 1455 of yacc.c  */
-#line 365 "src/parser.y"
+#line 389 "src/parser.y"
     {(yyval.var) = (yyvsp[(1) - (1)].func);/*$$ = irtempInt();*//*TODO: Check whether v0 or v1 is needed as a temp register. for e.g. i = f() + g() -> i = v0 + v1*/;}
     break;
 
   case 60:
 
 /* Line 1455 of yacc.c  */
-#line 366 "src/parser.y"
+#line 390 "src/parser.y"
     {(yyval.var) = (yyvsp[(1) - (1)].var);}
     break;
 
   case 61:
 
 /* Line 1455 of yacc.c  */
-#line 371 "src/parser.y"
-    {add_var("int",0, -1,0, (yyvsp[(1) - (1)].num));(yyval.var) = find_var("int");;}
+#line 395 "src/parser.y"
+    {add_var("int",0, NOT_DEFINED,GLOBAL, (yyvsp[(1) - (1)].num));(yyval.var) = find_var("int");;}
     break;
 
   case 62:
 
 /* Line 1455 of yacc.c  */
-#line 372 "src/parser.y"
-    {	if(find_var((yyvsp[(1) - (1)].id))) {
+#line 396 "src/parser.y"
+    {	
+			if(find_var((yyvsp[(1) - (1)].id))) {
 			(yyval.var) = find_var((yyvsp[(1) - (1)].id));
 		} else {
 			//TODO: It seems that global variables are not recognised, check this!
-			printf("ERROR! The variable %s was not declared. Line: %d Column: %d \n", (yyvsp[(1) - (1)].id), (yylsp[(1) - (1)]).first_line, (yylsp[(1) - (1)]).first_column);
+			fprintf(stderr,"ERROR! The variable %s was not declared. Line: %d Column: %d \n", (yyvsp[(1) - (1)].id), yylloc.first_line,yylloc.first_column);
 			//We assume the variable should have been declared. so we declare it for the user...
-			add_var ((yyvsp[(1) - (1)].id), 0,-1, 0,0);
+			add_var ((yyvsp[(1) - (1)].id), 0,NOT_DEFINED, GLOBAL,0);
 			(yyval.var)= find_var((yyvsp[(1) - (1)].id));
 			//yyerror("syntax error");
 		}
@@ -2099,7 +2125,7 @@ yyreduce:
   case 63:
 
 /* Line 1455 of yacc.c  */
-#line 386 "src/parser.y"
+#line 411 "src/parser.y"
     {
 			funcentry_t *f;
 			printf("DEBUG --- Function call regocnised[%s()].\n",(yyvsp[(1) - (3)].id));
@@ -2109,7 +2135,7 @@ yyreduce:
 			else{
 				fprintf(stderr,"ERROR! Function was not declared before the call!\n");
 			}
-			//$$ = addcodeopfunccall(opCALL, putInt ("int", 0, 0), sFunc, opcodeFindFunctionDef(sFunc));
+			//$$ = gencodeopfunccall(opCALL, putInt ("int", 0, 0), sFunc, opcodeFindFunctionDef(sFunc));
 
 		;}
     break;
@@ -2117,7 +2143,7 @@ yyreduce:
   case 64:
 
 /* Line 1455 of yacc.c  */
-#line 399 "src/parser.y"
+#line 424 "src/parser.y"
     {
 			funcentry_t *f;
 			printf("DEBUG --- Parameterise Function call regocnised[%s()].\n",(yyvsp[(1) - (4)].id));
@@ -2127,42 +2153,40 @@ yyreduce:
 					printf("Functional Call Param Check OK!\n");
 				}
 				else{
-					fprintf(stderr,"ERROR: Functional Call Param Check FAILED!\n");
+					fprintf(stderr,"ERROR: Functional Call Param Check FAILED![%s(%s)]\n",f->funcname,(yyvsp[(3) - (4)].plist)->var);
 				}
 			}
 			else{
 				fprintf(stderr,"ERROR! Function was not declared before the call!\n");
 			}
-			varentry_t *v;
-			add_var
-			//$$ = addcodeopfunccall(opCALL, putInt ("int", 0, $3->count), f, opcodeFindFunctionDef(f));
+			//$$ = gencodeopfunccall(opCALL, putInt ("int", 0, $3->count), f, opcodeFindFunctionDef(f));
 		;}
     break;
 
   case 65:
 
 /* Line 1455 of yacc.c  */
-#line 422 "src/parser.y"
+#line 445 "src/parser.y"
     {
 			(yyval.plist)->count += 1;
-			addcodeop1(opPARAM, (yyvsp[(3) - (3)].var));
+			gencodeop1(opPARAM, (yyvsp[(3) - (3)].var));
 		;}
     break;
 
   case 66:
 
 /* Line 1455 of yacc.c  */
-#line 427 "src/parser.y"
+#line 450 "src/parser.y"
     {
 			(yyval.plist) = createParamList((yyvsp[(1) - (1)].var));
-			addcodeop1(opPARAM, (yyvsp[(1) - (1)].var));
+			gencodeop1(opPARAM, (yyvsp[(1) - (1)].var));
 		;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 2166 "bin/parser.c"
+#line 2190 "bin/parser.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2381,7 +2405,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 433 "src/parser.y"
+#line 456 "src/parser.y"
 
 
 void yyerror (const char *msg)

@@ -21,8 +21,8 @@ typedef struct varentry
 	char *varname;		//name, key
 	enum type vartype;	//0 - integer, 1- intarray, 2 - void
 	int arrdim;			//array dimension
-	int scope;			//0 - global, 1 - local
-	int var;			//VALUE
+	int scope;			//0 - global, 1 - local, 2 - parameter
+	int val;			//VALUE
 	int tempArrPos;
 	struct varentry *tempArrPos2;
 	int tempCodePos;
@@ -65,6 +65,7 @@ void add_funcpar(char *funcname,char *parname, enum type partype, int arrdim);
 struct varentry *find_var(char *var_name);
 struct funcentry *find_func(char *func_name);
 struct varentry *find_funcpar(char *var_name, char *func_name);
+struct varentry *find_funcpar2(char *var_name);
 struct symentry *find_sym(char *sym_name);
 void delete_var(struct varentry *var);
 void delete_func(struct funcentry *func);

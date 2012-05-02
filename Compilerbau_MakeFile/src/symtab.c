@@ -37,16 +37,20 @@ void add_var(char *varname, enum type vartype,int arrdim,int scope, int value) {
     varentry_t *v;
     symentry_t *s;
     v = malloc(sizeof(varentry_t));
+	assert(v!=NULL);
     v->varname = malloc(sizeof(varname));
+	assert(v->varname!=NULL);
     strcpy(v->varname, varname);
     v->vartype=vartype;
     v->arrdim=arrdim;
     v->scope=scope;
-    v->var=value;
+    v->val=value;
     //HASH_ADD_STR(varentries, varname, v);
     HASH_ADD_KEYPTR(hh, varentries, v->varname, strlen(v->varname), v );
     s = malloc(sizeof(symentry_t));
+	assert(s!=NULL);
     s->name = malloc(sizeof(varname));
+	assert(s->name!=NULL);
     strcpy(s->name, varname);
     s->type=0;							//0=var, 1=func
     s->arrdim=arrdim;
@@ -60,7 +64,9 @@ void add_func(char *funcname, enum type returntype,int dim, int arrdim,varentry_
     funcentry_t *f;
     symentry_t *s;
     f = malloc(sizeof(funcentry_t));
+	assert(f!=NULL);
 	f->funcname = malloc(sizeof(funcname));
+	assert(f->funcname!=NULL);
     strcpy(f->funcname, funcname);
     f->returntype= returntype;
     f->dim = dim;
@@ -69,7 +75,9 @@ void add_func(char *funcname, enum type returntype,int dim, int arrdim,varentry_
     //HASH_ADD_STR(funcentries, funcname, f);
     HASH_ADD_KEYPTR(hh, funcentries, f->funcname, strlen(f->funcname), f );
     s = malloc(sizeof(symentry_t));
+	assert(s!=NULL);
 	s->name = malloc(sizeof(funcname));
+	assert(s->name!=NULL);
     strcpy(s->name,funcname);
     s->type=1;	//0=var, 1=func
     s->arrdim=arrdim;
@@ -80,18 +88,21 @@ void add_func(char *funcname, enum type returntype,int dim, int arrdim,varentry_
 
 }
 void add_funcpar(char *funcname,char *varname, enum type vartype, int arrdim) {
-	 varentry_t *p;
-	 funcentry_t *f;
-	 p = malloc(sizeof(varentry_t));
-	 p->varname = malloc(sizeof(varname));
-	 strcpy(p->varname, varname);
-	 p->vartype=vartype;
-	 p->arrdim=arrdim;
-	 HASH_FIND(hh,funcentries, funcname,strlen(funcname), f);
+	varentry_t *p;
+	funcentry_t *f;
+	p = malloc(sizeof(varentry_t));
+	assert(p!=NULL);
+	p->varname = malloc(sizeof(varname));
+	assert(p->varname!=NULL);
+	strcpy(p->varname, varname);
+	p->vartype=vartype;
+	p->arrdim=arrdim;
+	p->scope=2;
+	HASH_FIND(hh,funcentries, funcname,strlen(funcname), f);
 	assert(f!=NULL);
-	 //HASH_ADD_STR(f->var, name, p);
-     HASH_ADD_KEYPTR(hh, f->var, p->varname, strlen(p->varname), p);
-     return;
+	//HASH_ADD_STR(f->var, name, p);
+    HASH_ADD_KEYPTR(hh, f->var, p->varname, strlen(p->varname), p);
+    return;
 }
 
 
@@ -114,6 +125,14 @@ struct varentry *find_funcpar(char *var_name, char *func_name) {
     struct funcentry *f;
     HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);  	/* f: output pointer */
     HASH_FIND(hh,f->var, var_name,strlen(var_name), v);  		/* P: output pointer */
+    return v;
+}
+struct varentry *find_funcpar2(char *var_name) {
+    struct varentry *v;
+    funcentry_t *f, *tmp;
+    HASH_ITER(hh, funcentries, f, tmp) {
+    	HASH_FIND(hh,f->var, var_name,strlen(var_name), v);  		/* P: output pointer */
+    }
     return v;
 }
 
@@ -226,16 +245,22 @@ void print_vars(){
 	else{
 		varentry_t *v, *tmp;
 		char* type;
+		char* scope;
 		HASH_ITER(hh, varentries, v, tmp) {
 			switch (v->vartype){
 							case 0:type="Integer"; break;
 							case 1:type="Integer Array";;break;
 							case 2:type="Void";;break;
 						}
+			switch (v->scope){
+										case 0:scope="global"; break;
+										case 1:scope="local";;break;
+										case 2:scope="parameter";;break;
+			}
 			if(v->arrdim==-1)
-				printf("Variable: %s, type: %s\n", v->varname, type);
+				printf("Variable: %s, type: %s, Scope: %s, Value: %d\n", v->varname, type,scope,v->val);
 			else
-				printf("Variable: %s, type: %s[%d]\n", v->varname, type,v->arrdim);
+				printf("Variable: %s, type: %s[%d], Scope: %s, Value: %d\n", v->varname, type,v->arrdim,scope,v->val);
 		}
 	}
 }
@@ -249,6 +274,7 @@ void print_funcs(){
 	else{
 		funcentry_t *f, *tmp;
 		char* type;
+		char* scope;
 		HASH_ITER(hh, funcentries, f, tmp) {
 			switch (f->returntype){
 							case 0:type="Integer"; break;
@@ -263,10 +289,15 @@ void print_funcs(){
 								case 1:type="Integer Array";;break;
 								case 2:type="Void";;break;
 							}
+				switch (f->var->scope){
+								case 0:scope="global"; break;
+								case 1:scope="local";;break;
+								case 2:scope="parameter";;break;
+				}
 				if(v->arrdim==-1)
-					printf("\tParameter of %s: %s, type: %s\n",f->funcname ,v->varname, type);
+					printf("\tParameter of %s: %s, type: %s, scope: %s\n",f->funcname ,v->varname, type,scope);
 				else
-					printf("\tParameter of %s: %s, type: %s[%d]\n",f->funcname ,v->varname, type,v->arrdim);
+					printf("\tParameter of %s: %s, type: %s[%d], scope: %s\n",f->funcname ,v->varname, type,v->arrdim,scope);
 			}
 		}
 	}
@@ -283,14 +314,20 @@ void print_pars(char *func_name){
 	else{
 		varentry_t *v, *tmp;
 		char* type;
+		char* scope;
 		HASH_ITER(hh, f->var, v, tmp) {
 			switch (v->vartype){
 				case 0:type="Integer"; break;
 				case 1:type="Integer Array";;break;
 				case 2:type="Void";;break;
 			}
+			switch (v->scope){
+				case 0:scope="global"; break;
+				case 1:scope="local";;break;
+				case 2:scope="parameter";;break;
+			}
 			if(v->arrdim==-1)
-				printf("Parameter of %s: %s, type: %s\n",func_name ,v->varname, type);
+				printf("Parameter of %s: %s, type: %s, scope: %s\n",func_name ,v->varname, type,scope);
 			else
 				printf("Parameter of %s: %s, type: %s[%d]\n",func_name ,v->varname, type,v->arrdim);
 		}
@@ -306,6 +343,7 @@ void print_all(){
 	else{
 		symentry_t *s, *tmp;
 		char* type;
+		char* scope;
 		HASH_ITER(hh, symentries, s, tmp) {
 			if(s->type==0){
 				switch (s->sym.var->vartype){
@@ -313,10 +351,15 @@ void print_all(){
 								case 1:type="Integer Array";;break;
 								case 2:type="Void";;break;
 							}
+				switch (s->sym.var->scope){
+					case 0:scope="global"; break;
+					case 1:scope="local";;break;
+					case 2:scope="parameter";;break;
+				}
 				if(s->sym.var->arrdim==-1)
-					printf("Variable: %s, type: %s\n", s->sym.var->varname, type);
+					printf("Variable: %s, type: %s, scope: %s\n", s->sym.var->varname, type,scope);
 				else
-					printf("Variable: %s, type: %s[%d]\n", s->sym.var->varname, type,s->sym.var->arrdim);
+					printf("Variable: %s, type: %s[%d], scope: %s\n", s->sym.var->varname, type,s->sym.var->arrdim,scope);
 			}
 			else {
 				switch (s->sym.func->returntype){
@@ -393,6 +436,7 @@ struct funccallparlist *createParamList(varentry_t *var)
 {
 	struct funccallparlist *ptr;
 	ptr = (struct funccallparlist *) malloc (sizeof (struct funccallparlist));
+	assert(ptr!=NULL);
 	ptr->count = 1;
 	ptr->var = var;
 	return ptr;
@@ -404,7 +448,9 @@ struct varentry *tempInt (char const *name)
 	struct varentry *ptr;
 	//set name
     ptr = malloc(sizeof(varentry_t));
+	assert(ptr!=NULL);
     ptr->varname = malloc(sizeof(name));
+	assert(ptr->varname!=NULL);
 	strcpy (ptr->varname,name);
 
 	ptr->arrdim = -1;

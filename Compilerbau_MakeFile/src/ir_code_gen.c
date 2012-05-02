@@ -10,6 +10,7 @@
 #include "parser.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 struct strCode  *code=NULL;
 
@@ -19,8 +20,6 @@ int temp_reg_count = -1;
 varentry_t *irtempInt()
 {
 	temp_reg_count += 1;
-	//if temp_reg_count > 21 then ERROR, no space left for any more temp registers
-	//we have to work around and put them into memory
 	char buffer [5];
 	sprintf (buffer, ".t%d", temp_reg_count);
 
@@ -32,11 +31,13 @@ varentry_t *irtempInt()
 }
 
 /* Generates code at current location */
-void addcode(enum code_ops operation, varentry_t *int0, varentry_t *int1, varentry_t *int2, funcentry_t *func, int jmpTo)
+void gencode(enum code_ops operation, varentry_t *int0, varentry_t *int1, varentry_t *int2, funcentry_t *func, int jmpTo)
 {
 	code_count += 1;
-	//TODO: Check whether realloc does really work. if it doesnt make it a linked list
-	struct strCode *codebuffer = (struct strCode*) realloc (code, code_count * sizeof(struct strCode));
+	//malloc because realloc throws a "invalid next size"-error
+	struct strCode *codebuffer = malloc(code_count * sizeof(struct strCode));
+	//codebuffer = (struct strCode*) realloc (code, code_count * sizeof(struct strCode));
+	assert(codebuffer!=NULL);
 
 	code = codebuffer;
 
@@ -50,52 +51,39 @@ void addcode(enum code_ops operation, varentry_t *int0, varentry_t *int1, varent
 	code[code_count-1].jmpLabel = -1;
 }
 
-void addcodeass(varentry_t *int0, varentry_t *int1)
+void gencodeass(varentry_t *int0, varentry_t *int1)
 {
 	if(int0->tempArrPos>-1)
 	{
-		//int0[x] = int1
 		printf("t_isArray:%d.\n", int1->arrdim);
-		//addcode(opMEM_ST, int0->hh.next, find_var("int") , int1 /*=int2*/, NULL, -1);
-		addcode(opMEM_ST, int0->hh.next,int0->tempArrPos2 , int1 /*=int2*/, NULL, -1);
+		//gencode(opMEM_ST, int0->hh.next, find_var("int") , int1 /*=int2*/, NULL, -1);
+		gencode(opMEM_ST, int0->hh.next,int0->tempArrPos2 , int1 /*=int2*/, NULL, -1);
 
 	}
 	else
 	{
-		//int0 = int1
-		addcode(opASSIGN, int0, int1, NULL, NULL, -1);
+		gencode(opASSIGN, int0, int1, NULL, NULL, -1);
 		printf("Code offset: %d\n", code_count);
 		printf("IR: ASSIGN %s = %s\n", code[code_count-1].int0->varname, code[code_count-1].int1->varname);
 	}
 	printf("t_count:%d.\n", temp_reg_count);
 	temp_reg_count = 0;
 }
-/*
-varentry_t *addcodemin(varentry_t *int1)
-{
-	varentry_t *ptr = irtempInt();
 
-	addcode(opMINUS, ptr, int1, NULL, NULL, NULL);
-	printf("IR: MINUS %s = - %s\n", ptr->name, int1->name);
-
-	return ptr;
-}*/
-
-void addcodeop1(enum code_ops operation, varentry_t *int0)
+void gencodeop1(enum code_ops operation, varentry_t *int0)
 {
 	if(operation==opRETURN)
 	{
-		addcode(operation, int0, NULL, NULL, NULL, -137);
+		gencode(operation, int0, NULL, NULL, NULL, -137);
 	}
 	else
 	{
-		addcode(operation, int0, NULL, NULL, NULL, -1);
+		gencode(operation, int0, NULL, NULL, NULL, -1);
 	}
 }
 
-varentry_t *addcodeopexp1(enum code_ops operation, varentry_t *int1)
+varentry_t *gencodeopexp1(enum code_ops operation, varentry_t *int1)
 {
-	//TODO: If we regocnise that int1 is already a temp var, use int1 as the result instead of creating a new temp var to save register space
 	varentry_t *ptr;
 	if(int1->hh.next!=137)
 	{
@@ -107,32 +95,30 @@ varentry_t *addcodeopexp1(enum code_ops operation, varentry_t *int1)
 	}
 
 
-	addcode(operation, ptr, int1, NULL, NULL, -1);
+	gencode(operation, ptr, int1, NULL, NULL, -1);
 	printf("IR: %d %s = op %s\n", operation, ptr->varname, int1->varname);
 
 	return ptr;
 }
 
-void addcodeop2(enum code_ops operation, varentry_t *int0, varentry_t *int1)
+void gencodeop2(enum code_ops operation, varentry_t *int0, varentry_t *int1)
 {
-	addcode(operation, int0, int1, NULL, NULL, -1);
+	gencode(operation, int0, int1, NULL, NULL, -1);
 }
 
-void addif(varentry_t *int0)
+void genif(varentry_t *int0)
 {
-	addcode(opIF, int0, NULL, NULL, NULL, getopcodeCount()+2);
+	gencode(opIF, int0, NULL, NULL, NULL, getopcodeCount()+2);
 }
 
-void addifgoto()
+void genifgoto()
 {
-	addcode(opGOTO, NULL, NULL, NULL, NULL, -137);
+	gencode(opGOTO, NULL, NULL, NULL, NULL, -137);
 }
 
 void backpatchif(int shift)
 {
 	struct strCode  *c;
-
-	//for(int i=0;i<code_count;i++)
 	for(int i=code_count-1;i>=0;i--)
 	{
 		c = &code[i];
@@ -166,26 +152,24 @@ void backpatchreturn()
 	}
 }
 
-void addwhile(varentry_t *int0)
+void genwhile(varentry_t *int0)
 {
-	addcode(opIF, int0, NULL, NULL, NULL, getopcodeCount()+2);
+	gencode(opIF, int0, NULL, NULL, NULL, getopcodeCount()+2);
 }
 
-void addwhilebegin()
+void genwhilebegin()
 {
-	addcode(opWHILE_BEGIN, NULL, NULL, NULL, NULL, -137);
+	gencode(opWHILE_BEGIN, NULL, NULL, NULL, NULL, -137);
 }
 
-void addwhilegotobegin()
+void genwhilegotobegin()
 {
-	addcode(opGOTO, NULL, NULL, NULL, NULL, -137);
+	gencode(opGOTO, NULL, NULL, NULL, NULL, -137);
 }
 
 void backpatchwhile()
 {
 	struct strCode  *c;
-
-	//for(int i=0;i<code_count;i++)
 	for(int i=code_count-1;i>=0;i--)
 	{
 		c = &code[i];
@@ -207,7 +191,7 @@ void backpatchwhile()
 		{
 			if(c->jmpTo==-137)
 			{
-				addcode(opGOTO, NULL, NULL, NULL, NULL, i);
+				gencode(opGOTO, NULL, NULL, NULL, NULL, i);
 				c->jmpTo=-1;
 				break;
 			}
@@ -215,16 +199,15 @@ void backpatchwhile()
 	}
 }
 
-void adddowhile()
+void gendowhile()
 {
-	addcode(opDO_WHILE_BEGIN, NULL, NULL, NULL, NULL, -137);
+	gencode(opDO_WHILE_BEGIN, NULL, NULL, NULL, NULL, -137);
 }
 
-void adddowhileend(varentry_t *int0)
+void gendowhileend(varentry_t *int0)
 {
 	struct strCode  *c;
 	int i;
-	//for(i=0;i<code_count;i++)
 	for(i=code_count-1;i>=0;i--)
 	{
 		c = &code[i];
@@ -238,25 +221,12 @@ void adddowhileend(varentry_t *int0)
 			}
 		}
 	}
-	addcode(opIF, int0, NULL, NULL, NULL, i);
+	gencode(opIF, int0, NULL, NULL, NULL, i);
 }
 
-varentry_t *addcodeopexp2(enum code_ops operation, varentry_t *int1, varentry_t *int2)
+varentry_t *gencodeopexp2(enum code_ops operation, varentry_t *int1, varentry_t *int2)
 {
-	//TODO: If we regocnise that int1 and int2 are already a temp vars, we use either int1 or int2 as the result instead of creating a new temp var to save register space
 	varentry_t *ptr;
-	/*
-	if((int1->next!=137) && (int2->next!=137))
-	{
-		ptr = irtempInt();
-	}
-	else
-	{
-		ptr = int1;
-		temp_reg_count -= 1;
-		printf("\n\n\n\n\n\ntemp_reg_count:%d %d.\n", temp_reg_count, int1->next);
-	}*/
-
 	if((int1->hh.next==137) && (int2->hh.next==137))
 	{
 		ptr = int1;
@@ -268,55 +238,45 @@ varentry_t *addcodeopexp2(enum code_ops operation, varentry_t *int1, varentry_t 
 		ptr = irtempInt();
 	}
 
-	addcode(operation, ptr, int1, int2, NULL, -1);
+	gencode(operation, ptr, int1, int2, NULL, -1);
 	printf("IR: %d %s = %s op %s\n", operation, ptr->varname, int1->varname, int2->varname);
 	return ptr;
 }
 
-varentry_t * addcodeloadarr(varentry_t *int1, varentry_t *int2)
+varentry_t * gencodeloadarr(varentry_t *int1, varentry_t *int2)
 {
 	varentry_t *ptr;
 	ptr = irtempInt();
 
-	int1->tempArrPos = int2->var;
+	int1->tempArrPos =	int2->val;
 	ptr->hh.next = int1;
 
-	addcode(opMEM_LD, ptr, int1, int2, NULL, -1);
+	gencode(opMEM_LD, ptr, int1, int2, NULL, -1);
 
 	ptr->tempCodePos = code_count -1 ;
 
 	return ptr;
 }
 
-void addcodeopfunc(enum code_ops operation, varentry_t *int0, funcentry_t*func, int jmpTo)
+void gencodeopfunc(enum code_ops operation, varentry_t *int0, funcentry_t*func, int jmpTo)
 {
-	addcode(operation, int0, NULL, NULL, func, jmpTo);
+	gencode(operation, int0, NULL, NULL, func, jmpTo);
 }
 
-int addcodeopfunccall(enum code_ops operation, varentry_t *int0, funcentry_t*func, int jmpTo)
+int gencodeopfunccall(enum code_ops operation, varentry_t *int0, funcentry_t*func, int jmpTo)
 {
 	varentry_t *ptr;
 	ptr = irtempInt();
 
-	addcode(operation, int0, ptr, NULL, func, jmpTo);
+	gencode(operation, int0, ptr, NULL, func, jmpTo);
 
 	return ptr;
 }
 
-/* Generates code at a reserved location */
-/*
-void backpatch(int addr, enum code_ops operation, int arg )
-{
-	code[addr].op = operation;
-	code[addr].arg = arg;
-}
-*/
 void printcode()
 {
 	int i = 0;
 	while (i < code_count) {
-		//printf("%3ld: %-10s%4ld\n",i,op_name[(int) code[i].op], code[i].arg );
-		//printf("%s "
 		i++;
 	}
 }
