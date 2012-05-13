@@ -90,7 +90,7 @@ typedef union YYSTYPE
   char*				id;
   struct varentry 	*var;
   struct funcentry 	*func;
-  struct symentry	*sym;
+ // struct symentry	*sym;
   struct funccallparlist *plist;
 
 

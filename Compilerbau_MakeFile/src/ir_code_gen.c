@@ -31,7 +31,7 @@ varentry_t *irtempInt()
 }
 
 /* Generates code at current location */
-void gencode(enum code_ops operation, varentry_t *int0, varentry_t *int1, varentry_t *int2, funcentry_t *func, int jmpTo)
+void gencode(enum code_ops operation, varentry_t *var0, varentry_t *var1, varentry_t *var2, funcentry_t *func, int jmpTo)
 {
 	code_count += 1;
 	//malloc because realloc throws a "invalid next size"-error
@@ -43,72 +43,70 @@ void gencode(enum code_ops operation, varentry_t *int0, varentry_t *int1, varent
 
 	code[code_count-1].op = operation;
 
-	code[code_count-1].int0 = int0;
-	code[code_count-1].int1 = int1;
-	code[code_count-1].int2 = int2;
+	code[code_count-1].var0 = var0;
+	code[code_count-1].var1 = var1;
+	code[code_count-1].var2 = var2;
 	code[code_count-1].func = func;
 	code[code_count-1].jmpTo = jmpTo;
 	code[code_count-1].jmpLabel = -1;
 }
 
-void gencodeass(varentry_t *int0, varentry_t *int1)
+void gencodeass(varentry_t *var0, varentry_t *var1)
 {
-	if(int0->tempArrPos>-1)
+	if(var0->tempArrPos>-1)
 	{
-		printf("t_isArray:%d.\n", int1->arrdim);
-		//gencode(opMEM_ST, int0->hh.next, find_var("int") , int1 /*=int2*/, NULL, -1);
-		gencode(opMEM_ST, int0->hh.next,int0->tempArrPos2 , int1 /*=int2*/, NULL, -1);
+		//gencode(opMEM_ST, var0->hh.next, find_var("int") , var1 , NULL, -1);
+		gencode(opMEM_ST, var0->hh.next,var0->tempArrPos2 , var1 , NULL, -1);
 
 	}
 	else
 	{
-		gencode(opASSIGN, int0, int1, NULL, NULL, -1);
+		gencode(opASSIGN, var0, var1, NULL, NULL, -1);
 		printf("Code offset: %d\n", code_count);
-		printf("IR: ASSIGN %s = %s\n", code[code_count-1].int0->varname, code[code_count-1].int1->varname);
+		printf("IR: ASSIGN %s = %s\n", code[code_count-1].var0->varname, code[code_count-1].var1->varname);
 	}
-	printf("t_count:%d.\n", temp_reg_count);
 	temp_reg_count = 0;
 }
 
-void gencodeop1(enum code_ops operation, varentry_t *int0)
+void gencodeop1(enum code_ops operation, varentry_t *var0)
 {
 	if(operation==opRETURN)
 	{
-		gencode(operation, int0, NULL, NULL, NULL, -137);
+		gencode(operation, var0, NULL, NULL, NULL, -137);
 	}
 	else
 	{
-		gencode(operation, int0, NULL, NULL, NULL, -1);
+		gencode(operation, var0, NULL, NULL, NULL, -1);
 	}
 }
 
-varentry_t *gencodeopexp1(enum code_ops operation, varentry_t *int1)
+varentry_t *gencodeopexp1(enum code_ops operation, varentry_t *var1)
 {
 	varentry_t *ptr;
-	if(int1->hh.next!=137)
+	if(var1->hh.next!=137)
 	{
 		ptr = irtempInt();
 	}
 	else
 	{
-		ptr=int1;
+		ptr=var1;
 	}
 
 
-	gencode(operation, ptr, int1, NULL, NULL, -1);
-	printf("IR: %d %s = op %s\n", operation, ptr->varname, int1->varname);
+	gencode(operation, ptr, var1, NULL, NULL, -1);
+	printf("IR: %d %s = op %s\n", operation, ptr->varname, var1->varname);
 
 	return ptr;
 }
 
-void gencodeop2(enum code_ops operation, varentry_t *int0, varentry_t *int1)
+void gencodeop2(enum code_ops operation, varentry_t *var0, varentry_t *var1)
 {
-	gencode(operation, int0, int1, NULL, NULL, -1);
+	gencode(operation, var0, var1, NULL, NULL, -1);
 }
 
-void genif(varentry_t *int0)
+void genif(varentry_t *var0)
 {
-	gencode(opIF, int0, NULL, NULL, NULL, getopcodeCount()+2);
+	gencode(opIF, var0, NULL, NULL, NULL, getopcodeCount()+2);
 }
 
 void genifgoto()
@@ -152,9 +150,9 @@ void backpatchreturn()
 	}
 }
 
-void genwhile(varentry_t *int0)
+void genwhile(varentry_t *var0)
 {
-	gencode(opIF, int0, NULL, NULL, NULL, getopcodeCount()+2);
+	gencode(opIF, var0, NULL, NULL, NULL, getopcodeCount()+2);
 }
 
 void genwhilebegin()
@@ -204,7 +202,7 @@ void gendowhile()
 	gencode(opDO_WHILE_BEGIN, NULL, NULL, NULL, NULL, -137);
 }
 
-void gendowhileend(varentry_t *int0)
+void gendowhileend(varentry_t *var0)
 {
 	struct strCode  *c;
 	int i;
@@ -221,54 +219,54 @@ void gendowhileend(varentry_t *int0)
 			}
 		}
 	}
-	gencode(opIF, int0, NULL, NULL, NULL, i);
+	gencode(opIF, var0, NULL, NULL, NULL, i);
 }
 
-varentry_t *gencodeopexp2(enum code_ops operation, varentry_t *int1, varentry_t *int2)
+varentry_t *gencodeopexp2(enum code_ops operation, varentry_t *var1, varentry_t *var2)
 {
 	varentry_t *ptr;
-	if((int1->hh.next==137) && (int2->hh.next==137))
+	if((var1->hh.next==137) && (var2->hh.next==137))
 	{
-		ptr = int1;
+		ptr = var1;
 		temp_reg_count -= 1;
-		printf("\n\n\n\n\n\ntemp_reg_count:%d %d.\n", temp_reg_count, int1->hh.next);
+		printf("\n\n\n\n\n\ntemp_reg_count:%d %d.\n", temp_reg_count, var1->hh.next);
 	}
 	else
 	{
 		ptr = irtempInt();
 	}
 
-	gencode(operation, ptr, int1, int2, NULL, -1);
-	printf("IR: %d %s = %s op %s\n", operation, ptr->varname, int1->varname, int2->varname);
+	gencode(operation, ptr, var1, var2, NULL, -1);
+	printf("IR: %d %s = %s op %s\n", operation, ptr->varname, var1->varname, var2->varname);
 	return ptr;
 }
 
-varentry_t * gencodeloadarr(varentry_t *int1, varentry_t *int2)
+varentry_t * gencodeloadarr(varentry_t *var1, varentry_t *var2)
 {
 	varentry_t *ptr;
 	ptr = irtempInt();
 
-	int1->tempArrPos =	int2->val;
-	ptr->hh.next = int1;
+	var1->tempArrPos =	var2->val;
+	ptr->hh.next = var1;
 
-	gencode(opMEM_LD, ptr, int1, int2, NULL, -1);
+	gencode(opMEM_LD, ptr, var1, var2, NULL, -1);
 
 	ptr->tempCodePos = code_count -1 ;
 
 	return ptr;
 }
 
-void gencodeopfunc(enum code_ops operation, varentry_t *int0, funcentry_t*func, int jmpTo)
+void gencodeopfunc(enum code_ops operation, varentry_t *var0, funcentry_t*func, int jmpTo)
 {
-	gencode(operation, int0, NULL, NULL, func, jmpTo);
+	gencode(operation, var0, NULL, NULL, func, jmpTo);
 }
 
-int gencodeopfunccall(enum code_ops operation, varentry_t *int0, funcentry_t*func, int jmpTo)
+int gencodeopfunccall(enum code_ops operation, varentry_t *var0, funcentry_t*func, int jmpTo)
 {
 	varentry_t *ptr;
 	ptr = irtempInt();
 
-	gencode(operation, int0, ptr, NULL, func, jmpTo);
+	gencode(operation, var0, ptr, NULL, func, jmpTo);
 
 	return ptr;
 }
@@ -296,9 +294,9 @@ void debugPrintAllopcodes()
 		if(c->op==opFUNC_DEF_END) tab = '\0';
 
 		printf("%cOP #%d: %s", tab, count, enumStrings[c->op]);
-		if(c->int0!=NULL) {int_=c->int0;printf(", INT0: %s", int_->varname);}
-		if(c->int1!=NULL) {int_=c->int1;printf(", INT1 %s", int_->varname);}
-		if(c->int2!=NULL) {int_=c->int2;printf(", INT2: %s", int_->varname);}
+		if(c->var0!=NULL) {int_=c->var0;printf(", var0: %s", int_->varname);}
+		if(c->var1!=NULL) {int_=c->var1;printf(", var1 %s", int_->varname);}
+		if(c->var2!=NULL) {int_=c->var2;printf(", var2: %s", int_->varname);}
 
 		if(c->func!=NULL) {func_=c->func;printf(", FUNC: %s", func_->varname);}
 

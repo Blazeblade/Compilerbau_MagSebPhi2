@@ -34,11 +34,11 @@ Grammar
 
    14 @1: /* empty */
 
-   15 function_definition: type ID PARA_OPEN PARA_CLOSE BRACE_OPEN @1 stmt_list BRACE_CLOSE
+   15 function_definition: type ID PARA_OPEN PARA_CLOSE @1 BRACE_OPEN stmt_list BRACE_CLOSE
 
    16 @2: /* empty */
 
-   17 function_definition: type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN @2 stmt_list BRACE_CLOSE
+   17 function_definition: type ID PARA_OPEN function_parameter_list PARA_CLOSE @2 BRACE_OPEN stmt_list BRACE_CLOSE
 
    18 function_declaration: type ID PARA_OPEN PARA_CLOSE
    19                     | type ID PARA_OPEN function_parameter_list PARA_CLOSE
@@ -228,8 +228,8 @@ state 0
     9     | . VOID
    10 variable_declaration: . variable_declaration COMMA identifier_declaration
    11                     | . type identifier_declaration
-   15 function_definition: . type ID PARA_OPEN PARA_CLOSE BRACE_OPEN @1 stmt_list BRACE_CLOSE
-   17                    | . type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN @2 stmt_list BRACE_CLOSE
+   15 function_definition: . type ID PARA_OPEN PARA_CLOSE @1 BRACE_OPEN stmt_list BRACE_CLOSE
+   17                    | . type ID PARA_OPEN function_parameter_list PARA_CLOSE @2 BRACE_OPEN stmt_list BRACE_CLOSE
    18 function_declaration: . type ID PARA_OPEN PARA_CLOSE
    19                     | . type ID PARA_OPEN function_parameter_list PARA_CLOSE
 
@@ -286,8 +286,8 @@ state 5
     9     | . VOID
    10 variable_declaration: . variable_declaration COMMA identifier_declaration
    11                     | . type identifier_declaration
-   15 function_definition: . type ID PARA_OPEN PARA_CLOSE BRACE_OPEN @1 stmt_list BRACE_CLOSE
-   17                    | . type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN @2 stmt_list BRACE_CLOSE
+   15 function_definition: . type ID PARA_OPEN PARA_CLOSE @1 BRACE_OPEN stmt_list BRACE_CLOSE
+   17                    | . type ID PARA_OPEN function_parameter_list PARA_CLOSE @2 BRACE_OPEN stmt_list BRACE_CLOSE
    18 function_declaration: . type ID PARA_OPEN PARA_CLOSE
    19                     | . type ID PARA_OPEN function_parameter_list PARA_CLOSE
 
@@ -316,8 +316,8 @@ state 7
    11 variable_declaration: type . identifier_declaration
    12 identifier_declaration: . ID BRACKET_OPEN NUM BRACKET_CLOSE
    13                       | . ID
-   15 function_definition: type . ID PARA_OPEN PARA_CLOSE BRACE_OPEN @1 stmt_list BRACE_CLOSE
-   17                    | type . ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN @2 stmt_list BRACE_CLOSE
+   15 function_definition: type . ID PARA_OPEN PARA_CLOSE @1 BRACE_OPEN stmt_list BRACE_CLOSE
+   17                    | type . ID PARA_OPEN function_parameter_list PARA_CLOSE @2 BRACE_OPEN stmt_list BRACE_CLOSE
    18 function_declaration: type . ID PARA_OPEN PARA_CLOSE
    19                     | type . ID PARA_OPEN function_parameter_list PARA_CLOSE
 
@@ -367,8 +367,8 @@ state 13
 
    12 identifier_declaration: ID . BRACKET_OPEN NUM BRACKET_CLOSE
    13                       | ID .  [COMMA, SEMICOLON]
-   15 function_definition: type ID . PARA_OPEN PARA_CLOSE BRACE_OPEN @1 stmt_list BRACE_CLOSE
-   17                    | type ID . PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN @2 stmt_list BRACE_CLOSE
+   15 function_definition: type ID . PARA_OPEN PARA_CLOSE @1 BRACE_OPEN stmt_list BRACE_CLOSE
+   17                    | type ID . PARA_OPEN function_parameter_list PARA_CLOSE @2 BRACE_OPEN stmt_list BRACE_CLOSE
    18 function_declaration: type ID . PARA_OPEN PARA_CLOSE
    19                     | type ID . PARA_OPEN function_parameter_list PARA_CLOSE
 
@@ -414,8 +414,8 @@ state 18
 
     8 type: . INT
     9     | . VOID
-   15 function_definition: type ID PARA_OPEN . PARA_CLOSE BRACE_OPEN @1 stmt_list BRACE_CLOSE
-   17                    | type ID PARA_OPEN . function_parameter_list PARA_CLOSE BRACE_OPEN @2 stmt_list BRACE_CLOSE
+   15 function_definition: type ID PARA_OPEN . PARA_CLOSE @1 BRACE_OPEN stmt_list BRACE_CLOSE
+   17                    | type ID PARA_OPEN . function_parameter_list PARA_CLOSE @2 BRACE_OPEN stmt_list BRACE_CLOSE
    18 function_declaration: type ID PARA_OPEN . PARA_CLOSE
    19                     | type ID PARA_OPEN . function_parameter_list PARA_CLOSE
    20 function_parameter_list: . function_parameter
@@ -457,12 +457,14 @@ state 21
 
 state 22
 
-   15 function_definition: type ID PARA_OPEN PARA_CLOSE . BRACE_OPEN @1 stmt_list BRACE_CLOSE
+   14 @1: .  [BRACE_OPEN]
+   15 function_definition: type ID PARA_OPEN PARA_CLOSE . @1 BRACE_OPEN stmt_list BRACE_CLOSE
    18 function_declaration: type ID PARA_OPEN PARA_CLOSE .  [SEMICOLON]
 
-    BRACE_OPEN  shift, and go to state 27
+    SEMICOLON  reduce using rule 18 (function_declaration)
+    $default   reduce using rule 14 (@1)
 
-    $default  reduce using rule 18 (function_declaration)
+    @1  go to state 27
 
 
 state 23
@@ -478,7 +480,7 @@ state 23
 
 state 24
 
-   17 function_definition: type ID PARA_OPEN function_parameter_list . PARA_CLOSE BRACE_OPEN @2 stmt_list BRACE_CLOSE
+   17 function_definition: type ID PARA_OPEN function_parameter_list . PARA_CLOSE @2 BRACE_OPEN stmt_list BRACE_CLOSE
    19 function_declaration: type ID PARA_OPEN function_parameter_list . PARA_CLOSE
    21 function_parameter_list: function_parameter_list . COMMA function_parameter
 
@@ -502,12 +504,9 @@ state 26
 
 state 27
 
-   14 @1: .
-   15 function_definition: type ID PARA_OPEN PARA_CLOSE BRACE_OPEN . @1 stmt_list BRACE_CLOSE
+   15 function_definition: type ID PARA_OPEN PARA_CLOSE @1 . BRACE_OPEN stmt_list BRACE_CLOSE
 
-    $default  reduce using rule 14 (@1)
-
-    @1  go to state 32
+    BRACE_OPEN  shift, and go to state 32
 
 
 state 28
@@ -533,12 +532,14 @@ state 29
 
 state 30
 
-   17 function_definition: type ID PARA_OPEN function_parameter_list PARA_CLOSE . BRACE_OPEN @2 stmt_list BRACE_CLOSE
+   16 @2: .  [BRACE_OPEN]
+   17 function_definition: type ID PARA_OPEN function_parameter_list PARA_CLOSE . @2 BRACE_OPEN stmt_list BRACE_CLOSE
    19 function_declaration: type ID PARA_OPEN function_parameter_list PARA_CLOSE .  [SEMICOLON]
 
-    BRACE_OPEN  shift, and go to state 34
+    SEMICOLON  reduce using rule 19 (function_declaration)
+    $default   reduce using rule 16 (@2)
 
-    $default  reduce using rule 19 (function_declaration)
+    @2  go to state 34
 
 
 state 31
@@ -550,7 +551,7 @@ state 31
 
 state 32
 
-   15 function_definition: type ID PARA_OPEN PARA_CLOSE BRACE_OPEN @1 . stmt_list BRACE_CLOSE
+   15 function_definition: type ID PARA_OPEN PARA_CLOSE @1 BRACE_OPEN . stmt_list BRACE_CLOSE
    23 stmt_list: .
    24          | . stmt_list stmt
 
@@ -568,12 +569,9 @@ state 33
 
 state 34
 
-   16 @2: .
-   17 function_definition: type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN . @2 stmt_list BRACE_CLOSE
+   17 function_definition: type ID PARA_OPEN function_parameter_list PARA_CLOSE @2 . BRACE_OPEN stmt_list BRACE_CLOSE
 
-    $default  reduce using rule 16 (@2)
-
-    @2  go to state 36
+    BRACE_OPEN  shift, and go to state 36
 
 
 state 35
@@ -582,7 +580,7 @@ state 35
     9     | . VOID
    10 variable_declaration: . variable_declaration COMMA identifier_declaration
    11                     | . type identifier_declaration
-   15 function_definition: type ID PARA_OPEN PARA_CLOSE BRACE_OPEN @1 stmt_list . BRACE_CLOSE
+   15 function_definition: type ID PARA_OPEN PARA_CLOSE @1 BRACE_OPEN stmt_list . BRACE_CLOSE
    24 stmt_list: stmt_list . stmt
    25 stmt: . stmt_block
    26     | . variable_declaration SEMICOLON
@@ -647,7 +645,7 @@ state 35
 
 state 36
 
-   17 function_definition: type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN @2 . stmt_list BRACE_CLOSE
+   17 function_definition: type ID PARA_OPEN function_parameter_list PARA_CLOSE @2 BRACE_OPEN . stmt_list BRACE_CLOSE
    23 stmt_list: .
    24          | . stmt_list stmt
 
@@ -742,7 +740,7 @@ state 42
 
 state 43
 
-   15 function_definition: type ID PARA_OPEN PARA_CLOSE BRACE_OPEN @1 stmt_list BRACE_CLOSE .
+   15 function_definition: type ID PARA_OPEN PARA_CLOSE @1 BRACE_OPEN stmt_list BRACE_CLOSE .
 
     $default  reduce using rule 15 (function_definition)
 
@@ -977,7 +975,7 @@ state 58
     9     | . VOID
    10 variable_declaration: . variable_declaration COMMA identifier_declaration
    11                     | . type identifier_declaration
-   17 function_definition: type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN @2 stmt_list . BRACE_CLOSE
+   17 function_definition: type ID PARA_OPEN function_parameter_list PARA_CLOSE @2 BRACE_OPEN stmt_list . BRACE_CLOSE
    24 stmt_list: stmt_list . stmt
    25 stmt: . stmt_block
    26     | . variable_declaration SEMICOLON
@@ -1867,7 +1865,7 @@ state 83
 
 state 84
 
-   17 function_definition: type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN @2 stmt_list BRACE_CLOSE .
+   17 function_definition: type ID PARA_OPEN function_parameter_list PARA_CLOSE @2 BRACE_OPEN stmt_list BRACE_CLOSE .
 
     $default  reduce using rule 17 (function_definition)
 

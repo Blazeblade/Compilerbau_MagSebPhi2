@@ -7,6 +7,15 @@
 	#include <stdio.h>
 	#include <string.h>
 	
+	int yycol = 1;
+	
+	#define YY_USER_ACTION {      \
+	  yylloc.first_line = yylineno; \
+	  yylloc.last_line = yylineno;  \
+	  yylloc.first_column = yycol;  \
+	  yycol += yyleng;              \
+	  yylloc.last_column = yycol;  \
+	}
 %}
 
 /* 
@@ -26,7 +35,7 @@ number			[1-9][0-9]*|0
 comment			\/\/.*\n	 
 %%
 
-\n	/* new line */
+\n	{ yycol = 1; }/* new line */
 [\t ]+	/* ignore white spaces */
 
 do { return DO; }
@@ -71,7 +80,7 @@ while { return WHILE; }
 {number} { yylval.num = atoi(yytext);
 	return NUM;
 	}
-{comment} 
+{comment}      { yycol = 1; }
 							
 <<EOF>>		{ return 0; }
 

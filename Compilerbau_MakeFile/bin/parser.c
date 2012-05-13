@@ -163,7 +163,7 @@ typedef union YYSTYPE
   char*				id;
   struct varentry 	*var;
   struct funcentry 	*func;
-  struct symentry	*sym;
+ // struct symentry	*sym;
   struct funccallparlist *plist;
 
 
@@ -485,8 +485,8 @@ static const yytype_int8 yyrhs[] =
       43,    12,    -1,    48,    12,    -1,    45,    -1,    12,    -1,
        7,    -1,     8,    -1,    43,    11,    44,    -1,    42,    44,
       -1,    15,    37,    16,    36,    -1,    15,    -1,    -1,    42,
-      15,    35,    34,    13,    46,    51,    14,    -1,    -1,    42,
-      15,    35,    49,    34,    13,    47,    51,    14,    -1,    42,
+      15,    35,    34,    46,    13,    51,    14,    -1,    -1,    42,
+      15,    35,    49,    34,    47,    13,    51,    14,    -1,    42,
       15,    35,    34,    -1,    42,    15,    35,    49,    34,    -1,
       50,    -1,    49,    11,    50,    -1,    42,    44,    -1,    -1,
       51,    52,    -1,    53,    -1,    43,    12,    -1,    62,    12,
@@ -510,12 +510,12 @@ static const yytype_int8 yyrhs[] =
 static const yytype_uint16 yyrline[] =
 {
        0,    81,    81,    94,    95,    99,   100,   101,   102,   106,
-     107,   111,   126,   151,   165,   183,   182,   197,   196,   214,
-     227,   245,   264,   285,   310,   312,   316,   317,   318,   319,
-     320,   321,   332,   333,   338,   342,   342,   347,   348,   348,
-     352,   352,   352,   353,   353,   357,   358,   359,   360,   361,
-     362,   363,   364,   371,   378,   379,   380,   381,   382,   383,
-     391,   392,   393,   398,   399,   413,   426,   447,   452
+     107,   111,   126,   151,   166,   184,   183,   211,   210,   253,
+     273,   296,   314,   334,   355,   357,   361,   362,   363,   364,
+     365,   366,   375,   376,   381,   385,   385,   390,   391,   391,
+     395,   395,   395,   396,   396,   400,   401,   402,   403,   404,
+     405,   406,   407,   413,   419,   420,   421,   422,   423,   424,
+     432,   433,   434,   439,   440,   455,   472,   499,   504
 };
 #endif
 
@@ -583,8 +583,8 @@ static const yytype_uint8 yydefact[] =
 {
        0,     9,    10,     8,     0,     2,     4,     0,     0,     7,
        0,     1,     3,    14,    12,     0,     5,     6,     0,     0,
-      14,    11,    19,     0,     0,    21,     0,    15,    23,     0,
-      20,    13,    24,    22,    17,     0,    24,    43,    40,     0,
+      14,    11,    15,     0,     0,    21,     0,     0,    23,     0,
+      17,    13,    24,    22,     0,     0,    24,    43,    40,     0,
        0,    33,    24,    16,    64,    63,     0,     0,     0,     0,
        0,    25,    26,    29,    30,     0,    62,    61,     0,     0,
        0,     0,    32,     0,     0,     0,     0,    58,    48,     0,
@@ -599,7 +599,7 @@ static const yytype_uint8 yydefact[] =
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     4,     5,     6,    49,    50,    14,     9,    32,    36,
+      -1,     4,     5,     6,    49,    50,    14,     9,    27,    34,
       10,    24,    25,    35,    51,    52,    53,   110,   121,   126,
       54,    60,   119,    59,    55,    56,    57,    92
 };
@@ -611,33 +611,33 @@ static const yytype_int16 yypact[] =
 {
       52,   -59,   -59,   -59,    22,    52,   -59,    15,    36,   -59,
       39,   -59,   -59,    19,   -59,    42,   -59,   -59,    -5,    50,
-      41,   -59,    60,    42,    -7,   -59,    53,   -59,   -59,    55,
-      86,   -59,   -59,   -59,   -59,    72,   -59,   -59,   -59,    69,
+      41,   -59,    61,    42,    -7,   -59,    53,    86,   -59,    55,
+      92,   -59,   -59,   -59,    93,    72,   -59,   -59,   -59,    76,
       37,   -59,   -59,   -59,    32,   -59,   163,   163,   163,    42,
       71,   -59,   -59,   -59,   -59,   185,   -59,   -59,   105,   152,
-      76,   163,   -59,   199,   138,   160,   100,   -59,   -59,   213,
+      94,   163,   -59,   199,   138,   160,   100,   -59,   -59,   213,
      -59,   -59,   163,   163,   163,   163,   163,   163,   163,   163,
      163,   163,   163,   163,   -59,   124,   163,    73,   -59,   -59,
-     -59,    73,    -6,   -59,    70,   -59,    73,   -10,   102,   262,
-     262,   106,   106,   106,   106,    99,    99,   -59,   104,   231,
-     103,   163,   -59,   -59,   163,   -59,   152,    73,   249,   152,
-     142,   -59,   132,   -59,   -59,   -59,   152,   -59
+     -59,    73,    -6,   -59,   101,   -59,    73,   -10,   102,   262,
+     262,   106,   106,   106,   106,   109,   109,   -59,   113,   231,
+     110,   163,   -59,   -59,   163,   -59,   152,    73,   249,   152,
+     143,   -59,   146,   -59,   -59,   -59,   152,   -59
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-     -59,   -59,   -59,   144,    26,    45,     1,   -59,   -59,   -59,
-     -59,   -59,   129,   -19,   -58,   -59,   -59,   -59,   -59,   -59,
-     -59,   -59,   -59,   -59,   -40,    96,   -59,   -59
+     -59,   -59,   -59,   157,    26,    45,     1,   -59,   -59,   -59,
+     -59,   -59,   134,   -19,   -58,   -59,   -59,   -59,   -59,   -59,
+     -59,   -59,   -59,   -59,   -40,   103,   -59,   -59
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
    positive, shift that token.  If negative, reduce the rule which
    number is the opposite.  If zero, do what YYDEFACT says.
    If YYTABLE_NINF, syntax error.  */
-#define YYTABLE_NINF -1
-static const yytype_uint8 yytable[] =
+#define YYTABLE_NINF -21
+static const yytype_int8 yytable[] =
 {
       63,    85,     1,     2,    29,   111,    67,    68,    69,    74,
       75,    76,    77,    78,    79,    80,    21,    58,    81,    82,
@@ -646,16 +646,16 @@ static const yytype_uint8 yytable[] =
      104,   105,   106,   107,    23,     8,   109,    15,    16,    62,
        8,    17,    44,    45,    18,    23,    19,    20,   120,     1,
        2,   123,     1,     2,     3,    46,    26,    65,   127,    66,
-      47,   117,    48,    27,   118,    37,    38,    39,    19,     1,
+      47,   117,    48,   -19,   118,    37,    38,    39,    19,     1,
        2,    40,    15,    70,    41,    42,    43,    44,    45,    31,
-      72,    73,    74,    75,    76,    77,    78,    79,    80,    34,
-      46,    81,    82,    83,    61,    47,   113,    48,    37,    38,
-      39,    86,     1,     2,    40,    93,    45,    41,    42,    84,
-      44,    45,    75,    76,    77,    78,    79,    80,   108,    83,
-      81,    82,    83,    46,    81,    82,    83,   116,    47,   114,
-      48,    37,    38,    39,   125,     1,     2,    40,   124,    12,
-      41,    42,    89,    44,    45,    37,    38,    39,    33,     1,
-       2,    40,    94,     0,    41,    42,    46,    44,    45,     0,
+      72,    73,    74,    75,    76,    77,    78,    79,    80,    32,
+      46,    81,    82,    83,   -20,    47,    36,    48,    37,    38,
+      39,    61,     1,     2,    40,    93,    45,    41,    42,    84,
+      44,    45,    75,    76,    77,    78,    79,    80,   108,    86,
+      81,    82,    83,    46,    81,    82,    83,   113,    47,    83,
+      48,    37,    38,    39,   116,     1,     2,    40,   114,   124,
+      41,    42,    89,    44,    45,    37,    38,    39,   125,     1,
+       2,    40,    12,    33,    41,    42,    46,    44,    45,    94,
        0,    47,     0,    48,     0,    44,    45,     0,    44,    45,
       46,     0,     0,     0,     0,    47,     0,    48,    46,     0,
        0,    46,     0,    47,    90,    48,    47,    71,    48,     0,
@@ -680,16 +680,16 @@ static const yytype_int8 yycheck[] =
       80,    81,    82,    83,    18,     0,    86,    11,    12,    12,
        5,    12,    15,    16,    35,    29,    37,    15,   116,     7,
        8,   119,     7,     8,    12,    28,    16,    35,   126,    37,
-      33,   111,    35,    13,   114,     3,     4,     5,    37,     7,
+      33,   111,    35,    12,   114,     3,     4,     5,    37,     7,
        8,     9,    11,    12,    12,    13,    14,    15,    16,    36,
       17,    18,    19,    20,    21,    22,    23,    24,    25,    13,
-      28,    28,    29,    30,    35,    33,    36,    35,     3,     4,
+      28,    28,    29,    30,    12,    33,    13,    35,     3,     4,
        5,    35,     7,     8,     9,    15,    16,    12,    13,    14,
-      15,    16,    20,    21,    22,    23,    24,    25,     4,    30,
-      28,    29,    30,    28,    28,    29,    30,    34,    33,    35,
-      35,     3,     4,     5,    12,     7,     8,     9,     6,     5,
-      12,    13,    14,    15,    16,     3,     4,     5,    29,     7,
-       8,     9,    66,    -1,    12,    13,    28,    15,    16,    -1,
+      15,    16,    20,    21,    22,    23,    24,    25,     4,    35,
+      28,    29,    30,    28,    28,    29,    30,    36,    33,    30,
+      35,     3,     4,     5,    34,     7,     8,     9,    35,     6,
+      12,    13,    14,    15,    16,     3,     4,     5,    12,     7,
+       8,     9,     5,    29,    12,    13,    28,    15,    16,    66,
       -1,    33,    -1,    35,    -1,    15,    16,    -1,    15,    16,
       28,    -1,    -1,    -1,    -1,    33,    -1,    35,    28,    -1,
       -1,    28,    -1,    33,    34,    35,    33,    12,    35,    -1,
@@ -711,8 +711,8 @@ static const yytype_uint8 yystos[] =
 {
        0,     7,     8,    12,    39,    40,    41,    42,    43,    45,
       48,     0,    41,    15,    44,    11,    12,    12,    35,    37,
-      15,    44,    34,    42,    49,    50,    16,    13,    44,    11,
-      34,    36,    46,    50,    13,    51,    47,     3,     4,     5,
+      15,    44,    34,    42,    49,    50,    16,    46,    44,    11,
+      34,    36,    13,    50,    47,    51,    13,     3,     4,     5,
        9,    12,    13,    14,    15,    16,    28,    33,    35,    42,
       43,    52,    53,    54,    58,    62,    63,    64,    51,    61,
       59,    35,    12,    62,    51,    35,    37,    62,    62,    62,
@@ -1604,14 +1604,14 @@ yyreduce:
     {
 			(yyval.var)=malloc(sizeof(*(yyval.var)));
 			assert((yyval.var)!=NULL);
-			(yyval.var)->varname=(yyvsp[(3) - (3)].sym)->name;
-			if((yyvsp[(3) - (3)].sym)->arrdim>=0){
+			(yyval.var)->varname=(yyvsp[(3) - (3)].var)->varname;
+			if((yyvsp[(3) - (3)].var)->arrdim>=0){
 					(yyval.var)->vartype=1;
-					add_var((yyval.var)->varname, (yyval.var)->vartype,(yyvsp[(3) - (3)].sym)->arrdim,GLOBAL,NULL);
+					add_var((yyval.var)->varname, (yyval.var)->vartype,(yyvsp[(3) - (3)].var)->arrdim,NULL);
 				}
 				else {
 					(yyval.var)->vartype=0;
-					add_var((yyval.var)->varname, (yyval.var)->vartype,NOT_DEFINED,GLOBAL,NULL);
+					add_var((yyval.var)->varname, (yyval.var)->vartype,NOT_DEFINED,NULL);
 				}
 			//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
 		;}
@@ -1625,17 +1625,17 @@ yyreduce:
 			(yyval.var)=malloc(sizeof(*(yyval.var)));
 			assert((yyval.var)!=NULL);
 			if((yyvsp[(1) - (2)].id)==voidtype) {
-				fprintf(stderr,"Variables can not be of type void (%s).\n",(yyvsp[(2) - (2)].sym)->name);
+				fprintf(stderr,"Variables can not be of type void (%s).\n",(yyvsp[(2) - (2)].var)->varname);
 			} 
 			else {
-				(yyval.var)->varname=(yyvsp[(2) - (2)].sym)->name;
-				if((yyvsp[(2) - (2)].sym)->arrdim>=0){
+				(yyval.var)->varname=(yyvsp[(2) - (2)].var)->varname;
+				if((yyvsp[(2) - (2)].var)->arrdim>=0){
 					(yyval.var)->vartype=1;
-					add_var((yyval.var)->varname, (yyval.var)->vartype,(yyvsp[(2) - (2)].sym)->arrdim,GLOBAL,NULL);
+					add_var((yyval.var)->varname, (yyval.var)->vartype,(yyvsp[(2) - (2)].var)->arrdim,NULL);
 				}
 				else {
 					(yyval.var)->vartype=0;
-					add_var((yyval.var)->varname, (yyval.var)->vartype,NOT_DEFINED,GLOBAL,NULL);
+					add_var((yyval.var)->varname, (yyval.var)->vartype,NOT_DEFINED,NULL);
 				}
 				//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
 				//printf("DEBUG --- Symboltable: ");
@@ -1649,15 +1649,16 @@ yyreduce:
 /* Line 1455 of yacc.c  */
 #line 152 "src/parser.y"
     {
-			(yyval.sym)=malloc(sizeof(*(yyval.sym)));
-			assert((yyval.sym)!=NULL);
-			if(find_sym((yyvsp[(1) - (4)].id))){
-				(yyval.sym)=find_sym((yyvsp[(1) - (4)].id));
-				fprintf(stderr,"This Symbol was already defined.(%s)\n",(yyval.sym)->name);
+			(yyval.var)=malloc(sizeof(*(yyval.var)));
+			assert((yyval.var)!=NULL);
+			if(find_var((yyvsp[(1) - (4)].id))){
+				(yyval.var)=find_var((yyvsp[(1) - (4)].id));
+				fprintf(stderr,"This Symbol was already defined.(%s)\n",(yyval.var)->varname);
 			}	
 			else{
-				(yyval.sym)->name=(yyvsp[(1) - (4)].id);
-				(yyval.sym)->arrdim= (yyvsp[(3) - (4)].num);
+				(yyval.var)->varname=(yyvsp[(1) - (4)].id);
+				(yyval.var)->vartype=1;
+				(yyval.var)->arrdim= (yyvsp[(3) - (4)].num);
 				//printf("DEBUG --- We have recognised a Symbol: %s\n",$1);
 			}
 		;}
@@ -1666,17 +1667,17 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 166 "src/parser.y"
+#line 167 "src/parser.y"
     {
-			(yyval.sym)=malloc(sizeof(*(yyval.sym)));
-			assert((yyval.sym)!=NULL);
-			if(find_sym((yyvsp[(1) - (1)].id))){
-				(yyval.sym)=find_sym((yyvsp[(1) - (1)].id));
-				fprintf(stderr,"This Symbol was already defined.(%s)\n",(yyval.sym)->name);
+			(yyval.var)=malloc(sizeof(*(yyval.var)));
+			assert((yyval.var)!=NULL);
+			if(find_var((yyvsp[(1) - (1)].id))){
+				(yyval.var)=find_var((yyvsp[(1) - (1)].id));
+				fprintf(stderr,"This Symbol was already defined.(%s)\n",(yyval.var)->varname);
 			}	
 			else{
-				(yyval.sym)->name=(yyvsp[(1) - (1)].id);
-				(yyval.sym)->arrdim=NOT_DEFINED;
+				(yyval.var)->varname=(yyvsp[(1) - (1)].id);
+				(yyval.var)->arrdim=NOT_DEFINED;
 				//printf("DEBUG --- We have recognised a Symbol: %s\n",$1);
 			}
 		;}
@@ -1685,97 +1686,159 @@ yyreduce:
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 183 "src/parser.y"
+#line 184 "src/parser.y"
     {
-			(yyval.func)=malloc(sizeof(*(yyval.func)));
-			assert((yyval.func)!=NULL);
-			(yyval.func)->funcname=(yyvsp[(2) - (5)].id);
-			(yyval.func)->returntype=(int)(yyvsp[(1) - (5)].id);
-			(yyval.func)->dim=0;
-			(yyval.func)->arrdim=NOT_DEFINED;
-			add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->arrdim,NULL);
-			gencodeopfunc(opFUNC_DEF, NULL, find_func((yyvsp[(2) - (5)].id)), -1);
-
+			if(find_func((yyvsp[(2) - (4)].id))){
+				if(isFuncProto((yyvsp[(2) - (4)].id))){
+					if((yyvsp[(1) - (4)].id)!=find_func((yyvsp[(2) - (4)].id))->returntype){	
+						fprintf(stderr,"Types mismatch from function %s's declaration.",(yyvsp[(2) - (4)].id));
+					}
+					setFuncIsDeclared((yyvsp[(2) - (4)].id));
+					setFuncScope(find_func((yyvsp[(2) - (4)].id)));
+				}
+				else{	
+					fprintf(stderr,"A function definition with the same name (%s) already exists",(yyvsp[(2) - (4)].id));
+				}
+			}
+			else{										
+				(yyval.func)=malloc(sizeof(*(yyval.func)));
+				assert((yyval.func)!=NULL);
+				(yyval.func)->funcname=(yyvsp[(2) - (4)].id);
+				(yyval.func)->returntype=(int)(yyvsp[(1) - (4)].id);
+				(yyval.func)->dim=0;
+				add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,NULL);
+				setFuncScope(find_func((yyvsp[(2) - (4)].id)));
+				}
+			gencodeopfunc(opFUNC_DEF, NULL, find_func((yyvsp[(2) - (4)].id)), -1);
 		;}
+    break;
+
+  case 16:
+
+/* Line 1455 of yacc.c  */
+#line 208 "src/parser.y"
+    {gencodeopfunc(opFUNC_DEF_END, NULL, find_func((yyvsp[(2) - (8)].id)), -1);setFuncScope(NULL);backpatchreturn();;}
     break;
 
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 197 "src/parser.y"
+#line 211 "src/parser.y"
     {	
-			(yyval.func)=find_func("temp1");
-			(yyval.func)->dim=count_pars((yyval.func)->funcname);
-			(yyval.func)->funcname=(yyvsp[(2) - (6)].id);
-			(yyval.func)->returntype=(int)(yyvsp[(1) - (6)].id);
-			(yyval.func)->arrdim=NOT_DEFINED;
-			add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->arrdim,(yyval.func)->var);
-			delete_func((yyval.func));
-			//$$=find_func("temp1");
-			//$$->var=NULL;
-			gencodeopfunc(opFUNC_DEF, NULL, find_func((yyvsp[(2) - (6)].id)), -1);
-			
+     		if(find_func((yyvsp[(2) - (5)].id))){
+				if(isFuncProto((yyvsp[(2) - (5)].id))){
+					if(!check_funccallpar(find_func((yyvsp[(2) - (5)].id)), (yyvsp[(4) - (5)].func))){
+						fprintf(stderr,"Function-Parameter definition does not match the declaration of function %s.",(yyvsp[(2) - (5)].id));
+					}
+					if((yyvsp[(1) - (5)].id)!=find_func((yyvsp[(2) - (5)].id))->returntype){
+						fprintf(stderr,"Type mismatch from function %s's declaration.",(yyvsp[(2) - (5)].id));
+					}
+					if(strcmp ((yyvsp[(4) - (5)].func)->funcname,"temp1")==0){
+						delete_func (find_func("temp1"));
+						setFuncIsDeclared ((yyvsp[(2) - (5)].id));
+						setFuncScope(find_func((yyvsp[(2) - (5)].id)));
+						gencodeopfunc(opFUNC_DEF, NULL, find_func((yyvsp[(2) - (5)].id)), -1);
+					}
+					else{
+						printf("INTERNAL ERROR: Function has not the expected TEMP_NAME!\n");
+					}
+				}
+				else{
+					fprintf(stderr,"A function definition with the same name (%s) already exists.",(yyvsp[(2) - (5)].id));
+				}
+			}
+			else{
+				if(strcmp ((yyvsp[(4) - (5)].func)->funcname,"temp1") == 0){
+					(yyval.func)=find_func("temp1");
+					(yyval.func)->dim=count_pars((yyval.func)->funcname);
+					(yyval.func)->funcname=(yyvsp[(2) - (5)].id);
+					(yyval.func)->returntype=(int)(yyvsp[(1) - (5)].id);
+					//add_func($<func>$->funcname, $<func>$->returntype,$<func>$->dim,$<func>$->var);
+					//delete_func($<func>$);
+					gencodeopfunc(opFUNC_DEF, NULL, find_func((yyvsp[(2) - (5)].id)), -1);
+				}
+				else{
+					printf("INTERNAL ERROR: Function has not the expected TEMP_NAME!\n");
+				}
+			}			
 		;}
+    break;
+
+  case 18:
+
+/* Line 1455 of yacc.c  */
+#line 249 "src/parser.y"
+    {gencodeopfunc(opFUNC_DEF_END, NULL, find_func((yyvsp[(2) - (9)].id)), -1);setFuncScope(NULL);backpatchreturn();;}
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 215 "src/parser.y"
+#line 254 "src/parser.y"
     {
-			(yyval.func)=malloc(sizeof(*(yyval.func)));
-			assert((yyval.func)!=NULL);
-			(yyval.func)->funcname=(yyvsp[(2) - (4)].id);
-			(yyval.func)->returntype=(int)(yyvsp[(1) - (4)].id);
-			(yyval.func)->dim=0;
-			(yyval.func)->arrdim=NOT_DEFINED;
-			add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->arrdim,NULL);
-			//printf("DEBUG --- Function was added to Symboltable: %s\n",$$->funcname);
-			//printf("DEBUG --- Symboltable: ");
-			//print_funcs();
+			if(find_func((yyvsp[(2) - (4)].id))){
+				fprintf(stderr,"A function definition with the same name (%s) already exists.",(yyvsp[(2) - (4)].id));
+				setFuncProto (find_func((yyvsp[(2) - (4)].id)));
+				setScopeForParams (find_func((yyvsp[(2) - (4)].id)));
+			}
+			else{
+				(yyval.func)=malloc(sizeof(*(yyval.func)));
+				assert((yyval.func)!=NULL);
+				(yyval.func)->funcname=(yyvsp[(2) - (4)].id);
+				(yyval.func)->returntype=(int)(yyvsp[(1) - (4)].id);
+				(yyval.func)->dim=0;
+				add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,NULL);
+				setFuncProto((yyval.func));
+				setScopeForParams ((yyval.func));
+			}
+			setFuncScope(NULL);
 		;}
     break;
 
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 228 "src/parser.y"
+#line 274 "src/parser.y"
     {
-			(yyval.func)=find_func("temp1");
-			(yyval.func)->dim=count_pars((yyval.func)->funcname);
-			(yyval.func)->funcname=(yyvsp[(2) - (5)].id);
-			(yyval.func)->returntype=(int)(yyvsp[(1) - (5)].id);
-			(yyval.func)->arrdim=NOT_DEFINED;
-			add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->arrdim,(yyval.func)->var);
-			delete_func((yyval.func));				//Deletes the temp function
-			//$$=find_func("temp1");
-			//$$->var=NULL;
-			//printf("DEBUG --- Function was added to Symboltable: %s\n",$$->funcname);
-			//printf("DEBUG --- Symboltable: ");
-			//print_funcs();			
+			if(find_func((yyvsp[(2) - (5)].id))) {
+				fprintf(stderr,"A function definition with the same name (%s) already exists.",(yyvsp[(2) - (5)].id));
+				delete_func ("temp1");
+				setFuncProto(find_func((yyvsp[(2) - (5)].id)));
+				setScopeForParams (find_func((yyvsp[(2) - (5)].id)));
+			}
+			else{
+				(yyval.func)=find_func("temp1");
+				(yyval.func)->dim=count_pars((yyval.func)->funcname);
+				(yyval.func)->funcname=(yyvsp[(2) - (5)].id);
+				(yyval.func)->returntype=(int)(yyvsp[(1) - (5)].id);
+				add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->var);
+				delete_func((yyval.func));				//Deletes the temp function	
+				setFuncProto(find_func((yyvsp[(2) - (5)].id)));
+				setScopeForParams (find_func((yyvsp[(2) - (5)].id)));															
+			}
+			setFuncScope(NULL);
 		;}
     break;
 
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 246 "src/parser.y"
+#line 297 "src/parser.y"
     {
 			(yyval.func)=malloc(sizeof(*(yyval.func)));
 			assert((yyval.func)!=NULL);
 			if(!find_func("temp1"))
 			{
-				add_func("temp1", 0,0,NOT_DEFINED,NULL);
+				add_func("temp1", 0,0,NULL);
 				(yyval.func)=find_func("temp1");
 				add_funcpar("temp1",(yyvsp[(1) - (1)].var)->varname, (yyvsp[(1) - (1)].var)->vartype, (yyvsp[(1) - (1)].var)->arrdim);
-				//add_var($1->varname, $1->vartype, $1->arrdim,1,0);
+				(yyvsp[(1) - (1)].var)->scope=(yyval.func);
 			} 
 			else 
 			{	
 				(yyval.func)=find_func("temp1");
 				add_funcpar("temp1",(yyvsp[(1) - (1)].var)->varname, (yyvsp[(1) - (1)].var)->vartype, (yyvsp[(1) - (1)].var)->arrdim);
-				//add_var($1->varname, $1->vartype, $1->arrdim,1,0);
-				
+				(yyvsp[(1) - (1)].var)->scope=(yyval.func);
 			}
 		;}
     break;
@@ -1783,16 +1846,15 @@ yyreduce:
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 265 "src/parser.y"
+#line 315 "src/parser.y"
     {
 			(yyval.func)=malloc(sizeof(*(yyval.func)));
 			assert((yyval.func)!=NULL);
 			if(!find_func("temp1"))
 			{
-				add_func("temp1", 0,0,NOT_DEFINED,NULL);
+				add_func("temp1", 0,0,NULL);
 				(yyval.func)=find_func("temp1");
 				add_funcpar("temp1",(yyvsp[(3) - (3)].var)->varname, (yyvsp[(3) - (3)].var)->vartype, (yyvsp[(3) - (3)].var)->arrdim);
-				//add_var($3->varname, $3->vartype, $3->arrdim,1,0);
 			} 
 			else 
 			{
@@ -1806,327 +1868,320 @@ yyreduce:
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 286 "src/parser.y"
+#line 335 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof(*(yyval.var)));
 			assert((yyval.var)!=NULL);
-			(yyval.var)->varname = (yyvsp[(2) - (2)].sym)->name; 
+			(yyval.var)->varname = (yyvsp[(2) - (2)].var)->varname; 
 			if((yyvsp[(1) - (2)].id)==voidtype) { 
 				fprintf(stderr,"Function parameters can not be of type void.\n"); 
 			} 
 			else {
-				if((yyvsp[(2) - (2)].sym)->arrdim>=0){
+				if((yyvsp[(2) - (2)].var)->arrdim>=0){
 						(yyval.var)->vartype=1;
-						(yyval.var)->arrdim=(yyvsp[(2) - (2)].sym)->arrdim;
-						//add_funcpar(funcname, $$->name, $$->type, $2->arrdim);
+						(yyval.var)->arrdim=(yyvsp[(2) - (2)].var)->arrdim;
 					}
 				else {
 						(yyval.var)->vartype=0;
 						(yyval.var)->arrdim=NOT_DEFINED;
-						//add_var($$->varname, $$->vartype,-1);
 					}
 				}
-			//printf("DEBUG --- Symboltable: ");
-			//print_all(); 
 		;}
     break;
 
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 317 "src/parser.y"
+#line 362 "src/parser.y"
     {resetTempCount();;}
     break;
 
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 318 "src/parser.y"
+#line 363 "src/parser.y"
     {resetTempCount();;}
     break;
 
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 319 "src/parser.y"
+#line 364 "src/parser.y"
     {resetTempCount();;}
     break;
 
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 320 "src/parser.y"
+#line 365 "src/parser.y"
     {resetTempCount();;}
     break;
 
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 321 "src/parser.y"
+#line 366 "src/parser.y"
     {
-									if((yyvsp[(2) - (3)].var)->scope!=NULL)
-									{
-										if((yyvsp[(2) - (3)].var)->vartype==2)
-										{
-											printf("ERROR: Function was declarad as VOID. It can not return a value. Either use \"RETURN;\" or use type int for the func.\n");
+										if((yyvsp[(2) - (3)].var)->scope!=NULL){
+/*Segmentation FAULT*/						if((yyvsp[(2) - (3)].var)->scope->returntype==2){ 
+												fprintf(stderr,"Function was declared as VOID. It can not return a value.ither use \"RETURN;\" or use type int for the func.");
+											}
 										}
-									}
-									gencodeop1(opRETURN, (yyvsp[(2) - (3)].var));
-									{resetTempCount();}
-								;}
+										gencodeop1(opRETURN, (yyvsp[(2) - (3)].var));
+										{resetTempCount();}
+										;}
     break;
 
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 332 "src/parser.y"
+#line 375 "src/parser.y"
     {gencodeop1(opRETURN, NULL);{resetTempCount();};}
     break;
 
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 333 "src/parser.y"
+#line 376 "src/parser.y"
     {resetTempCount();;}
     break;
 
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 342 "src/parser.y"
+#line 385 "src/parser.y"
     {genif((yyvsp[(3) - (3)].var));genifgoto();;}
     break;
 
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 347 "src/parser.y"
+#line 390 "src/parser.y"
     {backpatchif(0);;}
     break;
 
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 348 "src/parser.y"
+#line 391 "src/parser.y"
     {backpatchif(1);genifgoto();;}
     break;
 
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 348 "src/parser.y"
+#line 391 "src/parser.y"
     {backpatchif(0);;}
     break;
 
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 352 "src/parser.y"
+#line 395 "src/parser.y"
     {genwhilebegin();;}
     break;
 
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 352 "src/parser.y"
+#line 395 "src/parser.y"
     {genwhile((yyvsp[(4) - (5)].var));genwhilegotobegin();;}
     break;
 
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 352 "src/parser.y"
+#line 395 "src/parser.y"
     {backpatchwhile();;}
     break;
 
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 353 "src/parser.y"
+#line 396 "src/parser.y"
     {gendowhile();;}
     break;
 
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 353 "src/parser.y"
+#line 396 "src/parser.y"
     {gendowhileend((yyvsp[(6) - (8)].var));;}
     break;
 
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 357 "src/parser.y"
+#line 400 "src/parser.y"
     {(yyval.var) = (yyvsp[(3) - (3)].var);gencodeass((yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));if((yyvsp[(1) - (3)].var)->tempCodePos>-1) {setCodeToNOP((yyvsp[(1) - (3)].var)->tempCodePos);};}
     break;
 
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 358 "src/parser.y"
+#line 401 "src/parser.y"
     {(yyval.var) = gencodeopexp2(opLOGICAL_OR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 359 "src/parser.y"
+#line 402 "src/parser.y"
     {(yyval.var) = gencodeopexp2(opLOGICAL_AND, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 360 "src/parser.y"
+#line 403 "src/parser.y"
     {(yyval.var) = gencodeopexp1(opLOGICAL_NOT, (yyvsp[(2) - (2)].var));;}
     break;
 
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 361 "src/parser.y"
+#line 404 "src/parser.y"
     {(yyval.var) = gencodeopexp2(opEQ, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 362 "src/parser.y"
+#line 405 "src/parser.y"
     {(yyval.var) = gencodeopexp2(opNE, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 363 "src/parser.y"
+#line 406 "src/parser.y"
     {(yyval.var) = gencodeopexp2(opLS, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 364 "src/parser.y"
-    {	//$$ = $1 <= $2 -> $$ = $1 < $2 || $1 == $2;
-											struct varentry *t0;struct varentry *t1;
-											t0 = gencodeopexp2(opLS, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
-											t1 = gencodeopexp2(opEQ, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
-											(yyval.var) = gencodeopexp2(opLOGICAL_OR, t0, t1);
-											//$$ = gencodeopexp2(opLSEQ, $1, $3);
-										;}
+#line 407 "src/parser.y"
+    {
+												struct varentry *t0;struct varentry *t1;
+												t0 = gencodeopexp2(opLS, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
+												t1 = gencodeopexp2(opEQ, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
+												(yyval.var) = gencodeopexp2(opLOGICAL_OR, t0, t1);
+												;}
     break;
 
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 371 "src/parser.y"
-    {	//$$ = $1 >= $2 -> $$ = $1 > $2 || $1 == $2;
-											struct varentry *t0;struct varentry *t1;
-											t0 = gencodeopexp2(opGT, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
-											t1 = gencodeopexp2(opEQ, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
-											(yyval.var) = gencodeopexp2(opLOGICAL_OR, t0, t1);
-											//$$ = gencodeopexp2(opGTEQ, $1, $3);
-										;}
+#line 413 "src/parser.y"
+    {	
+												struct varentry *t0;struct varentry *t1;
+												t0 = gencodeopexp2(opGT, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
+												t1 = gencodeopexp2(opEQ, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
+												(yyval.var) = gencodeopexp2(opLOGICAL_OR, t0, t1);
+												;}
     break;
 
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 378 "src/parser.y"
+#line 419 "src/parser.y"
     {(yyval.var) = gencodeopexp2(opGT, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 379 "src/parser.y"
+#line 420 "src/parser.y"
     {(yyval.var) = gencodeopexp2(opADD, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 56:
 
 /* Line 1455 of yacc.c  */
-#line 380 "src/parser.y"
+#line 421 "src/parser.y"
     {(yyval.var) = gencodeopexp2(opSUB, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 381 "src/parser.y"
+#line 422 "src/parser.y"
     {(yyval.var) = gencodeopexp2(opMUL, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 58:
 
 /* Line 1455 of yacc.c  */
-#line 382 "src/parser.y"
+#line 423 "src/parser.y"
     {(yyval.var) = gencodeopexp1(opMINUS, (yyvsp[(2) - (2)].var));;}
     break;
 
   case 59:
 
 /* Line 1455 of yacc.c  */
-#line 383 "src/parser.y"
+#line 424 "src/parser.y"
     {
-		if(!find_var((yyvsp[(1) - (4)].id)))
-			(yyval.var) = gencodeloadarr(find_funcpar2((yyvsp[(1) - (4)].id)), (yyvsp[(3) - (4)].var));
-		else
-			(yyval.var) = gencodeloadarr(find_var((yyvsp[(1) - (4)].id)), (yyvsp[(3) - (4)].var));
-		(yyval.var)->tempArrPos=(yyvsp[(3) - (4)].var)->val;
-		(yyval.var)->tempArrPos2=(yyvsp[(3) - (4)].var);
-		;}
+												if(!find_var((yyvsp[(1) - (4)].id)))
+													(yyval.var) = gencodeloadarr(find_funcpar2((yyvsp[(1) - (4)].id)), (yyvsp[(3) - (4)].var));
+												else
+													(yyval.var) = gencodeloadarr(find_var((yyvsp[(1) - (4)].id)), (yyvsp[(3) - (4)].var));
+												(yyval.var)->tempArrPos=(yyvsp[(3) - (4)].var)->val;
+												(yyval.var)->tempArrPos2=(yyvsp[(3) - (4)].var);
+												;}
     break;
 
   case 60:
 
 /* Line 1455 of yacc.c  */
-#line 391 "src/parser.y"
+#line 432 "src/parser.y"
     {(yyval.var) = (yyvsp[(2) - (3)].var);}
     break;
 
   case 61:
 
 /* Line 1455 of yacc.c  */
-#line 392 "src/parser.y"
-    {(yyval.var) = (yyvsp[(1) - (1)].func);/*$$ = irtempInt();*//*TODO: Check whether v0 or v1 is needed as a temp register. for e.g. i = f() + g() -> i = v0 + v1*/;}
+#line 433 "src/parser.y"
+    {(yyval.var) = (yyvsp[(1) - (1)].func);}
     break;
 
   case 62:
 
 /* Line 1455 of yacc.c  */
-#line 393 "src/parser.y"
+#line 434 "src/parser.y"
     {(yyval.var) = (yyvsp[(1) - (1)].var);}
     break;
 
   case 63:
 
 /* Line 1455 of yacc.c  */
-#line 398 "src/parser.y"
-    {add_var("int",0, NOT_DEFINED,GLOBAL, (yyvsp[(1) - (1)].num));(yyval.var) = find_var("int");;}
+#line 439 "src/parser.y"
+    {add_var("int_prim",0, NOT_DEFINED, (yyvsp[(1) - (1)].num));(yyval.var) = find_var("int_prim");;}
     break;
 
   case 64:
 
 /* Line 1455 of yacc.c  */
-#line 399 "src/parser.y"
+#line 440 "src/parser.y"
     {	
 			if(find_var((yyvsp[(1) - (1)].id))) {
-			(yyval.var) = find_var((yyvsp[(1) - (1)].id));
-		} else {
-			//TODO: It seems that global variables are not recognised, check this!
-			fprintf(stderr,"ERROR! The variable %s was not declared. Line: %d Column: %d \n", (yyvsp[(1) - (1)].id), yylloc.first_line,yylloc.first_column);
-			//We assume the variable should have been declared. so we declare it for the user...
-			add_var ((yyvsp[(1) - (1)].id), 0,NOT_DEFINED, GLOBAL,0);
-			(yyval.var)= find_var((yyvsp[(1) - (1)].id));
-			//yyerror("syntax error");
-		}
+				(yyval.var) = find_var((yyvsp[(1) - (1)].id));
+			} 
+			else if(find_funcpar2((yyvsp[(1) - (1)].id))) {
+				(yyval.var)=find_funcpar2((yyvsp[(1) - (1)].id));
+			}
+			else {
+				fprintf(stderr,"ERROR! The variable %s was not declared. Line: %d Column: %d \n", (yyvsp[(1) - (1)].id), (yylsp[(1) - (1)]).first_line,(yylsp[(1) - (1)]).first_column);
+				add_var ((yyvsp[(1) - (1)].id), 0,NOT_DEFINED,0);
+				(yyval.var)= find_var((yyvsp[(1) - (1)].id));
+			}
 	  ;}
     break;
 
   case 65:
 
 /* Line 1455 of yacc.c  */
-#line 414 "src/parser.y"
+#line 456 "src/parser.y"
     {
 			funcentry_t *f;
 			printf("DEBUG --- Function call regocnised[%s()].\n",(yyvsp[(1) - (3)].id));
@@ -2134,17 +2189,21 @@ yyreduce:
 				f = find_func((yyvsp[(1) - (3)].id));
 			}
 			else{
-				fprintf(stderr,"ERROR! Function was not declared before the call!\n");
+				fprintf(stderr,"ERROR! Function was not declared before the call! Line: %d Column: %d \n", (yylsp[(1) - (3)]).first_line,(yylsp[(1) - (3)]).first_column);
+				add_func("undeclared1",0,0,NULL);
+				f=find_func("undeclared1");
 			}
-			//$$ = gencodeopfunccall(opCALL, putInt ("int", 0, 0), sFunc, opcodeFindFunctionDef(sFunc));
-
+			varentry_t *v;
+			add_var("int_call",0,-1,0);
+			v=find_var("int_call");
+			(yyval.func) = gencodeopfunccall(opCALL, v, f, opcodeFindFunctionDef(f));
 		;}
     break;
 
   case 66:
 
 /* Line 1455 of yacc.c  */
-#line 427 "src/parser.y"
+#line 473 "src/parser.y"
     {
 			funcentry_t *f;
 			printf("DEBUG --- Parameterise Function call regocnised[%s()].\n",(yyvsp[(1) - (4)].id));
@@ -2154,20 +2213,26 @@ yyreduce:
 					printf("Functional Call Param Check OK!\n");
 				}
 				else{
-					fprintf(stderr,"ERROR: Functional Call Param Check FAILED![%s(%s)]\n",f->funcname,(yyvsp[(3) - (4)].plist)->var);
+					fprintf(stderr,"ERROR: Functional Call Param Check FAILED![%s(%s)] Line: %d Column: %d \n",f->funcname,(yyvsp[(3) - (4)].plist)->var->varname, (yylsp[(1) - (4)]).first_line,(yylsp[(1) - (4)]).first_column);
 				}
 			}
 			else{
-				fprintf(stderr,"ERROR! Function was not declared before the call!\n");
+				fprintf(stderr,"ERROR! Function was not declared before the call!Line: %d Column: %d \n", (yylsp[(1) - (4)]).first_line,(yylsp[(1) - (4)]).first_column);
+				add_func("undeclared1",0,0,NULL);
+				f=find_func("undeclared1");
+				
 			}
-			//$$ = gencodeopfunccall(opCALL, putInt ("int", 0, $3->count), f, opcodeFindFunctionDef(f));
+			varentry_t *v;
+			add_var("int_call",0,-1,(yyvsp[(3) - (4)].plist)->count);
+			v=find_var("int_call");
+			(yyval.func) = gencodeopfunccall(opCALL, v, f, opcodeFindFunctionDef(f));
 		;}
     break;
 
   case 67:
 
 /* Line 1455 of yacc.c  */
-#line 448 "src/parser.y"
+#line 500 "src/parser.y"
     {
 			(yyval.plist)->count += 1;
 			gencodeop1(opPARAM, (yyvsp[(3) - (3)].var));
@@ -2177,7 +2242,7 @@ yyreduce:
   case 68:
 
 /* Line 1455 of yacc.c  */
-#line 453 "src/parser.y"
+#line 505 "src/parser.y"
     {
 			(yyval.plist) = createParamList((yyvsp[(1) - (1)].var));
 			gencodeop1(opPARAM, (yyvsp[(1) - (1)].var));
@@ -2187,7 +2252,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 2191 "bin/parser.c"
+#line 2256 "bin/parser.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2406,11 +2471,11 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 459 "src/parser.y"
+#line 511 "src/parser.y"
 
 
 void yyerror (const char *msg)
 {
-  printf("ERROR: %s\n", msg);
+  fprintf(stderr,"ERROR: %s, Line: %d Column: %d \n",msg, yylloc.first_line,yylloc.first_column);
 }
 

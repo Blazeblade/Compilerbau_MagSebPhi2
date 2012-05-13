@@ -40,34 +40,34 @@ static char* enumStrings[] = {
 struct strCode
 {
 	enum code_ops op;
-	struct varentry *int0;
-	struct varentry *int1;
-	struct varentry *int2;
+	struct varentry *var0;
+	struct varentry *var1;
+	struct varentry *var2;
 	struct funcentry *func;
 	int jmpLabel;
 	int jmpTo;
 };
 
-void gencodeass(struct varentry *int0, struct varentry *int1);
-struct varentry *gencodeopexp1(enum code_ops operation, struct varentry *int1);
-struct varentry *gencodeopexp2(enum code_ops operation, struct varentry *int1, struct varentry *int2);
-struct varentry * gencodeloadarr(struct varentry *int1, struct varentry *int2);
-void gencodeopfunc(enum code_ops operation, struct varentry *int0, struct funcentry *func, int jmpTo);
-void gencodeop1(enum code_ops operation, struct varentry *int0);
-void gencodeop2(enum code_ops operation, struct varentry *int0, struct varentry *int1);
+void gencodeass(struct varentry *var0, struct varentry *var1);
+struct varentry *gencodeopexp1(enum code_ops operation, struct varentry *var1);
+struct varentry *gencodeopexp2(enum code_ops operation, struct varentry *var1, struct varentry *var2);
+struct varentry * gencodeloadarr(struct varentry *var1, struct varentry *var2);
+void gencodeopfunc(enum code_ops operation, struct varentry *var0, struct funcentry *func, int jmpTo);
+void gencodeop1(enum code_ops operation, struct varentry *var0);
+void gencodeop2(enum code_ops operation, struct varentry *var0, struct varentry *var1);
 int opcodeFindFunctionDef(struct funcentry *func);
-void genif(struct varentry *int0);
+void genif(struct varentry *var0);
 void genifgoto();
 void backpatchif(int shift);
-void genwhile(struct varentry *int0);
+void genwhile(struct varentry *var0);
 void genwhilebegin();
 void genwhilegotobegin();
 void backpatchwhile();
 void gendowhile();
-void gendowhileend(struct varentry *int0);
+void gendowhileend(struct varentry *var0);
 int setJmpLabel(int cpos, int jmpLabel);
 void setCodeToNOP(int pos);
-int gencodeopfunccall(enum code_ops operation, struct varentry *int0, struct funcentry *func, int jmpTo);
+int gencodeopfunccall(enum code_ops operation, struct varentry *var0, struct funcentry *func, int jmpTo);
 void resetTempCount();
 void backpatchreturn();
 

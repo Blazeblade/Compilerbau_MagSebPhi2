@@ -19,7 +19,8 @@
 
 varentry_t *varentries;
 funcentry_t *funcentries;
-symentry_t *symentries;
+funcentry_t *currfunc;
+//symentry_t *symentries;
 
 /**************************************      Initialise Tables     *******************************************/
 
@@ -27,15 +28,16 @@ void init_table ()
 {
 	varentries=NULL;
 	funcentries=NULL;
-	symentries=NULL;
+	currfunc=NULL;
+	//symentries=NULL;
 	//printf("Symbol Table was initialised.\n");
 }
 
 /**************************************        ADD ITEMS          *******************************************/
 
-void add_var(char *varname, enum type vartype,int arrdim,int scope, int value) {
+void add_var(char *varname, enum type vartype,int arrdim, int value) {
     varentry_t *v;
-    symentry_t *s;
+    //symentry_t *s;
     v = malloc(sizeof(varentry_t));
 	assert(v!=NULL);
     v->varname = malloc(strlen(varname)+1);
@@ -43,26 +45,24 @@ void add_var(char *varname, enum type vartype,int arrdim,int scope, int value) {
     strcpy(v->varname, varname);
     v->vartype=vartype;
     v->arrdim=arrdim;
-    v->scope=scope;
+    v->scope=currfunc;
     v->val=value;
-    //HASH_ADD_STR(varentries, varname, v);
     HASH_ADD_KEYPTR(hh, varentries, v->varname, strlen(v->varname), v );
-    s = malloc(sizeof(symentry_t));
-	assert(s!=NULL);
-    s->name = malloc(strlen(varname)+1);
-	assert(s->name!=NULL);
-    strcpy(s->name, varname);
-    s->type=0;							//0=var, 1=func
-    s->arrdim=arrdim;
-    s->sym.var=v;
-    //HASH_ADD_STR(symentries, name, s);
-    HASH_ADD_KEYPTR(hh, symentries, s->name, strlen(s->name), s );
+//    s = malloc(sizeof(symentry_t));
+//	assert(s!=NULL);
+//    s->name = malloc(strlen(varname)+1);
+//	assert(s->name!=NULL);
+//    strcpy(s->name, varname);
+//    s->type=0;							//0=var, 1=func
+//    s->arrdim=arrdim;
+//    s->sym.var=v;
+//    HASH_ADD_KEYPTR(hh, symentries, s->name, strlen(s->name), s );
     return;
 }
 
-void add_func(char *funcname, enum type returntype,int dim, int arrdim,varentry_t *var) {
+void add_func(char *funcname, enum type returntype,int dim,varentry_t *var) {
     funcentry_t *f;
-    symentry_t *s;
+    //symentry_t *s;
     f = malloc(sizeof(funcentry_t));
 	assert(f!=NULL);
 	f->funcname = malloc(strlen(funcname)+1);
@@ -70,23 +70,29 @@ void add_func(char *funcname, enum type returntype,int dim, int arrdim,varentry_
     strcpy(f->funcname, funcname);
     f->returntype= returntype;
     f->dim = dim;
-    f->arrdim=arrdim;
+//    f->arrdim=arrdim;
     f->var = var;
     //HASH_ADD_STR(funcentries, funcname, f);
     HASH_ADD_KEYPTR(hh, funcentries, f->funcname, strlen(f->funcname), f );
-    s = malloc(sizeof(symentry_t));
-	assert(s!=NULL);
-	s->name = malloc(strlen(funcname)+1);
-	assert(s->name!=NULL);
-    strcpy(s->name,funcname);
-    s->type=1;	//0=var, 1=func
-    s->arrdim=arrdim;
-    s->sym.func=f;
-    //HASH_ADD_STR(symentries, name, s);
-    HASH_ADD_KEYPTR(hh, symentries, s->name, strlen(s->name), s );
+    currfunc=f;
+//    s = malloc(sizeof(symentry_t));
+//	assert(s!=NULL);
+//	s->name = malloc(strlen(funcname)+1);
+//	assert(s->name!=NULL);
+//    strcpy(s->name,funcname);
+//    s->type=1;	//0=var, 1=func
+//    s->arrdim=arrdim;
+//    s->sym.func=f;
+//    //HASH_ADD_STR(symentries, name, s);
+//    HASH_ADD_KEYPTR(hh, symentries, s->name, strlen(s->name), s );
     return;
 
 }
+void funcEnd()
+{
+	currfunc = NULL;
+}
+
 void add_funcpar(char *funcname,char *varname, enum type vartype, int arrdim) {
 	varentry_t *p;
 	funcentry_t *f;
@@ -97,7 +103,7 @@ void add_funcpar(char *funcname,char *varname, enum type vartype, int arrdim) {
 	strcpy(p->varname, varname);
 	p->vartype=vartype;
 	p->arrdim=arrdim;
-	p->scope=2;
+	p->scope=currfunc;
 	HASH_FIND(hh,funcentries, funcname,strlen(funcname), f);
 	assert(f!=NULL);
 	//HASH_ADD_STR(f->var, name, p);
@@ -136,30 +142,30 @@ struct varentry *find_funcpar2(char *var_name) {
     return v;
 }
 
-struct symentry *find_sym(char *sym_name) {
-    symentry_t *s;
-    HASH_FIND(hh,symentries, sym_name,strlen(sym_name), s);  	/* s: output pointer */
-    return s;
-}
+//struct symentry *find_sym(char *sym_name) {
+//    symentry_t *s;
+//    HASH_FIND(hh,symentries, sym_name,strlen(sym_name), s);  	/* s: output pointer */
+//    return s;
+//}
 
 
 
 /**************************************        DELETE ITEMS        *******************************************/
 
 void delete_var(struct varentry *var) {
-    struct symentry *s;
-    HASH_FIND(hh,symentries,var->varname,strlen(var->varname),s);
-    HASH_DEL(symentries, s);
-    free(s);
+//    struct symentry *s;
+//    HASH_FIND(hh,symentries,var->varname,strlen(var->varname),s);
+//    HASH_DEL(symentries, s);
+//    free(s);
     HASH_DEL(varentries,var);		/* var: pointer to delete */
     free(var);             			 /* optional; it's up to you! */
 
 }
 void delete_func(struct funcentry *func) {
-    struct symentry *s;
-    HASH_FIND(hh,symentries,func->funcname,strlen(func->funcname),s);
-    HASH_DEL(symentries, s);
-    free(s);
+//    struct symentry *s;
+//    HASH_FIND(hh,symentries,func->funcname,strlen(func->funcname),s);
+//    HASH_DEL(symentries, s);
+//    free(s);
     HASH_DEL(funcentries,func);		/* func: pointer to delete */
     free(func);						/* optional; it's up to you! */
 }
@@ -177,7 +183,7 @@ void delete_funcpar(struct varentry *var, char *func_name) {
 void delete_all_vars() {
   varentry_t *v, *tmp;
   HASH_ITER(hh, varentries, v, tmp) {
-	HASH_DEL(symentries,v);
+//	HASH_DEL(symentries,v);
     HASH_DEL(varentries,v);  /* delete; varentries advances to next */
     free(v);
   }
@@ -186,7 +192,7 @@ void delete_all_vars() {
 void delete_all_funcs() {
   funcentry_t *f, *tmp;
   HASH_ITER(hh, funcentries, f, tmp) {
-	HASH_DEL(symentries,f);
+//	HASH_DEL(symentries,f);
     HASH_DEL(funcentries,f);  /* delete; funcentries advances to next */
     free(f);
   }
@@ -201,13 +207,13 @@ void delete_all_pars(char *func_name) {
   }
 }
 
-void delete_all() {
-  symentry_t *s, *tmp;
-  HASH_ITER(hh, symentries, s, tmp) {
-    HASH_DEL(symentries,s);  /* delete; symentries advances to next */
-    free(s);
-  }
-}
+//void delete_all() {
+//  symentry_t *s, *tmp;
+//  HASH_ITER(hh, symentries, s, tmp) {
+//    HASH_DEL(symentries,s);  /* delete; symentries advances to next */
+//    free(s);
+//  }
+//}
 
 
 
@@ -228,9 +234,9 @@ unsigned int count_pars(char *func_name) {
 	return HASH_COUNT(f->var);
 }
 
-unsigned int count_all(){
-	return HASH_COUNT(symentries);
-}
+//unsigned int count_all(){
+//	return HASH_COUNT(symentries);
+//}
 
 
 
@@ -252,11 +258,9 @@ void print_vars(){
 							case 1:type="Integer Array";;break;
 							case 2:type="Void";;break;
 						}
-			switch (v->scope){
-										case 0:scope="global"; break;
-										case 1:scope="local";;break;
-										case 2:scope="parameter";;break;
-			}
+			if(v->scope==NULL) scope= "global";
+				else scope="local";
+
 			if(v->arrdim==-1)
 				printf("Variable: %s, type: %s, Scope: %s, Value: %d\n", v->varname, type,scope,v->val);
 			else
@@ -289,11 +293,8 @@ void print_funcs(){
 								case 1:type="Integer Array";;break;
 								case 2:type="Void";;break;
 							}
-				switch (f->var->scope){
-								case 0:scope="global"; break;
-								case 1:scope="local";;break;
-								case 2:scope="parameter";;break;
-				}
+				if(f->var->scope==NULL) scope="global";
+					else scope="local";
 				if(v->arrdim==-1)
 					printf("\tParameter of %s: %s, type: %s, scope: %s\n",f->funcname ,v->varname, type,scope);
 				else
@@ -321,11 +322,8 @@ void print_pars(char *func_name){
 				case 1:type="Integer Array";;break;
 				case 2:type="Void";;break;
 			}
-			switch (v->scope){
-				case 0:scope="global"; break;
-				case 1:scope="local";;break;
-				case 2:scope="parameter";;break;
-			}
+			if(v->scope==NULL)scope="global";
+			else scope="local";
 			if(v->arrdim==-1)
 				printf("Parameter of %s: %s, type: %s, scope: %s\n",func_name ,v->varname, type,scope);
 			else
@@ -334,46 +332,46 @@ void print_pars(char *func_name){
 	}
 }
 
-void print_all(){
-	if(symentries==NULL)
-			{
-				printf("No Symbols in table.\n");
-				return;
-			}
-	else{
-		symentry_t *s, *tmp;
-		char* type;
-		char* scope;
-		HASH_ITER(hh, symentries, s, tmp) {
-			if(s->type==0){
-				switch (s->sym.var->vartype){
-								case 0:type="Integer"; break;
-								case 1:type="Integer Array";;break;
-								case 2:type="Void";;break;
-							}
-				switch (s->sym.var->scope){
-					case 0:scope="global"; break;
-					case 1:scope="local";;break;
-					case 2:scope="parameter";;break;
-				}
-				if(s->sym.var->arrdim==-1)
-					printf("Variable: %s, type: %s, scope: %s\n", s->sym.var->varname, type,scope);
-				else
-					printf("Variable: %s, type: %s[%d], scope: %s\n", s->sym.var->varname, type,s->sym.var->arrdim,scope);
-			}
-			else {
-				switch (s->sym.func->returntype){
-								case 0:type="Integer"; break;
-								case 1:type="Integer Array";;break;
-								case 2:type="Void";;break;
-							}
-				printf("Function: %s(), type: %s, dimension: %d\n",
-						s->sym.func->funcname,  type, s->sym.func->dim);
-			}
-
-		}
-	}
-}
+//void print_all(){
+//	if(symentries==NULL)
+//			{
+//				printf("No Symbols in table.\n");
+//				return;
+//			}
+//	else{
+//		symentry_t *s, *tmp;
+//		char* type;
+//		char* scope;
+//		HASH_ITER(hh, symentries, s, tmp) {
+//			if(s->type==0){
+//				switch (s->sym.var->vartype){
+//								case 0:type="Integer"; break;
+//								case 1:type="Integer Array";;break;
+//								case 2:type="Void";;break;
+//							}
+//				switch (s->sym.var->scope){
+//					case 0:scope="global"; break;
+//					case 1:scope="local";;break;
+//					case 2:scope="parameter";;break;
+//				}
+//				if(s->sym.var->arrdim==-1)
+//					printf("Variable: %s, type: %s, scope: %s\n", s->sym.var->varname, type,scope);
+//				else
+//					printf("Variable: %s, type: %s[%d], scope: %s\n", s->sym.var->varname, type,s->sym.var->arrdim,scope);
+//			}
+//			else {
+//				switch (s->sym.func->returntype){
+//								case 0:type="Integer"; break;
+//								case 1:type="Integer Array";;break;
+//								case 2:type="Void";;break;
+//							}
+//				printf("Function: %s(), type: %s, dimension: %d\n",
+//						s->sym.func->funcname,  type, s->sym.func->dim);
+//			}
+//
+//		}
+//	}
+//}
 
 /**************************************       SORT ITEMS         *******************************************/
 
@@ -393,12 +391,12 @@ void sort_funcs() {
     HASH_SORT(funcentries, name_sort_funcs);
 }
 
-int name_sort_all(symentry_t *a, symentry_t *b) {
-    return strcmp(a->name,b->name);
-}
-void sort_all() {
-    HASH_SORT(symentries, name_sort_all);
-}
+//int name_sort_all(symentry_t *a, symentry_t *b) {
+//    return strcmp(a->name,b->name);
+//}
+//void sort_all() {
+//    HASH_SORT(symentries, name_sort_all);
+//}
 
 
 
@@ -466,4 +464,60 @@ struct varentry *tempInt (char const *name)
 //	ptr->next = 137; //Temp Var Marker...
 
 	return ptr;
+}
+
+/**************************************       Addional Functions         *******************************************/
+
+int isFuncProto (char *funcname)
+{
+	if(find_func(funcname))
+	{
+		funcentry_t *ptr = find_func(funcname);
+		return ptr->isPrototype;
+	}
+	return NULL;
+}
+
+void setFuncProto (funcentry_t *f)
+{
+	funcentry_t *ptr = f;
+	ptr->isPrototype = 1;
+}
+
+void setFuncIsDeclared (char *funcname)
+{
+	if(find_func(funcname))
+	{
+		funcentry_t *ptr = find_func(funcname);
+		ptr->isPrototype = 1;
+	}
+}
+
+void setFuncScope (funcentry_t *f)
+{
+	currfunc = f;
+}
+void setScopeForParams (funcentry_t *f)
+{
+
+	varentry_t *par = f->var;
+
+	if(par==NULL)
+	{
+		return;
+	}
+
+	for(int i=0;i<f->dim;i++)
+	{
+		par->scope = f;
+		if(par->hh.next!=NULL)
+		{
+			par = par->hh.next;
+		}
+		else
+		{
+			break;
+		}
+
+	}
 }
