@@ -1,14 +1,21 @@
-/*
- * ir_code_gen.h
+/**
+ * @file 	ir_code_gen.h
+ * @date	Created on: 10 Apr 2012
+ * @author	Sebastian Boehm, Magnus Bruehl, Philipp Goetze
+ * @brief	Structures, enumerations and functions (definition) for intermediate code generation
  *
- *  Created on: 10.04.2012
- *      Author: magnus
  */
 
 #ifndef _DHBWCC_IR_CODE_GEN_H
 #define _DHBWCC_IR_CODE_GEN_H
-/**	ir_code_gen is based on http://foja.dcs.fmph.uniba.sk/kompilatory/docs/compiler.pdf
-***
+
+#include <stdio.h>
+#include "include/uthash.h"
+
+/**	ir_code_gen was created with the help of
+ * 		http://foja.dcs.fmph.uniba.sk/kompilatory/docs/compiler.pdf
+ * 		And
+ * 		Samuel Schneider
 **/
 
 //enum for 3-adress code representation, same operators as in scanner.l
@@ -48,33 +55,34 @@ struct strCode
 	int jmpTo;
 };
 
+struct varentry *ir_temp_var();
+void init_ir_code(FILE *file);
+void add_str(const char *str);
+void gencode(enum code_ops operation, struct varentry *var0, struct varentry *var1, struct varentry *var2, struct funcentry *func, int jmpTo);
 void gencodeass(struct varentry *var0, struct varentry *var1);
-struct varentry *gencodeopexp1(enum code_ops operation, struct varentry *var1);
-struct varentry *gencodeopexp2(enum code_ops operation, struct varentry *var1, struct varentry *var2);
-struct varentry * gencodeloadarr(struct varentry *var1, struct varentry *var2);
-void gencodeopfunc(enum code_ops operation, struct varentry *var0, struct funcentry *func, int jmpTo);
 void gencodeop1(enum code_ops operation, struct varentry *var0);
-void gencodeop2(enum code_ops operation, struct varentry *var0, struct varentry *var1);
-int opcodeFindFunctionDef(struct funcentry *func);
+struct varentry *gencodeopexp1(enum code_ops operation, struct varentry *var1);
+//void gencodeop2(enum code_ops operation, struct varentry *var0, struct varentry *var1);
 void genif(struct varentry *var0);
 void genifgoto();
 void backpatchif(int shift);
+void backpatchreturn();
 void genwhile(struct varentry *var0);
 void genwhilebegin();
 void genwhilegotobegin();
 void backpatchwhile();
 void gendowhile();
 void gendowhileend(struct varentry *var0);
+struct varentry *gencodeopexp2(enum code_ops operation, struct varentry *var1, struct varentry *var2);
+struct varentry * gencodeloadarr(struct varentry *var1, struct varentry *var2);
+void gencodeopfunc(enum code_ops operation, struct varentry *var0, struct funcentry*func);
+struct varentry *gencodeopfunccall(enum code_ops operation, struct varentry *var0, struct funcentry *func, int jmpTo);
+void debugPrintAllopcodes();
+int opcodeFindFunctionDef(struct funcentry *func);
 int setJmpLabel(int cpos, int jmpLabel);
 void setCodeToNOP(int pos);
-int gencodeopfunccall(enum code_ops operation, struct varentry *var0, struct funcentry *func, int jmpTo);
 void resetTempCount();
-void backpatchreturn();
+void generate_ir_code();
 
-void printcode();
-void debugPrintAllopcodes();
-
-struct strCode *getopcodeArray();
-int getopcodeCount();
 
 #endif

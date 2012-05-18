@@ -1,43 +1,63 @@
-/*
- * symtab.c
+/**
+ * @file 	symtab.c
+ * @date	Created on: 20 Mar 2012
+ * @author	Sebastian Boehm, Magnus Bruehl, Philipp Goetze
+ * @brief	Functions of the symbol table
  *
- *  Created on: 20 Mar 2012
- *      Author: Philipp Goetze
- *
- *  Comments:
+ */
+/* Comments:
  *  	Iterating with next/prev
  *  		s=(struct my_struct*)s->hh.next
  *  		s=(struct my_struct*)s->hh.prev
- *
- *
  */
+
 #include "symtab.h"
+#include "ir_code_gen.h"
 #include <assert.h>
 #include <stdio.h>   /* gets,printf */
 #include <stdlib.h>  /* atoi, malloc */
 #include <string.h>  /* strcpy */
 
+/*
+ * The Pointer to the beginning of the symbol table (variables)
+ */
 varentry_t *varentries;
+/*
+ * The Pointer to the beginning of the symbol table (functions)
+ */
 funcentry_t *funcentries;
+/*
+ * The current function scope
+ */
 funcentry_t *currfunc;
-//symentry_t *symentries;
+/*
+ * Offset counter
+ */
+int offset_=0;
 
 /**************************************      Initialise Tables     *******************************************/
 
-void init_table ()
-{
+/**
+* Initialises the symbol table(Variables, Functions, sets them to NULL).
+*/
+void init_table (){
 	varentries=NULL;
 	funcentries=NULL;
 	currfunc=NULL;
-	//symentries=NULL;
-	//printf("Symbol Table was initialised.\n");
 }
 
 /**************************************        ADD ITEMS          *******************************************/
 
+/**
+* Creates a variable in symbol table.
+* @param varname The name of the variable
+* @param vartype The type of the variable (int, int[] (, void))
+* @param arrdim Gives the size of the array, (No array, then arrdim = -1)
+* @param value The value of the variable, also used for array stepping
+* @return nothing
+*/
 void add_var(char *varname, enum type vartype,int arrdim, int value) {
     varentry_t *v;
-    //symentry_t *s;
     v = malloc(sizeof(varentry_t));
 	assert(v!=NULL);
     v->varname = malloc(strlen(varname)+1);
@@ -47,22 +67,29 @@ void add_var(char *varname, enum type vartype,int arrdim, int value) {
     v->arrdim=arrdim;
     v->scope=currfunc;
     v->val=value;
+	v->tempArrPos=-1;
+	v->tempArrPos2=NULL;
+	v->tempCodePos=-1;
+	if(arrdim>-1)
+		v->memory=arrdim*4;
+	else
+		v->memory=4;
+	v->offset=offset_;
     HASH_ADD_KEYPTR(hh, varentries, v->varname, strlen(v->varname), v );
-//    s = malloc(sizeof(symentry_t));
-//	assert(s!=NULL);
-//    s->name = malloc(strlen(varname)+1);
-//	assert(s->name!=NULL);
-//    strcpy(s->name, varname);
-//    s->type=0;							//0=var, 1=func
-//    s->arrdim=arrdim;
-//    s->sym.var=v;
-//    HASH_ADD_KEYPTR(hh, symentries, s->name, strlen(s->name), s );
+	offset_= offset_+v->memory;
     return;
 }
 
+/**
+* Creates a function in symbol table.
+* @param funcname The name of the function
+* @param returntype The type of the function (int (, int[]), void)
+* @param dim Gives the amount of parameters of the function
+* @param var Hash table of parameters
+* @return nothing
+*/
 void add_func(char *funcname, enum type returntype,int dim,varentry_t *var) {
     funcentry_t *f;
-    //symentry_t *s;
     f = malloc(sizeof(funcentry_t));
 	assert(f!=NULL);
 	f->funcname = malloc(strlen(funcname)+1);
@@ -70,29 +97,21 @@ void add_func(char *funcname, enum type returntype,int dim,varentry_t *var) {
     strcpy(f->funcname, funcname);
     f->returntype= returntype;
     f->dim = dim;
-//    f->arrdim=arrdim;
     f->var = var;
-    //HASH_ADD_STR(funcentries, funcname, f);
     HASH_ADD_KEYPTR(hh, funcentries, f->funcname, strlen(f->funcname), f );
     currfunc=f;
-//    s = malloc(sizeof(symentry_t));
-//	assert(s!=NULL);
-//	s->name = malloc(strlen(funcname)+1);
-//	assert(s->name!=NULL);
-//    strcpy(s->name,funcname);
-//    s->type=1;	//0=var, 1=func
-//    s->arrdim=arrdim;
-//    s->sym.func=f;
-//    //HASH_ADD_STR(symentries, name, s);
-//    HASH_ADD_KEYPTR(hh, symentries, s->name, strlen(s->name), s );
     return;
 
 }
-void funcEnd()
-{
-	currfunc = NULL;
-}
 
+/**
+* Creates a parameter for the specified function in a separate hash table.
+* @param funcname The name of the function
+* @param varname The name of the parameter
+* @param vartype The type of the parameter (int , int[] (, void))
+* @param arrdim Gives the size of the array, (No array, then arrdim = -1)
+* @return nothing
+*/
 void add_funcpar(char *funcname,char *varname, enum type vartype, int arrdim) {
 	varentry_t *p;
 	funcentry_t *f;
@@ -106,7 +125,6 @@ void add_funcpar(char *funcname,char *varname, enum type vartype, int arrdim) {
 	p->scope=currfunc;
 	HASH_FIND(hh,funcentries, funcname,strlen(funcname), f);
 	assert(f!=NULL);
-	//HASH_ADD_STR(f->var, name, p);
     HASH_ADD_KEYPTR(hh, f->var, p->varname, strlen(p->varname), p);
     return;
 }
@@ -114,89 +132,119 @@ void add_funcpar(char *funcname,char *varname, enum type vartype, int arrdim) {
 
 /**************************************        FIND ITEMS          *******************************************/
 
+/**
+* Finds a specified variable in symbol table.
+* @param var_name The name of the variable
+* @return v The variable structure
+*/
 struct varentry *find_var(char *var_name) {
     struct varentry *v;
-    HASH_FIND(hh,varentries, var_name,strlen(var_name), v); 	/* v: output pointer */
+    HASH_FIND(hh,varentries, var_name,strlen(var_name), v);
     return v;
 }
 
+/**
+* Finds a specified function in symbol table.
+* @param func_name The name of the function
+* @return f The function structure
+*/
 struct funcentry *find_func(char *func_name) {
     struct funcentry *f;
-    HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);  	/* f: output pointer */
+    HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);
     return f;
 }
 
+/**
+* Finds a specified parameter for a specific function in symbol table.
+* @param var_name The name of the parameter
+* @param func_name The name of the function
+* @return v The variable (parameter) structure
+*/
 struct varentry *find_funcpar(char *var_name, char *func_name) {
     struct varentry *v;
     struct funcentry *f;
-    HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);  	/* f: output pointer */
-    HASH_FIND(hh,f->var, var_name,strlen(var_name), v);  		/* P: output pointer */
+    HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);
+    HASH_FIND(hh,f->var, var_name,strlen(var_name), v);
     return v;
 }
+
+/**
+* Finds a specified parameter in symbol table (searches in all functions).
+* @param var_name The name of the parameter
+* @return v The variable (parameter) structure
+*/
 struct varentry *find_funcpar2(char *var_name) {
     struct varentry *v;
     funcentry_t *f, *tmp;
     HASH_ITER(hh, funcentries, f, tmp) {
-    	HASH_FIND(hh,f->var, var_name,strlen(var_name), v);  		/* P: output pointer */
+    	HASH_FIND(hh,f->var, var_name,strlen(var_name), v);
     }
     return v;
 }
 
-//struct symentry *find_sym(char *sym_name) {
-//    symentry_t *s;
-//    HASH_FIND(hh,symentries, sym_name,strlen(sym_name), s);  	/* s: output pointer */
-//    return s;
-//}
-
-
 
 /**************************************        DELETE ITEMS        *******************************************/
 
+/**
+* Deletes a specified variable from symbol table.
+* @param var The pointer to the structure of the variable
+*/
 void delete_var(struct varentry *var) {
-//    struct symentry *s;
-//    HASH_FIND(hh,symentries,var->varname,strlen(var->varname),s);
-//    HASH_DEL(symentries, s);
-//    free(s);
-    HASH_DEL(varentries,var);		/* var: pointer to delete */
-    free(var);             			 /* optional; it's up to you! */
+	HASH_DEL(varentries,var);
+    free(var);
+}
 
-}
+/**
+* Deletes a specified function from symbol table.
+* @param func The pointer to the structure of the function
+*/
 void delete_func(struct funcentry *func) {
-//    struct symentry *s;
-//    HASH_FIND(hh,symentries,func->funcname,strlen(func->funcname),s);
-//    HASH_DEL(symentries, s);
-//    free(s);
-    HASH_DEL(funcentries,func);		/* func: pointer to delete */
-    free(func);						/* optional; it's up to you! */
+    HASH_DEL(funcentries,func);
+    free(func);
 }
+
+/**
+* Deletes a specified parameter of a specific function from symbol table.
+* @param var The pointer to the structure of the parameter
+* @param func_name The name of the function
+*
+*/
 void delete_funcpar(struct varentry *var, char *func_name) {
     struct funcentry *f;
-    HASH_FIND(hh,funcentries, func_name, strlen(func_name), f);  	/* f: output pointer */
+    HASH_FIND(hh,funcentries, func_name, strlen(func_name), f);
     HASH_DEL(f->var, var);
     free(var);
 }
 
 
-
 /**************************************     DELETE ALL ITEMS       *******************************************/
 
+/**
+* Deletes all variables from symbol table.
+*/
 void delete_all_vars() {
   varentry_t *v, *tmp;
   HASH_ITER(hh, varentries, v, tmp) {
-//	HASH_DEL(symentries,v);
     HASH_DEL(varentries,v);  /* delete; varentries advances to next */
     free(v);
   }
 }
 
+/**
+* Deletes all functions from symbol table.
+*/
 void delete_all_funcs() {
   funcentry_t *f, *tmp;
   HASH_ITER(hh, funcentries, f, tmp) {
-//	HASH_DEL(symentries,f);
     HASH_DEL(funcentries,f);  /* delete; funcentries advances to next */
     free(f);
   }
 }
+
+/**
+* Deletes all parameters of a function from symbol table.
+* @param func_name The name of the function
+*/
 void delete_all_pars(char *func_name) {
   varentry_t *v, *tmp;
   struct funcentry *f;
@@ -207,26 +255,30 @@ void delete_all_pars(char *func_name) {
   }
 }
 
-//void delete_all() {
-//  symentry_t *s, *tmp;
-//  HASH_ITER(hh, symentries, s, tmp) {
-//    HASH_DEL(symentries,s);  /* delete; symentries advances to next */
-//    free(s);
-//  }
-//}
-
-
 
 /**************************************       Count ITEMS         *******************************************/
 
+/**
+* Counts the number of variables in the symbol table.
+* @return number of variables
+*/
 unsigned int count_vars(){
 	return HASH_COUNT(varentries);
 }
 
+/**
+* Counts the number of functions in the symbol table.
+* @return number of functions
+*/
 unsigned int count_funcs(){
 	return HASH_COUNT(funcentries);
 }
 
+/**
+* Counts the number of parameters of a function in the symbol table.
+* @param func_name The name of the function
+* @return number of parameters
+*/
 unsigned int count_pars(char *func_name) {
 	struct funcentry *f;
 	HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);
@@ -234,20 +286,17 @@ unsigned int count_pars(char *func_name) {
 	return HASH_COUNT(f->var);
 }
 
-//unsigned int count_all(){
-//	return HASH_COUNT(symentries);
-//}
-
-
 
 /**************************************       PRINT ITEMS         *******************************************/
 
+/**
+* Prints all variables from the symbol table to the console.
+*/
 void print_vars(){
-	if(varentries==NULL)
-		{
+	if(varentries==NULL){
 			printf("No variables in table.\n");
 			return;
-		}
+	}
 	else{
 		varentry_t *v, *tmp;
 		char* type;
@@ -257,24 +306,28 @@ void print_vars(){
 							case 0:type="Integer"; break;
 							case 1:type="Integer Array";;break;
 							case 2:type="Void";;break;
-						}
+			}
 			if(v->scope==NULL) scope= "global";
 				else scope="local";
 
 			if(v->arrdim==-1)
-				printf("Variable: %s, type: %s, Scope: %s, Value: %d\n", v->varname, type,scope,v->val);
+				printf("Variable: %s, type: %s, Scope: %s, Memory: %d, Offset: %d, Value: %d\n",
+						v->varname, type,scope, v->memory,v->offset,v->val);
 			else
-				printf("Variable: %s, type: %s[%d], Scope: %s, Value: %d\n", v->varname, type,v->arrdim,scope,v->val);
+				printf("Variable: %s, type: %s[%d], Scope: %s, Memory: %d, Offset: %d, Value: %d\n",
+						v->varname, type,v->arrdim,scope, v->memory,v->offset,v->val);
 		}
 	}
 }
 
+/**
+* Prints all functions from the symbol table to the console.
+*/
 void print_funcs(){
-	if(funcentries==NULL)
-			{
+	if(funcentries==NULL){
 				printf("No Functions in table.\n");
 				return;
-			}
+	}
 	else{
 		funcentry_t *f, *tmp;
 		char* type;
@@ -284,16 +337,16 @@ void print_funcs(){
 							case 0:type="Integer"; break;
 							case 1:type="Integer Array";;break;
 							case 2:type="Void";;break;
-						}
+			}
 			printf("Function: %s(), type: %s, dimension: %d\n", f->funcname, type,f->dim);
 			varentry_t *v, *tmp;
 			HASH_ITER(hh, f->var, v, tmp) {
-				switch (f->var->vartype){
+				switch (v->vartype){
 								case 0:type="Integer"; break;
 								case 1:type="Integer Array";;break;
 								case 2:type="Void";;break;
-							}
-				if(f->var->scope==NULL) scope="global";
+				}
+				if(v->scope==NULL) scope="global";
 					else scope="local";
 				if(v->arrdim==-1)
 					printf("\tParameter of %s: %s, type: %s, scope: %s\n",f->funcname ,v->varname, type,scope);
@@ -304,14 +357,18 @@ void print_funcs(){
 	}
 }
 
+/**
+* Prints all parameters of a function from the symbol table to the console.
+* @param func_name The name of the function
+*/
 void print_pars(char *func_name){
 	struct funcentry *f;
 	HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);
-	if(f->var==NULL)
-			{
+	if(f->var==NULL){
 				printf("No Parameters in table for %s.\n",func_name);
+				//add_str(s);
 				return;
-			}
+	}
 	else{
 		varentry_t *v, *tmp;
 		char* type;
@@ -332,192 +389,265 @@ void print_pars(char *func_name){
 	}
 }
 
-//void print_all(){
-//	if(symentries==NULL)
-//			{
-//				printf("No Symbols in table.\n");
-//				return;
-//			}
-//	else{
-//		symentry_t *s, *tmp;
-//		char* type;
-//		char* scope;
-//		HASH_ITER(hh, symentries, s, tmp) {
-//			if(s->type==0){
-//				switch (s->sym.var->vartype){
-//								case 0:type="Integer"; break;
-//								case 1:type="Integer Array";;break;
-//								case 2:type="Void";;break;
-//							}
-//				switch (s->sym.var->scope){
-//					case 0:scope="global"; break;
-//					case 1:scope="local";;break;
-//					case 2:scope="parameter";;break;
-//				}
-//				if(s->sym.var->arrdim==-1)
-//					printf("Variable: %s, type: %s, scope: %s\n", s->sym.var->varname, type,scope);
-//				else
-//					printf("Variable: %s, type: %s[%d], scope: %s\n", s->sym.var->varname, type,s->sym.var->arrdim,scope);
-//			}
-//			else {
-//				switch (s->sym.func->returntype){
-//								case 0:type="Integer"; break;
-//								case 1:type="Integer Array";;break;
-//								case 2:type="Void";;break;
-//							}
-//				printf("Function: %s(), type: %s, dimension: %d\n",
-//						s->sym.func->funcname,  type, s->sym.func->dim);
-//			}
-//
-//		}
-//	}
-//}
 
 /**************************************       SORT ITEMS         *******************************************/
 
 //Not sure whether this should do the trick...
+//Not in Use, yet
 
+/**
+* Compares two variables for sort_vars().
+* @param a Variable 1 for comparison
+* @param b Variable 2 for comparison
+*/
 int name_sort_vars(varentry_t *a, varentry_t *b) {
     return strcmp(a->varname,b->varname);
 }
+
+/**
+* Sorts variables in symbol table.
+*/
 void sort_vars() {
     HASH_SORT(varentries, name_sort_vars);
 }
 
+/**
+* Compares two functions for sort_funcs().
+* @param a Function 1 for comparison
+* @param b Function 2 for comparison
+*/
 int name_sort_funcs(funcentry_t *a, funcentry_t *b) {
     return strcmp(a->funcname,b->funcname);
 }
+
+/**
+* Sorts functions in symbol table.
+*/
 void sort_funcs() {
     HASH_SORT(funcentries, name_sort_funcs);
 }
 
-//int name_sort_all(symentry_t *a, symentry_t *b) {
-//    return strcmp(a->name,b->name);
-//}
-//void sort_all() {
-//    HASH_SORT(symentries, name_sort_all);
-//}
 
+/**************************************       CHECK Function Call         *******************************************/
 
-
-/**************************************       CHECK ITEMS         *******************************************/
-
-unsigned int check_funccallpar(funcentry_t *func0, struct funccallparlist *params){
-	if(func0->dim != params->count){
+/**
+* Checks whether a function call was correct or not.
+* @param func The pointer to the structure of the function
+* @param pars The parameter list, given to the call
+* @return 0 If there was an incorrect function call
+* @return 1 If function call was correct
+*/
+unsigned int check_funccallpar(funcentry_t *func, struct funccallparlist *pars){
+	if(func->dim != pars->count){
 		return 0;
 	}
-	varentry_t *param0 = func0->var;
-	varentry_t *param1 = params->var;
-	for(int i=0;i<func0->dim;i++){
-		if(param0->arrdim != param1->arrdim){
+	varentry_t *par0 = func->var;
+	varentry_t *par1 = pars->var;
+	for(int i=0;i<func->dim;i++){
+		if(par0->arrdim != par1->arrdim)
 			return 0;
-		}
-		if(param0->vartype != param1->vartype){
+		if(par0->vartype != par1->vartype)
 			return 0;
-		}
-		if(param0->hh.next!=NULL){
-			param0 = param0->hh.next;
-		}
-		else{
+		if(par0->hh.next!=NULL)
+			par0 = par0->hh.next;
+		else
 			break;
-		}
-		if(param1->hh.next!=NULL){
-			param1 = param1->hh.next;
-		}
-		else{
+		if(par1->hh.next!=NULL)
+			par1 = par1->hh.next;
+		else
 			break;
-		}
 	}
 	return 1;
 }
-struct funccallparlist *createParamList(varentry_t *var)
-{
-	struct funccallparlist *ptr;
-	ptr = (struct funccallparlist *) malloc (sizeof (struct funccallparlist));
-	assert(ptr!=NULL);
-	ptr->count = 1;
-	ptr->var = var;
-	return ptr;
+
+/**
+* Creates a parameter list for checking a function call.
+* @param var The pointer to the structure of the parameter
+* @return The pointer to the parameter list
+*/
+struct funccallparlist *create_pars_list(varentry_t *var){
+	struct funccallparlist *par;
+	par = (struct funccallparlist *) malloc (sizeof (struct funccallparlist));
+	assert(par!=NULL);
+	par->count = 1;
+	par->var = var;
+	return par;
 }
+
+
 /**************************************       TEMP VAR         *******************************************/
 
-struct varentry *tempInt (char const *name)
-{
-	struct varentry *ptr;
-	//set name
-    ptr = malloc(sizeof(varentry_t));
-	assert(ptr!=NULL);
-    ptr->varname = malloc(sizeof(name));
-	assert(ptr->varname!=NULL);
-	strcpy (ptr->varname,name);
-
-	ptr->arrdim = -1;
-	ptr->scope = 0;
-//
-//	ptr->isParam = 0;
-//	ptr->stackpos = 0;
-//	ptr->isTemp = 1;
-	ptr->tempArrPos = -1;
-	ptr->tempArrPos2=NULL;
-	ptr->tempCodePos=-1;
-
-//	ptr->next = 137; //Temp Var Marker...
-
-	return ptr;
+/**
+* Creates a temporary variable in the symbol table and returns its pointer.
+* @param var_name The name of the temporary variable
+* @return The pointer to the structure of the temporary variable
+*/
+struct varentry *temp_var (char *var_name){
+	struct varentry *v;
+    v = malloc(sizeof(varentry_t));
+	assert(v!=NULL);
+    v->varname = malloc(strlen(var_name)+1);
+	assert(v->varname!=NULL);
+	strcpy (v->varname,var_name);
+	v->arrdim = -1;
+	v->scope = NULL;
+	v->tempArrPos = -1;
+	v->tempArrPos2=NULL;
+	v->tempCodePos=-1;
+	return v;
 }
 
-/**************************************       Addional Functions         *******************************************/
+/*************************************       Check for Prototype         ******************************************/
 
-int isFuncProto (char *funcname)
-{
-	if(find_func(funcname))
-	{
-		funcentry_t *ptr = find_func(funcname);
+/**
+* Checks whether a function is a prototype.
+* @param func_name The name of the function
+* @return 0 If function is not a prototype or function was not found in symbol table
+* @return 1 If function is a prototype
+*/
+int is_func_proto (char *func_name){
+	if(find_func(func_name))	{
+		funcentry_t *ptr = find_func(func_name);
 		return ptr->isPrototype;
 	}
-	return NULL;
+	return 0;
 }
 
-void setFuncProto (funcentry_t *f)
-{
-	funcentry_t *ptr = f;
-	ptr->isPrototype = 1;
+
+/**************************************       Setter Functions         *******************************************/
+
+/**
+* Sets the function to prototype.
+* @param f The pointer to the structure of the function
+*/
+void set_func_to_proto (funcentry_t *f){
+	f->isPrototype = 1;
 }
 
-void setFuncIsDeclared (char *funcname)
-{
-	if(find_func(funcname))
-	{
-		funcentry_t *ptr = find_func(funcname);
+/**
+* Sets the function to declared.
+* @param func_name The name of the function
+*/
+void set_func_to_decl (char *func_name){
+	if(find_func(func_name)){
+		funcentry_t *ptr = find_func(func_name);
 		ptr->isPrototype = 1;
 	}
 }
 
-void setFuncScope (funcentry_t *f)
-{
+/**
+* Sets the current function (scope) to the passed function
+* @param f The pointer to the structure of the function
+*/
+void set_func_scope (funcentry_t *f){
 	currfunc = f;
 }
-void setScopeForParams (funcentry_t *f)
-{
 
+/**
+* Gets the current function (scope) to the passed function
+* @return The pointer to the structure of the function or NULL
+*/
+funcentry_t *get_func_scope (){
+	return currfunc;
+}
+
+/**
+* Sets the scope of all pars of the passed function to this function
+* @param f The pointer to the structure of the function
+*/
+void set_scope_for_pars (funcentry_t *f){
 	varentry_t *par = f->var;
-
-	if(par==NULL)
-	{
+	if(par==NULL){
 		return;
 	}
-
-	for(int i=0;i<f->dim;i++)
-	{
+	for(int i=0;i<f->dim;i++){
 		par->scope = f;
-		if(par->hh.next!=NULL)
-		{
+		if(par->hh.next!=NULL){
 			par = par->hh.next;
 		}
-		else
-		{
+		else{
 			break;
 		}
 
+	}
+}
+/**
+* Prints all variables from the symbol table to the ir file.
+*/
+void print_vars_ir(){
+	char s [200];
+	if(varentries==NULL){
+			sprintf(s,"No variables in table.\n");
+			add_str(s);
+			return;
+	}
+	else{
+		varentry_t *v, *tmp;
+		char* type;
+		char* scope;
+		HASH_ITER(hh, varentries, v, tmp) {
+			switch (v->vartype){
+							case 0:type="Integer"; break;
+							case 1:type="Integer Array";;break;
+							case 2:type="Void";;break;
+			}
+			if(v->scope==NULL) scope= "global";
+				else scope="local";
+
+			if(v->arrdim==-1){
+				sprintf(s,"Variable: %s, type: %s, Scope: %s, Memory: %d, Offset: %d, Value: %d\n",
+									v->varname, type,scope, v->memory,v->offset,v->val);
+				add_str(s);
+			}
+			else{
+				sprintf(s,"Variable: %s, type: %s[%d], Scope: %s, Memory: %d, Offset: %d, Value: %d\n",
+									v->varname, type,v->arrdim,scope, v->memory,v->offset,v->val);
+				add_str(s);
+			}
+		}
+	}
+}
+
+/**
+* Prints all functions from the symbol table to the ir file.
+*/
+void print_funcs_ir(){
+	char s [200];
+	if(funcentries==NULL){
+				sprintf(s,"No Functions in table.\n");
+				add_str(s);
+				return;
+	}
+	else{
+		funcentry_t *f, *tmp;
+		char* type;
+		char* scope;
+		HASH_ITER(hh, funcentries, f, tmp) {
+			switch (f->returntype){
+							case 0:type="Integer"; break;
+							case 1:type="Integer Array";;break;
+							case 2:type="Void";;break;
+			}
+			sprintf(s,"Function: %s(), type: %s, dimension: %d\n", f->funcname, type,f->dim);
+			add_str(s);
+			varentry_t *v, *tmp;
+			HASH_ITER(hh, f->var, v, tmp) {
+				switch (v->vartype){
+								case 0:type="Integer"; break;
+								case 1:type="Integer Array";;break;
+								case 2:type="Void";;break;
+				}
+				if(v->scope==NULL) scope="global";
+					else scope="local";
+				if(v->arrdim==-1){
+					sprintf(s,"\tParameter of %s: %s, type: %s, scope: %s\n",f->funcname ,v->varname, type,scope);
+					add_str(s);
+				}
+				else{
+					sprintf(s,"\tParameter of %s: %s, type: %s[%d], scope: %s\n",f->funcname ,v->varname, type,v->arrdim,scope);
+					add_str(s);
+				}
+			}
+		}
 	}
 }

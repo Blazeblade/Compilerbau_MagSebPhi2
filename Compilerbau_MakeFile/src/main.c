@@ -8,6 +8,10 @@
 #include "main.h"
 #include "uthash.h"
 #include "symtab.h"
+#include "resource_manager.h"
+#include "diag.h"
+#include "symtab.h"
+#include "ir_code_gen.h"
 
 /* Constants */
 static const char *C_EXT = ".c";
@@ -290,10 +294,15 @@ int main (int argc, char *argv[]) {
   }
   else{
 	  printf("Main: Parsing\n");
+	  FILE *ir_file = fopen(cc_options.ir_file, "w");
+	  init_ir_code(ir_file);
       yyparse();
 	  printf("Main: File Closing\n");
+	  generate_ir_code();
+	  fclose(ir_file);
       fclose(yyin);
   }
+
 
   printf("Input: %s\n", cc_options.input_file);
   printf("Output: %s\n", cc_options.output_file);
