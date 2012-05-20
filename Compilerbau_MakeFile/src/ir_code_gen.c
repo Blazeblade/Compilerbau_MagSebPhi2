@@ -6,7 +6,6 @@
  *
  */
 //TODO: Parser: Function Call Check
-//TODO: IR_CODE: Dokumentation
 #include "ir_code_gen.h"
 #include "symtab.h"
 #include "parser.h"
@@ -103,7 +102,7 @@ void gencode(enum code_ops operation, varentry_t *var0, varentry_t *var1, varent
 * @param var0 The pointer to the structure of the variable left of the assignment
 * @param var1 The pointer to the structure of the variable right of the assignment
 */
-void gencodeass(varentry_t *var0, varentry_t *var1){
+void gencode_ass(varentry_t *var0, varentry_t *var1){
 	if(var0->tempArrPos>-1)
 		gencode(opMEM_ST, (struct varentry *) var0->hh.next,var0->tempArrPos2 , var1 , NULL, -1);
 	else
@@ -116,7 +115,7 @@ void gencodeass(varentry_t *var0, varentry_t *var1){
 * @param operation The operation of this expression
 * @param var0 The pointer to the structure of the affected variable
 */
-void gencodeop1(enum code_ops operation, varentry_t *var0){
+void gencode_op1(enum code_ops operation, varentry_t *var0){
 	if(operation==opRETURN)
 		gencode(operation, var0, NULL, NULL, NULL, MARK1);
 	else
@@ -129,7 +128,7 @@ void gencodeop1(enum code_ops operation, varentry_t *var0){
 * @param var1 The pointer to the structure of the affected variable
 * @return The pointer to the structure of the variable, which got the altered value of var1
 */
-varentry_t *gencodeopexp1(enum code_ops operation, varentry_t *var1){
+varentry_t *gencode_op1exp(enum code_ops operation, varentry_t *var1){
 	varentry_t *v;
 	if((struct varentry *) var1->hh.next!=MARK2)
 		v = ir_temp_var();
@@ -138,16 +137,6 @@ varentry_t *gencodeopexp1(enum code_ops operation, varentry_t *var1){
 	gencode(operation, v, var1, NULL, NULL, -1);
 	return v;
 }
-
-/**
-* Prepares the code at current position for expressions with two operands and calls then the gencode(...)
-* @param operation The operation of this expression
-* @param var0 The pointer to the structure of the first affected variable
-* @param var1 The pointer to the structure of the second affected variable
-*/
-//void gencodeop2(enum code_ops operation, varentry_t *var0, varentry_t *var1){
-//	gencode(operation, var0, var1, NULL, NULL, -1);
-//}
 
 /**
 * Prepares the code at current position for If statements and calls then the gencode(...)
@@ -161,7 +150,7 @@ void genif(varentry_t *var0){
 * Prepares the code at current position for GOTO statements after IF and calls then the gencode(...)
 * The GOTO Label will be defined via backpatching, there for the marker(MARK1)
 */
-void genifgoto(){
+void genif_goto(){
 	gencode(opGOTO, NULL, NULL, NULL, NULL, MARK1);
 }
 
@@ -169,7 +158,7 @@ void genifgoto(){
 * Sets the GOTO operation which have the marker (MARK1) to the now known jump address (for if statements)
 * @param shift For skipping code (0 - without Else statement, 1- with Else statement)
 */
-void backpatchif(int shift){
+void backpatch_if(int shift){
 	struct strCode  *c;
 	for(int i=code_count-1;i>=0;i--){
 		c = &code[i];
@@ -185,7 +174,7 @@ void backpatchif(int shift){
 /**
 * Sets the operation which have the marker (MARK1) to the now known jump address (for return statements)
 */
-void backpatchreturn(){
+void backpatch_return(){
 	struct strCode  *c;
 	for(int i=0;i<code_count;i++){
 		c = &code[i];
@@ -208,7 +197,7 @@ void genwhile(varentry_t *var0){
 /**
 * Prepares the code at current position for While Begin and calls then the gencode(...)
 */
-void genwhilebegin(){
+void genwhile_begin(){
 	gencode(opWHILE_BEGIN, NULL, NULL, NULL, NULL, MARK1);
 }
 
@@ -216,14 +205,14 @@ void genwhilebegin(){
 * Prepares the code at current position for While Begin and calls then the gencode(...)
 * The GOTO Label will be defined via backpatching, there for the marker(MARK1)
 */
-void genwhilegotobegin(){
+void genwhile_gotobegin(){
 	gencode(opGOTO, NULL, NULL, NULL, NULL, MARK1);
 }
 
 /**
 * Sets the operation which have the marker (MARK1) to the now known jump address (for while statements)
 */
-void backpatchwhile(){
+void backpatch_while(){
 	struct strCode  *c;
 	for(int i=code_count-1;i>=0;i--){
 		c = &code[i];
@@ -257,7 +246,7 @@ void gendowhile(){
 * Checks the code for Do While Begin and set back the jump adresses
 * @param var0 The pointer to the structure of the affected variable (for the if-expression at the end of do_while)
 */
-void gendowhileend(varentry_t *var0){
+void gendowhile_end(varentry_t *var0){
 	struct strCode  *c;
 	int i;
 	for(i=code_count-1;i>=0;i--){
@@ -279,7 +268,7 @@ void gendowhileend(varentry_t *var0){
 * @param var2 The pointer to the structure of the second operand
 * @return The pointer to the structure of the variable, which got the altered value of var1 and var2
 */
-varentry_t *gencodeopexp2(enum code_ops operation, varentry_t *var1, varentry_t *var2){
+varentry_t *gencode_op2exp(enum code_ops operation, varentry_t *var1, varentry_t *var2){
 	varentry_t *v;
 	if(((struct varentry *) var1->hh.next==MARK2) && ((struct varentry *) var2->hh.next==MARK2)){
 		v = var1;
@@ -298,7 +287,7 @@ varentry_t *gencodeopexp2(enum code_ops operation, varentry_t *var1, varentry_t 
 * @param var2 The pointer to the structure of the second variable (the array index)
 * @return The pointer to the structure of the variable, which gets the altered value of var1 and var2
 */
-varentry_t * gencodeloadarr(varentry_t *var1, varentry_t *var2){
+varentry_t * gencode_load_arr(varentry_t *var1, varentry_t *var2){
 	varentry_t *v;
 	v = ir_temp_var();
 	var1->tempArrPos =	var2->val;
@@ -314,7 +303,7 @@ varentry_t * gencodeloadarr(varentry_t *var1, varentry_t *var2){
 * @param var0 The pointer to the structure of the parameter list
 * @param func The pointer to the structure of the function
 */
-void gencodeopfunc(enum code_ops operation, varentry_t *var0, funcentry_t*func){
+void gencode_opfunc(enum code_ops operation, varentry_t *var0, funcentry_t*func){
 	gencode(operation, var0, NULL, NULL, func, -1);
 }
 
@@ -326,7 +315,7 @@ void gencodeopfunc(enum code_ops operation, varentry_t *var0, funcentry_t*func){
 * @param jmpTo The jump address in the IR code
 * @return The pointer to the structure of the function call
 */
-struct varentry *gencodeopfunccall(enum code_ops operation, struct varentry *var0, struct funcentry *func, int jmpTo){
+struct varentry *gencode_funccall(enum code_ops operation, struct varentry *var0, struct funcentry *func, int jmpTo){
 	varentry_t *v;
 	v = ir_temp_var();
 	gencode(operation, var0, v, NULL, func, jmpTo);
@@ -336,7 +325,7 @@ struct varentry *gencodeopfunccall(enum code_ops operation, struct varentry *var
 /**
 * Prints the (for some maybe cryptic) IR code to the console, just for debugging
 */
-void debugPrintAllopcodes(){
+void print_all_opcodes(){
 	struct strCode  *c;
 	varentry_t *int_;
 	funcentry_t *func_;
@@ -378,7 +367,7 @@ void debugPrintAllopcodes(){
 * @param func The pointer to the structure of the function, which shall be called
 * @return The Jump Address to function
 */
-int opcodeFindFunctionDef(funcentry_t *func){
+int opcode_find_FuncDef(funcentry_t *func){
 	struct strCode  *c;
 	for(int i=0;i<code_count;i++){
 		c = &code[i];
@@ -396,7 +385,7 @@ int opcodeFindFunctionDef(funcentry_t *func){
 * @return 0- if code already had a jump Label or position is not valid
 * @return 1- if code got the jump label
 */
-int setJmpLabel(int cpos, int jmpLabel){
+int set_jmpLabel(int cpos, int jmpLabel){
 	if(code[cpos].jmpLabel<0)	{
 		if((cpos>0) && (cpos<code_count)){
 			code[cpos].jmpLabel = jmpLabel;
@@ -410,14 +399,14 @@ int setJmpLabel(int cpos, int jmpLabel){
 * Sets the operation of the code at a specified position to NOP
 * @param pos The position in the code of the statement/expression
 */
-void setCodeToNOP(int pos){
+void set_code_to_NOP(int pos){
 	code[pos].op = opNOP;
 }
 
 /**
 * Sets the temporary register counter to back to zero, done after every statement
 */
-void resetTempCount(){
+void reset_temp_count(){
 	temp_reg_count = 0;
 }
 
@@ -513,7 +502,7 @@ void generate_ir_code(){
 			break;
 		case opIF:
 			jmpLabel_count = jmpLabel_count + 1;
-			if(!setJmpLabel(c->jmpTo, jmpLabel_count)){
+			if(!set_jmpLabel(c->jmpTo, jmpLabel_count)){
 				jmpLabel_count = jmpLabel_count - 1;
 			}
 			c->jmpTo = jmpLabel_count;
@@ -522,7 +511,7 @@ void generate_ir_code(){
 			break;
 		case opGOTO:
 			jmpLabel_count = jmpLabel_count + 1;
-			if(!setJmpLabel(c->jmpTo, jmpLabel_count)){
+			if(!set_jmpLabel(c->jmpTo, jmpLabel_count)){
 				jmpLabel_count = jmpLabel_count - 1;
 			}
 			c->jmpTo = jmpLabel_count;
@@ -537,7 +526,7 @@ void generate_ir_code(){
 			break;
 		case opRETURN:
 			jmpLabel_count = jmpLabel_count + 1;
-			if(!setJmpLabel(c->jmpTo, jmpLabel_count)){
+			if(!set_jmpLabel(c->jmpTo, jmpLabel_count)){
 				jmpLabel_count = jmpLabel_count - 1;
 			}
 			c->jmpTo = jmpLabel_count;

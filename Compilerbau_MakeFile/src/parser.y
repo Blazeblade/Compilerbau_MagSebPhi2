@@ -86,7 +86,7 @@ program
 		printf("<<----------DEBUG Variables---------->>:\n");
 		print_vars();
 		printf("<<----------DEBUG IR---------->>:\n");
-		debugPrintAllopcodes();
+		print_all_opcodes();
 		printf("<<----------DEBUG END---------->>:\n\n\n");
 		}
      ;
@@ -129,7 +129,7 @@ variable_declaration
 			$$=malloc(sizeof(*$$));
 			assert($$!=NULL);
 			if($1==voidtype) {
-				fprintf(stderr,"Variables can not be of type void (%s). Line: %d Column: %d \n",$2->varname, @1.first_line,@1.first_column);
+				fprintf(stderr,"ERROR: Variables can not be of type void (%s). Line: %d Column: %d \n",$2->varname, @1.first_line,@1.first_column);
 			} 
 			else {
 				$$->varname=$2->varname;
@@ -156,7 +156,7 @@ identifier_declaration
 			if(find_var($1)){
 				$$=find_var($1);
 				if($$->scope==get_func_scope())
-					fprintf(stderr,"This Symbol was already defined (%s), Line: %d Column: %d \n",$$->varname, @1.first_line,@1.first_column);
+					fprintf(stderr,"ERROR: This Symbol was already defined (%s), Line: %d Column: %d \n",$$->varname, @1.first_line,@1.first_column);
 				else{
 					$$->varname=$1;
 					$$->vartype=1;
@@ -176,7 +176,7 @@ identifier_declaration
 			if(find_var($1)){
 				$$=find_var($1);
 				if($$->scope==get_func_scope())
-					fprintf(stderr,"This Symbol was already defined (%s), Line: %d Column: %d \n",$$->varname, @1.first_line,@1.first_column);
+					fprintf(stderr,"ERROR: This Symbol was already defined (%s), Line: %d Column: %d \n",$$->varname, @1.first_line,@1.first_column);
 				else{
 					$$->varname=$1;
 					$$->arrdim=NOT_DEFINED;
@@ -196,13 +196,13 @@ function_definition
 			if(find_func($2)){
 				if(is_func_proto($2)){
 					if($1!=find_func($2)->returntype){	
-						fprintf(stderr,"Types mismatch from function %s's declaration. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
+						fprintf(stderr,"ERROR: Types mismatch from function %s's declaration. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
 					}
 					set_func_to_decl($2);
 					set_func_scope(find_func($2));
 				}
 				else{	
-					fprintf(stderr,"A function definition with the same name (%s) already exists. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
+					fprintf(stderr,"ERROR: A function definition with the same name (%s) already exists. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
 				}
 			}
 			else{										
@@ -214,32 +214,32 @@ function_definition
 				add_func($<func>$->funcname, $<func>$->returntype,$<func>$->dim,NULL);
 				set_func_scope(find_func($2));
 				}
-			gencodeopfunc(opFUNC_DEF, NULL, find_func($2));
+			gencode_opfunc(opFUNC_DEF, NULL, find_func($2));
 		}
-		 BRACE_OPEN stmt_list BRACE_CLOSE {gencodeopfunc(opFUNC_DEF_END, NULL, find_func($2));set_func_scope(NULL);backpatchreturn();}
+		 BRACE_OPEN stmt_list BRACE_CLOSE {gencode_opfunc(opFUNC_DEF_END, NULL, find_func($2));set_func_scope(NULL);backpatch_return();}
 		
      | type ID PARA_OPEN function_parameter_list PARA_CLOSE
      	{	
      		if(find_func($2)){
 				if(is_func_proto($2)){
 					if(!check_funccallpar(find_func($2), $4)){
-						fprintf(stderr,"Function-Parameter definition does not match the declaration of function %s. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
+						fprintf(stderr,"ERROR: Function-Parameter definition does not match the declaration of function %s. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
 					}
 					if($1!=find_func($2)->returntype){
-						fprintf(stderr,"Type mismatch from function %s's declaration. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
+						fprintf(stderr,"ERROR: Type mismatch from function %s's declaration. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
 					}
 					if(strcmp ($4->funcname,"temp1")==0){
 						delete_func (find_func("temp1"));
 						set_func_to_decl ($2);
 						set_func_scope(find_func($2));
-						gencodeopfunc(opFUNC_DEF, $4, find_func($2));
+						gencode_opfunc(opFUNC_DEF, $4, find_func($2));
 					}
 					else{
 						printf("INTERNAL ERROR: Function has not the expected TEMP_NAME!\n");
 					}
 				}
 				else{
-					fprintf(stderr,"A function definition with the same name (%s) already exists. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
+					fprintf(stderr,"ERROR: A function definition with the same name (%s) already exists. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
 				}
 			}
 			else{
@@ -250,21 +250,21 @@ function_definition
 					$<func>$->returntype=(int)$1;
 					add_func($<func>$->funcname, $<func>$->returntype,$<func>$->dim,$<func>$->var);
 					delete_func($<func>$);
-					gencodeopfunc(opFUNC_DEF, $4, find_func($2));
+					gencode_opfunc(opFUNC_DEF, $4, find_func($2));
 				}
 				else{
 					printf("INTERNAL ERROR: Function has not the expected TEMP_NAME!\n");
 				}
 			}			
 		}
-		 BRACE_OPEN stmt_list BRACE_CLOSE{gencodeopfunc(opFUNC_DEF_END, NULL, find_func($2));set_func_scope(NULL);backpatchreturn();}
+		 BRACE_OPEN stmt_list BRACE_CLOSE{gencode_opfunc(opFUNC_DEF_END, NULL, find_func($2));set_func_scope(NULL);backpatch_return();}
      ;
 
 function_declaration 
      : type ID PARA_OPEN PARA_CLOSE
 		{
 			if(find_func($2)){
-				fprintf(stderr,"A function definition with the same name (%s) already exists. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
+				fprintf(stderr,"ERROR: A function definition with the same name (%s) already exists. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
 				set_func_to_proto (find_func($2));
 				set_scope_for_pars (find_func($2));
 			}
@@ -284,7 +284,7 @@ function_declaration
      | type ID PARA_OPEN function_parameter_list PARA_CLOSE 
      	{
 			if(find_func($2)) {
-				fprintf(stderr,"A function definition with the same name (%s) already exists. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
+				fprintf(stderr,"ERROR: A function definition with the same name (%s) already exists. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
 				delete_func ("temp1");
 				set_func_to_proto(find_func($2));
 				set_scope_for_pars (find_func($2));
@@ -344,7 +344,7 @@ function_parameter
 			assert($$!=NULL);
 			$$->varname = $2->varname; 
 			if($1==voidtype) { 
-				fprintf(stderr,"Function parameters can not be of type void. Line: %d Column: %d \n", @1.first_line,@1.first_column); 
+				fprintf(stderr,"ERROR: Function parameters can not be of type void. Line: %d Column: %d \n", @1.first_line,@1.first_column); 
 			} 
 			else {
 				if($2->arrdim>=0){
@@ -366,21 +366,21 @@ stmt_list
 
 stmt
      : stmt_block
-     | variable_declaration SEMICOLON	{resetTempCount();}
-     | expression SEMICOLON				{resetTempCount();}
-     | stmt_conditional					{resetTempCount();}
-     | stmt_loop						{resetTempCount();}
+     | variable_declaration SEMICOLON	{reset_temp_count();}
+     | expression SEMICOLON				{reset_temp_count();}
+     | stmt_conditional					{reset_temp_count();}
+     | stmt_loop						{reset_temp_count();}
      | RETURN expression SEMICOLON		{
 										if($2->scope!=NULL){
 											if($2->scope->returntype==2){ 
-												fprintf(stderr,"Function was declared as VOID. It can not return a value. Either use \"RETURN;\" or use type int for the func. Line: %d Column: %d \n",	@1.first_line,@1.first_column);
+												fprintf(stderr,"ERROR: Function was declared as VOID. It can not return a value. Either use \"RETURN;\" or use type int for the func. Line: %d Column: %d \n",	@1.first_line,@1.first_column);
 											}
 										}
-										gencodeop1(opRETURN, $2);
-										{resetTempCount();}
+										gencode_op1(opRETURN, $2);
+										{reset_temp_count();}
 										}
-     | RETURN SEMICOLON					{gencodeop1(opRETURN, NULL);{resetTempCount();}}
-     | SEMICOLON 						{resetTempCount();}
+     | RETURN SEMICOLON					{gencode_op1(opRETURN, NULL);{reset_temp_count();}}
+     | SEMICOLON 						{reset_temp_count();}
      ;
 
 
@@ -389,54 +389,54 @@ stmt_block
      ;
 	
 stmt_conditional
-     : IF PARA_OPEN expression {genif($3);genifgoto();} PARA_CLOSE stmt_conditional_r //stmt
-     //| IF PARA_OPEN expression {genif($3);genifgoto();} PARA_CLOSE stmt ELSE stmt	//{genif($3);genifgoto();}
+     : IF PARA_OPEN expression {genif($3);genif_goto();} PARA_CLOSE stmt_conditional_r //stmt
+     //| IF PARA_OPEN expression {genif($3);genif_goto();} PARA_CLOSE stmt ELSE stmt	//{genif($3);genif_goto();}
      ;
      
 stmt_conditional_r
-     : stmt {backpatchif(0);}
-     | stmt ELSE {backpatchif(1);genifgoto();} stmt {backpatchif(0);}
+     : stmt {backpatch_if(0);}
+     | stmt ELSE {backpatch_if(1);genif_goto();} stmt {backpatch_if(0);}
      ;
 									
 stmt_loop
-     : WHILE {genwhilebegin();} PARA_OPEN expression PARA_CLOSE {genwhile($4);genwhilegotobegin();} stmt {backpatchwhile();}
-     | DO {gendowhile();} stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON {gendowhileend($6);}
+     : WHILE {genwhile_begin();} PARA_OPEN expression PARA_CLOSE {genwhile($4);genwhile_gotobegin();} stmt {backpatch_while();}
+     | DO {gendowhile();} stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON {gendowhile_end($6);}
      ;
 									
 expression	
      : expression ASSIGN expression				{$$ = $3;
-												gencodeass($1, $3);
+												gencode_ass($1, $3);
 												if($1->tempCodePos>-1) {
-													setCodeToNOP($1->tempCodePos);
+													set_code_to_NOP($1->tempCodePos);
 												}}	
-     | expression LOGICAL_OR expression			{$$ = gencodeopexp2(opLOGICAL_OR, $1, $3);}
-     | expression LOGICAL_AND expression		{$$ = gencodeopexp2(opLOGICAL_AND, $1, $3);}
-     | LOGICAL_NOT expression					{$$ = gencodeopexp1(opLOGICAL_NOT, $2);}
-     | expression EQ expression					{$$ = gencodeopexp2(opEQ, $1, $3);}
-     | expression NE expression					{$$ = gencodeopexp2(opNE, $1, $3);}
-     | expression LS expression 				{$$ = gencodeopexp2(opLS, $1, $3);}
+     | expression LOGICAL_OR expression			{$$ = gencode_op2exp(opLOGICAL_OR, $1, $3);}
+     | expression LOGICAL_AND expression		{$$ = gencode_op2exp(opLOGICAL_AND, $1, $3);}
+     | LOGICAL_NOT expression					{$$ = gencode_op1exp(opLOGICAL_NOT, $2);}
+     | expression EQ expression					{$$ = gencode_op2exp(opEQ, $1, $3);}
+     | expression NE expression					{$$ = gencode_op2exp(opNE, $1, $3);}
+     | expression LS expression 				{$$ = gencode_op2exp(opLS, $1, $3);}
      | expression LSEQ expression 				{
 												struct varentry *t0;struct varentry *t1;
-												t0 = gencodeopexp2(opLS, $1, $3);
-												t1 = gencodeopexp2(opEQ, $1, $3);
-												$$ = gencodeopexp2(opLOGICAL_OR, t0, t1);
+												t0 = gencode_op2exp(opLS, $1, $3);
+												t1 = gencode_op2exp(opEQ, $1, $3);
+												$$ = gencode_op2exp(opLOGICAL_OR, t0, t1);
 												}
      | expression GTEQ expression 				{	
 												struct varentry *t0;struct varentry *t1;
-												t0 = gencodeopexp2(opGT, $1, $3);
-												t1 = gencodeopexp2(opEQ, $1, $3);
-												$$ = gencodeopexp2(opLOGICAL_OR, t0, t1);
+												t0 = gencode_op2exp(opGT, $1, $3);
+												t1 = gencode_op2exp(opEQ, $1, $3);
+												$$ = gencode_op2exp(opLOGICAL_OR, t0, t1);
 												}
-     | expression GT expression					{$$ = gencodeopexp2(opGT, $1, $3);}
-     | expression PLUS expression				{$$ = gencodeopexp2(opADD, $1, $3);}
-     | expression MINUS expression				{$$ = gencodeopexp2(opSUB, $1, $3);}
-     | expression MUL expression				{$$ = gencodeopexp2(opMUL, $1, $3);}
-     | MINUS expression %prec UNARY_MINUS		{$$ = gencodeopexp1(opMINUS, $2);}
+     | expression GT expression					{$$ = gencode_op2exp(opGT, $1, $3);}
+     | expression PLUS expression				{$$ = gencode_op2exp(opADD, $1, $3);}
+     | expression MINUS expression				{$$ = gencode_op2exp(opSUB, $1, $3);}
+     | expression MUL expression				{$$ = gencode_op2exp(opMUL, $1, $3);}
+     | MINUS expression %prec UNARY_MINUS		{$$ = gencode_op1exp(opMINUS, $2);}
      | ID BRACKET_OPEN primary BRACKET_CLOSE	{
 												if(!find_var($1))
-													$$ = gencodeloadarr(find_funcpar2($1), $3);
+													$$ = gencode_load_arr(find_funcpar2($1), $3);
 												else
-													$$ = gencodeloadarr(find_var($1), $3);
+													$$ = gencode_load_arr(find_var($1), $3);
 												$$->tempArrPos=$3->val;
 												$$->tempArrPos2=$3;
 												}
@@ -466,7 +466,7 @@ primary
 				$$=find_funcpar2($1);
 			}
 			else {
-				fprintf(stderr,"ERROR! The variable %s was not declared. Line: %d Column: %d \n", $1, @1.first_line,@1.first_column);
+				fprintf(stderr,"ERROR: The variable %s was not declared. Line: %d Column: %d \n", $1, @1.first_line,@1.first_column);
 				add_var ($1, 0,NOT_DEFINED,0);
 				$$= find_var($1);
 			}
@@ -481,7 +481,7 @@ function_call
 				f = find_func($1);
 			}
 			else{
-				fprintf(stderr,"ERROR! Function was not declared before the call! Line: %d Column: %d \n", @1.first_line,@1.first_column);
+				fprintf(stderr,"ERROR: Function was not declared before the call! Line: %d Column: %d \n", @1.first_line,@1.first_column);
 				add_func("undeclared1",0,0,NULL);
 				f=find_func("undeclared1");
 			}
@@ -495,7 +495,7 @@ function_call
 			add_var(s,0,-1,0);
 			v=find_var(s);
 			free(s);
-			$$ = gencodeopfunccall(opCALL, v, f, opcodeFindFunctionDef(f));
+			$$ = gencode_funccall(opCALL, v, f, opcode_find_FuncDef(f));
 		}
       | ID PARA_OPEN function_call_parameters PARA_CLOSE
       	{
@@ -507,11 +507,11 @@ function_call
 					//printf("Functional Call Param Check OK!\n");
 				}
 				else{
-					fprintf(stderr,"ERROR: Functional Call Param Check FAILED![%s(%s)] Line: %d Column: %d \n",f->funcname,$3->var->varname, @1.first_line,@1.first_column);
+					fprintf(stderr,"ERROR: Functional Call Paramater Check FAILED![%s(%s)] Line: %d Column: %d \n",f->funcname,$3->var->varname, @1.first_line,@1.first_column);
 				}
 			}
 			else{
-				fprintf(stderr,"ERROR! Function was not declared before the call!Line: %d Column: %d \n", @1.first_line,@1.first_column);
+				fprintf(stderr,"ERROR: Function was not declared before the call!Line: %d Column: %d \n", @1.first_line,@1.first_column);
 				add_func("undeclared1",0,0,NULL);
 				f=find_func("undeclared1");
 				
@@ -526,7 +526,7 @@ function_call
 			add_var(s,0,-1,$3->count);
 			v=find_var(s);
 			free(s);
-			$$ = gencodeopfunccall(opCALL, v, f, opcodeFindFunctionDef(f));
+			$$ = gencode_funccall(opCALL, v, f, opcode_find_FuncDef(f));
 		}
       ;
 
@@ -534,12 +534,12 @@ function_call_parameters
      : function_call_parameters COMMA expression	
 		{
 			$$->count += 1;
-			gencodeop1(opPARAM, $3);
+			gencode_op1(opPARAM, $3);
 		}
      | expression
 		{
 			$$ = create_pars_list($1);
-			gencodeop1(opPARAM, $1);
+			gencode_op1(opPARAM, $1);
 		}
      ;
 

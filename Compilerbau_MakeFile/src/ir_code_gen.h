@@ -39,7 +39,7 @@ static char* enumStrings[] = {
 
 							"RETURN", "PARAM", "CALL", "MEM_LD", "MEM_ST", "ADDR", "FUNC_DEF", "FUNC_DEF_END", "NOP"
 
-						};
+};
 
 /**
  * Not all have to be used in every opcode
@@ -59,29 +59,28 @@ struct varentry *ir_temp_var();
 void init_ir_code(FILE *file);
 void add_str(const char *str);
 void gencode(enum code_ops operation, struct varentry *var0, struct varentry *var1, struct varentry *var2, struct funcentry *func, int jmpTo);
-void gencodeass(struct varentry *var0, struct varentry *var1);
-void gencodeop1(enum code_ops operation, struct varentry *var0);
-struct varentry *gencodeopexp1(enum code_ops operation, struct varentry *var1);
-//void gencodeop2(enum code_ops operation, struct varentry *var0, struct varentry *var1);
+void gencode_ass(struct varentry *var0, struct varentry *var1);
+void gencode_op1(enum code_ops operation, struct varentry *var0);
+struct varentry *gencode_op1exp(enum code_ops operation, struct varentry *var1);
 void genif(struct varentry *var0);
-void genifgoto();
-void backpatchif(int shift);
-void backpatchreturn();
+void genif_goto();
+void backpatch_if(int shift);
+void backpatch_return();
 void genwhile(struct varentry *var0);
-void genwhilebegin();
-void genwhilegotobegin();
-void backpatchwhile();
+void genwhile_begin();
+void genwhile_gotobegin();
+void backpatch_while();
 void gendowhile();
-void gendowhileend(struct varentry *var0);
-struct varentry *gencodeopexp2(enum code_ops operation, struct varentry *var1, struct varentry *var2);
-struct varentry * gencodeloadarr(struct varentry *var1, struct varentry *var2);
-void gencodeopfunc(enum code_ops operation, struct varentry *var0, struct funcentry*func);
-struct varentry *gencodeopfunccall(enum code_ops operation, struct varentry *var0, struct funcentry *func, int jmpTo);
-void debugPrintAllopcodes();
-int opcodeFindFunctionDef(struct funcentry *func);
-int setJmpLabel(int cpos, int jmpLabel);
-void setCodeToNOP(int pos);
-void resetTempCount();
+void gendowhile_end(struct varentry *var0);
+struct varentry *gencode_op2exp(enum code_ops operation, struct varentry *var1, struct varentry *var2);
+struct varentry * gencode_load_arr(struct varentry *var1, struct varentry *var2);
+void gencode_opfunc(enum code_ops operation, struct varentry *var0, struct funcentry*func);
+struct varentry *gencode_funccall(enum code_ops operation, struct varentry *var0, struct funcentry *func, int jmpTo);
+void print_all_opcodes();
+int opcode_find_FuncDef(struct funcentry *func);
+int set_jmpLabel(int cpos, int jmpLabel);
+void set_code_to_NOP(int pos);
+void reset_temp_count();
 void generate_ir_code();
 
 
