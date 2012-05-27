@@ -2289,7 +2289,7 @@ yyreduce:
 			char *s;
 			s=malloc(20);
 			do{
-				int i=rand()%100;
+				int i=rand()%1000;
 			sprintf(s,"int_prim%d",i);
 			}while(find_var(s));
 			add_var(s,0, NOT_DEFINED, (yyvsp[(1) - (1)].num));
