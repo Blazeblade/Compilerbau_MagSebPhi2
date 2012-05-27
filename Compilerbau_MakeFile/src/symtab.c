@@ -70,13 +70,20 @@ void add_var(char *varname, enum type vartype,int arrdim, int value) {
 	v->tempArrPos=-1;
 	v->tempArrPos2=NULL;
 	v->tempCodePos=-1;
+	v->isfunccall=0;
 	if(arrdim>-1)
 		v->memory=arrdim*4;
 	else
 		v->memory=4;
-	v->offset=offset_;
+	if(v->scope){
+		v->offset=v->scope->offset_cnt;
+		v->scope->offset_cnt+=v->memory;
+	}
+	else{
+		v->offset=offset_;
+		offset_+=v->memory;
+	}
     HASH_ADD_KEYPTR(hh, varentries, v->varname, strlen(v->varname), v );
-	offset_= offset_+v->memory;
     return;
 }
 
@@ -98,6 +105,7 @@ void add_func(char *funcname, enum type returntype,int dim,varentry_t *var) {
     f->returntype= returntype;
     f->dim = dim;
     f->var = var;
+    f->offset_cnt=0;
     HASH_ADD_KEYPTR(hh, funcentries, f->funcname, strlen(f->funcname), f );
     currfunc=f;
     return;
@@ -123,6 +131,15 @@ void add_funcpar(char *funcname,char *varname, enum type vartype, int arrdim) {
 	p->vartype=vartype;
 	p->arrdim=arrdim;
 	p->scope=currfunc;
+	p->tempArrPos=-1;
+	p->tempArrPos2=NULL;
+	p->tempCodePos=-1;
+	if(arrdim>-1)
+		p->memory=arrdim*4;
+	else
+		p->memory=4;
+	p->offset=p->scope->offset_cnt;
+	p->scope->offset_cnt+=p->memory;
 	HASH_FIND(hh,funcentries, funcname,strlen(funcname), f);
 	assert(f!=NULL);
     HASH_ADD_KEYPTR(hh, f->var, p->varname, strlen(p->varname), p);
@@ -308,7 +325,7 @@ void print_vars(){
 							case 2:type="Void";;break;
 			}
 			if(v->scope==NULL) scope= "global";
-				else scope="local";
+				else scope=v->scope->funcname;
 
 			if(v->arrdim==-1)
 				printf("Variable: %s, type: %s, Scope: %s, Memory: %d, Offset: %d, Value: %d\n",
@@ -347,11 +364,13 @@ void print_funcs(){
 								case 2:type="Void";;break;
 				}
 				if(v->scope==NULL) scope="global";
-					else scope="local";
+					else scope=v->scope->funcname;
 				if(v->arrdim==-1)
-					printf("\tParameter of %s: %s, type: %s, scope: %s\n",f->funcname ,v->varname, type,scope);
+					printf("\tParameter of %s: %s, type: %s, Memory: %d, Offset: %d\n",
+							f->funcname ,v->varname, type,v->memory,v->offset);
 				else
-					printf("\tParameter of %s: %s, type: %s[%d], scope: %s\n",f->funcname ,v->varname, type,v->arrdim,scope);
+					printf("\tParameter of %s: %s, type: %s[%d], Memory: %d, Offset: %d\n",
+							f->funcname ,v->varname, type,v->arrdim,v->memory,v->offset);
 			}
 		}
 	}
@@ -439,23 +458,30 @@ void sort_funcs() {
 */
 unsigned int check_funccallpar(funcentry_t *func, struct funccallparlist *pars){
 	if(func->dim != pars->count){
+		printf("dimension, dim: %d, count: %d",func->dim,pars->count);
 		return 0;
 	}
 	varentry_t *par0 = func->var;
 	varentry_t *par1 = pars->var;
 	for(int i=0;i<func->dim;i++){
-		if(par0->arrdim != par1->arrdim)
-			return 0;
-		if(par0->vartype != par1->vartype)
-			return 0;
-		if(par0->hh.next!=NULL)
-			par0 = par0->hh.next;
-		else
-			break;
-		if(par1->hh.next!=NULL)
-			par1 = par1->hh.next;
-		else
-			break;
+		if(par1->isfunccall){
+			if(par0->vartype != par1->vartype)
+						return 0;
+		}
+		else{
+			if(par0->arrdim != par1->arrdim)
+				return 0;
+			if(par0->vartype != par1->vartype)
+				return 0;
+			if(par0->hh.next!=NULL)
+				par0 = par0->hh.next;
+			else
+				break;
+			if(par1->hh.next!=NULL)
+				par1 = par1->hh.next;
+			else
+				break;
+		}
 	}
 	return 1;
 }
@@ -501,16 +527,12 @@ struct varentry *temp_var (char *var_name){
 
 /**
 * Checks whether a function is a prototype.
-* @param func_name The name of the function
+* @param f The pointer to the structure of the function
 * @return 0 If function is not a prototype or function was not found in symbol table
 * @return 1 If function is a prototype
 */
-int is_func_proto (char *func_name){
-	if(find_func(func_name))	{
-		funcentry_t *ptr = find_func(func_name);
-		return ptr->isPrototype;
-	}
-	return 0;
+int is_func_proto (funcentry_t *f){
+		return f->isPrototype;
 }
 
 
@@ -592,7 +614,7 @@ void print_vars_ir(){
 							case 2:type="Void";;break;
 			}
 			if(v->scope==NULL) scope= "global";
-				else scope="local";
+				else scope=v->scope->funcname;
 
 			if(v->arrdim==-1){
 				sprintf(s,"Variable: %s, type: %s, Scope: %s, Memory: %d, Offset: %d, Value: %d\n",
@@ -638,13 +660,15 @@ void print_funcs_ir(){
 								case 2:type="Void";;break;
 				}
 				if(v->scope==NULL) scope="global";
-					else scope="local";
+					else scope=v->scope->funcname;
 				if(v->arrdim==-1){
-					sprintf(s,"\tParameter of %s: %s, type: %s, scope: %s\n",f->funcname ,v->varname, type,scope);
+					sprintf(s,"\tParameter of %s: %s, type: %s, Memory: %d, Offset: %d\n",
+							f->funcname ,v->varname, type, v->memory,v->offset);
 					add_str(s);
 				}
 				else{
-					sprintf(s,"\tParameter of %s: %s, type: %s[%d], scope: %s\n",f->funcname ,v->varname, type,v->arrdim,scope);
+					sprintf(s,"\tParameter of %s: %s, type: %s[%d], Memory: %d, Offset: %d\n",
+							f->funcname ,v->varname, type,v->arrdim, v->memory,v->offset);
 					add_str(s);
 				}
 			}

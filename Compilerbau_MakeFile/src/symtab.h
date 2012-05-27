@@ -11,7 +11,7 @@
 #include "include/uthash.h"
 
 enum type{							//Enumeration for Var and Func Types
-	integer=0,
+	integer	=0,
 	intarray=1,
 	voidtype=2
 }types;
@@ -28,6 +28,7 @@ typedef struct varentry				//Variables
 	int tempArrPos;					//For array stepping
 	struct varentry *tempArrPos2;	//
 	int tempCodePos;				//Position in IR Code
+	int isfunccall;					//helper
     UT_hash_handle hh;				//Hash Table Handler
 } varentry_t;
 
@@ -37,7 +38,7 @@ typedef struct funcentry			//Functions
 	enum type returntype;			//0 - Integer, (1- Integer Array,) 2 - Void
 	int dim;						//Dimension
 	int isPrototype;				//
-//	int arrdim;						//Array Dimension
+	int offset_cnt;					//offset counter
 	varentry_t *var; 				//Hash Table of Func Parameters
     UT_hash_handle hh;				//Hash Table Handler
 }funcentry_t;
@@ -76,7 +77,7 @@ void sort_funcs();
 unsigned int check_funccallpar(funcentry_t *func, struct funccallparlist *pars);
 struct funccallparlist *create_pars_list(varentry_t *var);
 struct varentry *temp_var (char *var_name);
-int is_func_proto (char *func_name);
+int is_func_proto (funcentry_t *f);
 void set_func_to_proto (funcentry_t *f);
 void set_func_to_decl (char *func_name);
 void set_func_scope (funcentry_t *f);

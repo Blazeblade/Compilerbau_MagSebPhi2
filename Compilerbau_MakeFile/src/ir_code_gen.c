@@ -5,7 +5,6 @@
  * @brief	Functions for intermediate code generation
  *
  */
-//TODO: Parser: Function Call Check
 #include "ir_code_gen.h"
 #include "symtab.h"
 #include "parser.h"
@@ -13,16 +12,17 @@
 #include <stdlib.h>
 #include <assert.h>
 
+extern void yyerror (const char *msg);
+
 /*
- * Constants (Marks/Identifier)
+ * Constant (Mark/Identifier)
  */
 #define MARK1 -2
-#define MARK2 1337
 
 /*
  * Structure to store the Code
  */
-struct strCode  *code=NULL;
+struct code_struct  *code=NULL;
 /*
  * Code "line number"
  */
@@ -44,35 +44,12 @@ char s [200];
  */
 FILE *ir_file;
 
-/**
-* Creates a temporary variable structure for the IR Code (.t0,.t1,[...])
-* @return The temporary variable structure
-*/
-varentry_t *ir_temp_var(){
-	temp_reg_count += 1;
-	char buffer [5];
-	sprintf (buffer, ".t%d", temp_reg_count);
-	varentry_t *v;
-	v = temp_var(buffer);
-	v->arrdim = temp_reg_count;
-	return v;
-}
 
-/**
-* Initialises the IR file
-* @param file The pointer to the file, where the Code shall be stored
-*/
-void init_ir_code(FILE *file){
-	ir_file = file;
-}
 
-/**
-* Inserts the given char sequence into the IR file
-* @param str The string, which shall be inserted
-*/
-void add_str(const char *str){
-	fputs (str,ir_file);
-}
+
+/***********************************      Code Generations         ***********************************/
+
+
 
 /**
 * Generates the code at current position and stores it into the code variable
@@ -83,9 +60,9 @@ void add_str(const char *str){
 * @param func The pointer to the structure of the function (if a function is used in this code) [NULLable]
 * @param jmpTo For Marking, otherwise = -1 (processed in backpatching)
 */
-void gencode(enum code_ops operation, varentry_t *var0, varentry_t *var1, varentry_t *var2, funcentry_t *func, int jmpTo){
+void gencode(enum code_operations operation, varentry_t *var0, varentry_t *var1, varentry_t *var2, funcentry_t *func, int jmpTo){
 	code_count += 1;
-	struct strCode *codebuffer = (struct strCode*) realloc (code, code_count * sizeof(struct strCode));
+	struct code_struct *codebuffer = (struct code_struct*) realloc (code, code_count * sizeof(struct code_struct));
 	assert(codebuffer!=NULL);
 	code = codebuffer;
 	code[code_count-1].op = operation;
@@ -104,22 +81,15 @@ void gencode(enum code_ops operation, varentry_t *var0, varentry_t *var1, varent
 */
 void gencode_ass(varentry_t *var0, varentry_t *var1){
 	if(var0->tempArrPos>-1)
-		gencode(opMEM_ST, (struct varentry *) var0->hh.next,var0->tempArrPos2 , var1 , NULL, -1);
-	else
-		gencode(opASSIGN, var0, var1, NULL, NULL, -1);
+		gencode(MEM_ST_IR, (struct varentry *) var0->hh.next,var0->tempArrPos2 , var1 , NULL, -1);
+	else{
+		if((var0->vartype==1) && (var1->vartype!=1))
+			yyerror ("Type mismatch! Array without indexing can not get assigned a value");
+		if(var1->vartype==2)
+				yyerror ("Operands can not be of type VOID");
+		gencode(ASSIGN_IR, var0, var1, NULL, NULL, -1);
+	}
 	temp_reg_count = 0;
-}
-
-/**
-* Prepares the code at current position for Returns and Parameter storing and calls then the gencode(...)
-* @param operation The operation of this expression
-* @param var0 The pointer to the structure of the affected variable
-*/
-void gencode_op1(enum code_ops operation, varentry_t *var0){
-	if(operation==opRETURN)
-		gencode(operation, var0, NULL, NULL, NULL, MARK1);
-	else
-		gencode(operation, var0, NULL, NULL, NULL, -1);
 }
 
 /**
@@ -128,137 +98,19 @@ void gencode_op1(enum code_ops operation, varentry_t *var0){
 * @param var1 The pointer to the structure of the affected variable
 * @return The pointer to the structure of the variable, which got the altered value of var1
 */
-varentry_t *gencode_op1exp(enum code_ops operation, varentry_t *var1){
+varentry_t *gencode_op1exp(enum code_operations operation, varentry_t *var1){
 	varentry_t *v;
-	if((struct varentry *) var1->hh.next!=MARK2)
-		v = ir_temp_var();
-	else
-		v=var1;
+	v = ir_temp_var();
+	if(var1->vartype==2)
+		yyerror ("Operands can not be of type VOID");
+	if(var1->vartype==1){
+		varentry_t *temp;
+		temp=(struct varentry *) var1->hh.next;
+		if(temp->tempArrPos==-1)
+			yyerror ("Operand must have an array index");
+	}
 	gencode(operation, v, var1, NULL, NULL, -1);
 	return v;
-}
-
-/**
-* Prepares the code at current position for If statements and calls then the gencode(...)
-* @param var0 The pointer to the structure of the affected variable (contains if-expression)
-*/
-void genif(varentry_t *var0){
-	gencode(opIF, var0, NULL, NULL, NULL, code_count+2);
-}
-
-/**
-* Prepares the code at current position for GOTO statements after IF and calls then the gencode(...)
-* The GOTO Label will be defined via backpatching, there for the marker(MARK1)
-*/
-void genif_goto(){
-	gencode(opGOTO, NULL, NULL, NULL, NULL, MARK1);
-}
-
-/**
-* Sets the GOTO operation which have the marker (MARK1) to the now known jump address (for if statements)
-* @param shift For skipping code (0 - without Else statement, 1- with Else statement)
-*/
-void backpatch_if(int shift){
-	struct strCode  *c;
-	for(int i=code_count-1;i>=0;i--){
-		c = &code[i];
-		if(c->op==opGOTO){
-			if(c->jmpTo==MARK1){
-				c->jmpTo = code_count + shift;
-				break;
-			}
-		}
-	}
-}
-
-/**
-* Sets the operation which have the marker (MARK1) to the now known jump address (for return statements)
-*/
-void backpatch_return(){
-	struct strCode  *c;
-	for(int i=0;i<code_count;i++){
-		c = &code[i];
-		if(c->op==opRETURN){
-			if(c->jmpTo==MARK1){
-				c->jmpTo = code_count - 1;
-			}
-		}
-	}
-}
-
-/**
-* Prepares the code at current position for While statements and calls then the gencode(...)
-* @param var0 The pointer to the structure of the affected variable (contains if-expression)
-*/
-void genwhile(varentry_t *var0){
-	gencode(opIF, var0, NULL, NULL, NULL, code_count+2);
-}
-
-/**
-* Prepares the code at current position for While Begin and calls then the gencode(...)
-*/
-void genwhile_begin(){
-	gencode(opWHILE_BEGIN, NULL, NULL, NULL, NULL, MARK1);
-}
-
-/**
-* Prepares the code at current position for While Begin and calls then the gencode(...)
-* The GOTO Label will be defined via backpatching, there for the marker(MARK1)
-*/
-void genwhile_gotobegin(){
-	gencode(opGOTO, NULL, NULL, NULL, NULL, MARK1);
-}
-
-/**
-* Sets the operation which have the marker (MARK1) to the now known jump address (for while statements)
-*/
-void backpatch_while(){
-	struct strCode  *c;
-	for(int i=code_count-1;i>=0;i--){
-		c = &code[i];
-		if(c->op==opGOTO){
-			if(c->jmpTo==MARK1){
-				c->jmpTo = code_count+1;
-				break;
-			}
-		}
-	}
-	for(int i=code_count-1;i>=0;i--){
-		c = &code[i];
-		if(c->op==opWHILE_BEGIN){
-			if(c->jmpTo==MARK1){
-				gencode(opGOTO, NULL, NULL, NULL, NULL, i);
-				c->jmpTo=-1;
-				break;
-			}
-		}
-	}
-}
-
-/**
-* Prepares the code at current position for Do While Begin and calls then the gencode(...)
-*/
-void gendowhile(){
-	gencode(opDO_WHILE_BEGIN, NULL, NULL, NULL, NULL, MARK1);
-}
-
-/**
-* Checks the code for Do While Begin and set back the jump adresses
-* @param var0 The pointer to the structure of the affected variable (for the if-expression at the end of do_while)
-*/
-void gendowhile_end(varentry_t *var0){
-	struct strCode  *c;
-	int i;
-	for(i=code_count-1;i>=0;i--){
-		c = &code[i];
-		if(c->op==opDO_WHILE_BEGIN){
-			if(c->jmpTo==MARK1){
-				c->jmpTo=-1;
-				break;
-			}
-		}
-	}
-	gencode(opIF, var0, NULL, NULL, NULL, i);
 }
 
 /**
@@ -268,17 +120,37 @@ void gendowhile_end(varentry_t *var0){
 * @param var2 The pointer to the structure of the second operand
 * @return The pointer to the structure of the variable, which got the altered value of var1 and var2
 */
-varentry_t *gencode_op2exp(enum code_ops operation, varentry_t *var1, varentry_t *var2){
+varentry_t *gencode_op2exp(enum code_operations operation, varentry_t *var1, varentry_t *var2){
 	varentry_t *v;
-	if(((struct varentry *) var1->hh.next==MARK2) && ((struct varentry *) var2->hh.next==MARK2)){
-		v = var1;
-		temp_reg_count -= 1;
-		//printf("temp_reg_count:%d %d.\n", temp_reg_count, (struct varentry *) var1->hh.next);
-	}
-	else
-		v = ir_temp_var();
+	v = ir_temp_var();
+	if(var1->vartype==2 || var2->vartype==2)
+		yyerror ("Operands can not be of type VOID");
 	gencode(operation, v, var1, var2, NULL, -1);
+
+	varentry_t *temp;
+	if(var1->vartype==1){
+		temp=(struct varentry *) var1->hh.next;
+		if(temp->tempArrPos==-1)
+			yyerror ("First Operand must have an array index");
+	}
+	if(var2->vartype==1){
+		temp=(struct varentry *) var2->hh.next;
+		if(temp->tempArrPos==-1)
+			yyerror ("Second Operand must have an array index");
+	}
 	return v;
+}
+
+/**
+* Prepares the code at current position for Returns and Parameter storing and calls then the gencode(...)
+* @param operation The operation of this expression
+* @param var0 The pointer to the structure of the affected variable
+*/
+void gencode_op1(enum code_operations operation, varentry_t *var0){
+	if(operation==RETURN_IR)
+		gencode(operation, var0, NULL, NULL, NULL, MARK1);
+	else
+		gencode(operation, var0, NULL, NULL, NULL, -1);
 }
 
 /**
@@ -292,7 +164,7 @@ varentry_t * gencode_load_arr(varentry_t *var1, varentry_t *var2){
 	v = ir_temp_var();
 	var1->tempArrPos =	var2->val;
 	v->hh.next = var1;
-	gencode(opMEM_LD, v, var1, var2, NULL, -1);
+	gencode(MEM_LD_IR, v, var1, var2, NULL, -1);
 	v->tempCodePos = code_count -1 ;
 	return v;
 }
@@ -303,8 +175,73 @@ varentry_t * gencode_load_arr(varentry_t *var1, varentry_t *var2){
 * @param var0 The pointer to the structure of the parameter list
 * @param func The pointer to the structure of the function
 */
-void gencode_opfunc(enum code_ops operation, varentry_t *var0, funcentry_t*func){
+void gencode_opfunc(enum code_operations operation, varentry_t *var0, funcentry_t*func){
 	gencode(operation, var0, NULL, NULL, func, -1);
+}
+
+/**
+* Prepares the code at current position for If statements and calls then the gencode(...)
+* @param var0 The pointer to the structure of the affected variable (contains if-expression)
+*/
+void genif(varentry_t *var0){
+	gencode(IF_IR, var0, NULL, NULL, NULL, code_count+2);
+}
+
+/**
+* Prepares the code at current position for GOTO statements after IF and calls then the gencode(...)
+* The GOTO Label will be defined via backpatching, there for the marker(MARK1)
+*/
+void genif_goto(){
+	gencode(GOTO_IR, NULL, NULL, NULL, NULL, MARK1);
+}
+
+/**
+* Prepares the code at current position for While statements and calls then the gencode(...)
+* @param var0 The pointer to the structure of the affected variable (contains if-expression)
+*/
+void genwhile(varentry_t *var0){
+	gencode(IF_IR, var0, NULL, NULL, NULL, code_count+2);
+}
+
+/**
+* Prepares the code at current position for While Begin and calls then the gencode(...)
+*/
+void genwhile_begin(){
+	gencode(WHILE_BEGIN_IR, NULL, NULL, NULL, NULL, MARK1);
+}
+
+/**
+* Prepares the code at current position for While Begin and calls then the gencode(...)
+* The GOTO Label will be defined via backpatching, there for the marker(MARK1)
+*/
+void genwhile_gotobegin(){
+	gencode(GOTO_IR, NULL, NULL, NULL, NULL, MARK1);
+}
+
+/**
+* Prepares the code at current position for Do While Begin and calls then the gencode(...)
+*/
+void gendowhile(){
+	gencode(DO_WHILE_BEGIN_IR, NULL, NULL, NULL, NULL, MARK1);
+}
+
+/**
+* Checks the code for Do While Begin and set back the jump adresses
+* @param var0 The pointer to the structure of the affected variable (for the if-expression at the end of do_while)
+*/
+void gendowhile_end(varentry_t *var0){
+	struct code_struct  *c;
+	int i;
+	for(i=code_count-1;i>=0;i--){
+		c = &code[i];
+		if(c->op==DO_WHILE_BEGIN_IR){
+			if(c->jmpTo==MARK1){
+				c->jmpTo=-1;
+				break;
+			}
+		}
+	}
+	gencode(IF_IR, var0, NULL, NULL, NULL, i);
 }
 
 /**
@@ -315,51 +252,97 @@ void gencode_opfunc(enum code_ops operation, varentry_t *var0, funcentry_t*func)
 * @param jmpTo The jump address in the IR code
 * @return The pointer to the structure of the function call
 */
-struct varentry *gencode_funccall(enum code_ops operation, struct varentry *var0, struct funcentry *func, int jmpTo){
+struct varentry *gencode_funccall(enum code_operations operation, struct varentry *var0, struct funcentry *func, int jmpTo){
 	varentry_t *v;
 	v = ir_temp_var();
 	gencode(operation, var0, v, NULL, func, jmpTo);
 	return v;
 }
 
+
+
+
+/*************************************       Backpatching         ************************************/
+
+
+
 /**
-* Prints the (for some maybe cryptic) IR code to the console, just for debugging
+* Sets the GOTO operation which have the marker (MARK1) to the now known jump address (for if statements)
+* @param shift For skipping code (0 - without Else statement, 1- with Else statement)
 */
-void print_all_opcodes(){
-	struct strCode  *c;
-	varentry_t *int_;
-	funcentry_t *func_;
-	int count=0;
-	char tab = '\0';
+void backpatch_if(int shift){
+	struct code_struct  *c;
+	for(int i=code_count-1;i>=0;i--){
+		c = &code[i];
+		if(c->op==GOTO_IR){
+			if(c->jmpTo==MARK1){
+				c->jmpTo = code_count + shift;
+				break;
+			}
+		}
+	}
+}
+
+/**
+* Sets the operation which have the marker (MARK1) to the now known jump address (for return statements)
+*/
+void backpatch_return(){
+	struct code_struct  *c;
 	for(int i=0;i<code_count;i++){
 		c = &code[i];
-		if(c->op==opFUNC_DEF_END)
-			tab = '\0';
-		printf("%cOP #%d: %s", tab, count, enumStrings[c->op]);
-		if(c->var0!=NULL){
-			int_=c->var0;
-			printf(", %s", int_->varname);
+		if(c->op==RETURN_IR){
+			if(c->jmpTo==MARK1){
+				c->jmpTo = code_count - 1;
+			}
 		}
-		if(c->var1!=NULL){
-			int_=c->var1;
-			printf(", %s", int_->varname);
-		}
-		if(c->var2!=NULL){
-			int_=c->var2;
-			printf(", %s", int_->varname);
-		}
-		if(c->func!=NULL){
-			func_=c->func;
-			printf(", FUNC: %s", func_->funcname);
-		}
-		if(c->jmpTo!=-1) {
-			printf(", JMP_TO: %d", c->jmpTo);
-		}
-		printf("\n");
-		count++;
-		if(c->op==opFUNC_DEF)
-			tab = '\t';
 	}
+}
+
+/**
+* Sets the operation which have the marker (MARK1) to the now known jump address (for while statements)
+*/
+void backpatch_while(){
+	struct code_struct  *c;
+	for(int i=code_count-1;i>=0;i--){
+		c = &code[i];
+		if(c->op==GOTO_IR){
+			if(c->jmpTo==MARK1){
+				c->jmpTo = code_count+1;
+				break;
+			}
+		}
+	}
+	for(int i=code_count-1;i>=0;i--){
+		c = &code[i];
+		if(c->op==WHILE_BEGIN_IR){
+			if(c->jmpTo==MARK1){
+				gencode(GOTO_IR, NULL, NULL, NULL, NULL, i);
+				c->jmpTo=-1;
+				break;
+			}
+		}
+	}
+}
+
+
+
+
+/************************************       Helper Methods         ***********************************/
+
+
+
+/**
+* Creates a temporary variable structure for the IR Code (.t0,.t1,[...])
+* @return The temporary variable structure
+*/
+varentry_t *ir_temp_var(){
+	temp_reg_count += 1;
+	char buffer [5];
+	sprintf (buffer, ".t%d", temp_reg_count);
+	varentry_t *v;
+	v = temp_var(buffer);
+	v->arrdim = temp_reg_count;
+	return v;
 }
 
 /**
@@ -368,7 +351,7 @@ void print_all_opcodes(){
 * @return The Jump Address to function
 */
 int opcode_find_FuncDef(funcentry_t *func){
-	struct strCode  *c;
+	struct code_struct  *c;
 	for(int i=0;i<code_count;i++){
 		c = &code[i];
 		if(c->func==func){
@@ -400,7 +383,7 @@ int set_jmpLabel(int cpos, int jmpLabel){
 * @param pos The position in the code of the statement/expression
 */
 void set_code_to_NOP(int pos){
-	code[pos].op = opNOP;
+	code[pos].op = NOP_IR;
 }
 
 /**
@@ -410,12 +393,36 @@ void reset_temp_count(){
 	temp_reg_count = 0;
 }
 
+
+
+
+/********************************       Generation of IR File         ********************************/
+
+
+
+/**
+* Initialises the IR file
+* @param file The pointer to the file, where the Code shall be stored
+*/
+
+void init_ir_code(FILE *file){
+	ir_file = file;
+}
+
+/**
+* Inserts the given char sequence into the IR file
+* @param str The string, which shall be inserted
+*/
+void add_str(const char *str){
+	fputs (str,ir_file);
+}
+
 /**
 * Prints the whole symbol table and IR code to the *.ir file
 * The ir output is also generated here
 */
 void generate_ir_code(){
-	struct strCode  *c;
+	struct code_struct  *c;
 	struct varentry *pars=NULL;
 	int parcount=0;
 	char tab = '\0';
@@ -428,8 +435,8 @@ void generate_ir_code(){
 
 	for(int i=0;i<code_count;i++){
 		c = &code[i];
-		if(c->op==opFUNC_DEF_END || c->op==opPARAM || c->op==opWHILE_BEGIN ||
-									c->op==opDO_WHILE_BEGIN || c->op==opNOP)
+		if(c->op==FUNC_DEF_END_IR || c->op==PARAM_IR || c->op==WHILE_BEGIN_IR ||
+									c->op==DO_WHILE_BEGIN_IR || c->op==NOP_IR)
 			tab = '\0';
 		if(c->jmpLabel > -1){
 			sprintf (s, ".l%d:\n", c->jmpLabel);
@@ -438,69 +445,72 @@ void generate_ir_code(){
 		sprintf (s,"%c", tab);
 		add_str(s);
 		switch(c->op){
-		case opASSIGN:
+		case ASSIGN_IR:
 			sprintf (s,"%s = %s",c->var0->varname,c->var1->varname);
 			add_str(s);
 			break;
-		case opADD:
+		case ADD_IR:
 			sprintf (s, "%s = %s + %s", c->var0->varname,c->var1->varname,c->var2->varname);
 			add_str(s);
 			break;
-		case opSUB:
+		case SUB_IR:
 			sprintf (s, "%s = %s - %s", c->var0->varname,c->var1->varname,c->var2->varname);
 			add_str(s);
 			break;
-		case opMUL:
+		case MUL_IR:
 			sprintf (s, "%s = %s * %s", c->var0->varname,c->var1->varname,c->var2->varname);
 			add_str(s);
 			break;
-		case opMINUS:
+		case MINUS_IR:
 			sprintf (s, "%s = -%s", c->var0->varname,c->var1->varname);
 			add_str(s);
 			break;
-		case opSHIFT_LEFT:
-			//Not implemented in parser
+		case SHIFT_LEFT_IR:
+			sprintf (s, "%s = %s << %s", c->var0->varname,c->var1->varname,c->var2->varname);
+			add_str(s);
 			break;
-		case  opSHIFT_RIGHT:
-			//Not implemented in parser
+		case SHIFT_RIGHT_IR:
+			sprintf (s, "%s = %s >> %s", c->var0->varname,c->var1->varname,c->var2->varname);
+			add_str(s);
 			break;
-		case opLOGICAL_AND:
+			break;
+		case LOGICAL_AND_IR:
 			sprintf (s, "%s = %s && %s", c->var0->varname,c->var1->varname,c->var2->varname);
 			add_str(s);
 			break;
-		case opLOGICAL_OR:
+		case LOGICAL_OR_IR:
 			sprintf (s, "%s = %s || %s", c->var0->varname,c->var1->varname,c->var2->varname);
 			add_str(s);
 			break;
-		case opLOGICAL_NOT:
+		case LOGICAL_NOT_IR:
 			sprintf (s, "%s = !%s", c->var0->varname,c->var1->varname);
 			add_str(s);
 			break;
-		case opNE:
+		case NE_IR:
 			sprintf (s, "%s = %s != %s", c->var0->varname,c->var1->varname,c->var2->varname);
 			add_str(s);
 			break;
-		case opEQ:
+		case EQ_IR:
 			sprintf (s, "%s = %s == %s", c->var0->varname,c->var1->varname,c->var2->varname);
 			add_str(s);
 			break;
-		case opGT:
+		case GT_IR:
 			sprintf (s, "%s = %s > %s", c->var0->varname,c->var1->varname,c->var2->varname);
 			add_str(s);
 			break;
-		case opGTEQ:
+		case GTEQ_IR:
 			sprintf (s, "%s = %s >= %s", c->var0->varname,c->var1->varname,c->var2->varname);
 			add_str(s);
 			break;
-		case opLS:
+		case LS_IR:
 			sprintf (s, "%s = %s < %s", c->var0->varname,c->var1->varname,c->var2->varname);
 			add_str(s);
 			break;
-		case opLSEQ:
+		case LSEQ_IR:
 			sprintf (s, "%s = %s <= %s", c->var0->varname,c->var1->varname,c->var2->varname);
 			add_str(s);
 			break;
-		case opIF:
+		case IF_IR:
 			jmpLabel_count = jmpLabel_count + 1;
 			if(!set_jmpLabel(c->jmpTo, jmpLabel_count)){
 				jmpLabel_count = jmpLabel_count - 1;
@@ -509,36 +519,69 @@ void generate_ir_code(){
 			sprintf (s, "IF %s GOTO .l%d", c->var0->varname,c->jmpTo);
 			add_str(s);
 			break;
-		case opGOTO:
-			jmpLabel_count = jmpLabel_count + 1;
+		case GOTO_IR:
+			jmpLabel_count = jmpLabel_count + 1;					//backpatch ausgleich
 			if(!set_jmpLabel(c->jmpTo, jmpLabel_count)){
-				jmpLabel_count = jmpLabel_count - 1;
+				struct code_struct  *c2;
+				int count2=-1;
+				int temp=-1;
+				for(int j=0;j<i;j++){
+					c2 = &code[j];
+					if(c2->op==WHILE_BEGIN_IR && c2->jmpLabel!=-1){
+						count2=c2->jmpLabel;
+						temp=j;
+					}
+				}
+				code[temp].jmpLabel=-1;
+				if(count2==-1){
+					jmpLabel_count = jmpLabel_count - 1;
+					c->jmpTo = jmpLabel_count;
+				}
+				else
+					c->jmpTo=count2;
 			}
-			c->jmpTo = jmpLabel_count;
+			else
+				c->jmpTo = jmpLabel_count;
 			sprintf (s, "GOTO .l%d", c->jmpTo);
 			add_str(s);
 			break;
-		case opWHILE_BEGIN:
-			//Nothing
-			break;
-		case opDO_WHILE_BEGIN:
-			//Nothing
-			break;
-		case opRETURN:
+		case WHILE_BEGIN_IR:
 			jmpLabel_count = jmpLabel_count + 1;
+			if(!set_jmpLabel(i, jmpLabel_count)){
+				jmpLabel_count = jmpLabel_count - 1;
+			}
+			c->jmpTo = jmpLabel_count;
+			sprintf (s, ".l%d:\n", c->jmpTo);
+			add_str(s);
+			break;
+		case DO_WHILE_BEGIN_IR:
+			jmpLabel_count = jmpLabel_count + 1;
+			if(!set_jmpLabel(i, jmpLabel_count)){
+				jmpLabel_count = jmpLabel_count - 1;
+			}
+			c->jmpTo = jmpLabel_count;
+			sprintf (s, ".l%d:\n", c->jmpTo);
+			add_str(s);
+			break;
+		case RETURN_IR:
+			/*jmpLabel_count = jmpLabel_count + 1;
 			if(!set_jmpLabel(c->jmpTo, jmpLabel_count)){
 				jmpLabel_count = jmpLabel_count - 1;
 			}
 			c->jmpTo = jmpLabel_count;
-			sprintf (s, "RETURN %s GOTO .l%d", c->var0->varname,c->jmpTo);
+			sprintf (s, "RETURN %s GOTO .l%d", c->var0->varname,c->jmpTo);*/
+			if (c->var0!=NULL)
+				sprintf(s,"RETURN %s", c->var0->varname);
+			else
+				sprintf(s,"RETURN");
 			add_str(s);
 			break;
-		case opPARAM:
+		case PARAM_IR:
 			parcount++;
 		    HASH_ADD_KEYPTR(hh, pars, c->var0->varname, strlen(c->var0->varname), c->var0);
 			tab = '\t';
 			break;
-		case opCALL:
+		case CALL_IR:
 			sprintf (s, "%s = CALL .f_%s(",c->var1->varname,c->func->funcname);
 			add_str(s);
 			for(int i=0;i<parcount;i++){
@@ -559,36 +602,35 @@ void generate_ir_code(){
 				free(p);
 			}
 			break;
-		case opMEM_LD:
+		case MEM_LD_IR:
 			sprintf (s, "%s = %s[%s]", c->var0->varname,c->var1->varname,c->var2->varname);
 			add_str(s);
 			break;
-		case opMEM_ST:
+		case MEM_ST_IR:
 			sprintf (s, "%s[%s] = %s", c->var0->varname,c->var1->varname,c->var2->varname);
 			add_str(s);
 			break;
-		case opADDR:
+		case ADDR_IR:
 			sprintf (s, "%s = ADDR(%s)", c->var0->varname,c->var1->varname);
 			add_str(s);
 			break;
-		case opFUNC_DEF:
+		case FUNC_DEF_IR:
 			if(c->func!=NULL){
 				sprintf (s, "%s:", c->func->funcname);
 				add_str(s);
 			}
 			tab = '\t';
 			break;
-		case opFUNC_DEF_END:
+		case FUNC_DEF_END_IR:
 			//Nothing (just CRLF)
 			break;
-		case opNOP:
-			//Nothing
+		case NOP_IR:
 			tab = '\t';
 			break;
 		}
-		if(c->op==opWHILE_BEGIN || c->op==opDO_WHILE_BEGIN)
+		if(c->op==WHILE_BEGIN_IR || c->op==DO_WHILE_BEGIN_IR)
 			tab = '\t';
-		if(c->op!=opPARAM && c->op!=opNOP && c->op!=opWHILE_BEGIN && c->op!=opDO_WHILE_BEGIN){
+		if(c->op!=PARAM_IR && c->op!=NOP_IR && c->op!=WHILE_BEGIN_IR && c->op!=DO_WHILE_BEGIN_IR){
 			sprintf (s, "\n");
 			add_str(s);
 		}

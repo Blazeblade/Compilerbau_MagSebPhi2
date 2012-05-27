@@ -287,29 +287,36 @@ int main (int argc, char *argv[]) {
     rm_cleanup_resources(&resource_mgr);
     exit(EXIT_FAILURE);
   }
-  //yyin
+  //Open Input File
   yyin=fopen(cc_options.input_file,"r");
   if(yyin==NULL){
 	  printf("Main: Input Error!\n");
   }
   else{
+	  //Start Parsing
 	  printf("Main: Parsing\n");
-	  FILE *ir_file = fopen(cc_options.ir_file, "w");
-	  init_ir_code(ir_file);
       yyparse();
+	  printf("Main: Parsing ends\n");
+
+	  //Optional Generate IR Code
+	  if (cc_options.print_ir == 1){
+		  FILE *ir_file = fopen(cc_options.ir_file, "w");
+		  init_ir_code(ir_file);
+		  generate_ir_code();
+		  fclose(ir_file);
+	  }
 	  printf("Main: File Closing\n");
-	  generate_ir_code();
-	  fclose(ir_file);
       fclose(yyin);
+
   }
 
 
   printf("Input: %s\n", cc_options.input_file);
-  printf("Output: %s\n", cc_options.output_file);
+  //printf("Output: %s\n", cc_options.output_file);
   printf("IR: %s\n", cc_options.ir_file);
 
   rm_cleanup_resources(&resource_mgr);
-  printf("main finished");
+  printf("Main: Finished\n");
   return 0;
 
 }

@@ -1,8 +1,9 @@
-/* 
- * parser.y - Parser utility for the DHBW compiler
+/**
+ * @file 	parser.y
+ * @author	Sebastian Boehm, Magnus Bruehl, Philipp Goetze
+ * @brief	Parser utility for the DHBW compiler
+ *
  */
- 
- 
  
 %{
 #include "include/uthash.h";
@@ -12,34 +13,26 @@
 #include <stdlib.h>
 
 
-#define NOT_DEFINED -1
-#define GLOBAL 0
-#define LOCAL 1
-#define PARAMETER 2
+#define NOT_DEFINED 	-1
+#define INT_ 			0
+#define INT_ARR_		1
+#define VOID_			2
 
 
 %}
 
 %union {
-  int 				num;
-  char*				id;
-  struct varentry 	*var;
-  struct funcentry 	*func;
- // struct symentry	*sym;
-  struct funccallparlist *plist;
+  int 						num;
+  char*						id;
+  struct varentry 			*var;
+  struct funcentry 			*func;
+  struct funccallparlist 	*plist;
 }
  
 %debug
 %locations
 %start program
 
-/*
- * One shift/reduce conflict is expected for the "dangling-else" problem. This
- * conflict however is solved by the default behavior of bison for shift/reduce 
- * conflicts (shift action). The default behavior of bison corresponds to what
- * we want bison to do: SHIFT if the lookahead is 'ELSE' in order to bind the 'ELSE' to
- * the last open if-clause. 
- */
 %expect 1
 
 %token DO WHILE
@@ -63,31 +56,32 @@
 %right LOGICAL_NOT UNARY_MINUS UNARY_PLUS
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
-%type <plist> 	function_call_parameters
 %type <id> 		type
+
+%type <plist> 	function_call_parameters
+
 %type <func> 	function_definition
-%type <func> 	function_parameter_list
 %type <func> 	function_declaration
-%type <func> 	function_call
-%type <var> 	function_parameter
+%type <func> 	function_parameter_list
+
+%type <var>		variable_declaration
 %type <var> 	identifier_declaration
+%type <var> 	function_call
+%type <var> 	function_parameter
 %type <var> 	expression
 %type <var> 	primary
 
-%type <var>		variable_declaration
 
 %%
 
 program
      : program_element_list{
-		printf("\n\n----------DEBUG printing all functions and variables----------:\n");
+		/*printf("\n\n----------DEBUG printing all functions and variables----------:\n");
 		printf("<<----------DEBUG Functions---------->>:\n");
 		print_funcs();
 		printf("<<----------DEBUG Variables---------->>:\n");
 		print_vars();
-		printf("<<----------DEBUG IR---------->>:\n");
-		print_all_opcodes();
-		printf("<<----------DEBUG END---------->>:\n\n\n");
+		printf("<<----------DEBUG END---------->>:\n\n\n");*/
 		}
      ;
 
@@ -115,14 +109,13 @@ variable_declaration
 			assert($$!=NULL);
 			$$->varname=$3->varname;
 			if($3->arrdim>=0){
-					$$->vartype=1;
+					$$->vartype=INT_ARR_;
 					add_var($$->varname, $$->vartype,$3->arrdim,NULL);
 				}
 				else {
-					$$->vartype=0;
+					$$->vartype=INT_;
 					add_var($$->varname, $$->vartype,NOT_DEFINED,NULL);
 				}
-			//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
 		}
      | type identifier_declaration 
 		{
@@ -130,20 +123,18 @@ variable_declaration
 			assert($$!=NULL);
 			if($1==voidtype) {
 				fprintf(stderr,"ERROR: Variables can not be of type void (%s). Line: %d Column: %d \n",$2->varname, @1.first_line,@1.first_column);
-			} 
+			} 	
+			//Add variable although it is void for the rest of the analysis?
 			else {
 				$$->varname=$2->varname;
 				if($2->arrdim>=0){
-					$$->vartype=1;
+					$$->vartype=INT_ARR_;
 					add_var($$->varname, $$->vartype,$2->arrdim,NULL);
 				}
-				else {
-					$$->vartype=0;
+				else{
+					$$->vartype=INT_;
 					add_var($$->varname, $$->vartype,NOT_DEFINED,NULL);
 				}
-				//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
-				//printf("DEBUG --- Symboltable: ");
-				//print_vars();
 			}
 		}
      ;
@@ -159,13 +150,13 @@ identifier_declaration
 					fprintf(stderr,"ERROR: This Symbol was already defined (%s), Line: %d Column: %d \n",$$->varname, @1.first_line,@1.first_column);
 				else{
 					$$->varname=$1;
-					$$->vartype=1;
+					$$->vartype=INT_ARR_;
 					$$->arrdim= $3;
 				}
 			}	
 			else{
 				$$->varname=$1;
-				$$->vartype=1;
+				$$->vartype=INT_ARR_;
 				$$->arrdim= $3;
 			}
 		}   
@@ -193,36 +184,82 @@ identifier_declaration
 function_definition
      : type ID PARA_OPEN PARA_CLOSE
 			{
-			if(find_func($2)){
-				if(is_func_proto($2)){
-					if($1!=find_func($2)->returntype){	
-						fprintf(stderr,"ERROR: Types mismatch from function %s's declaration. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
+			if(find_var($2)){
+				varentry_t *v;
+				v=find_var($2);
+				if(v->scope==get_func_scope())
+					fprintf(stderr,"ERROR: This Symbol was already defined as variable(%s), Line: %d Column: %d \n",v->varname, @1.first_line,@1.first_column);
+			}
+			else if(find_func($2)){
+					if(is_func_proto(find_func($2))){
+						int temp=1;
+						funcentry_t *f=find_func($2);
+						if($1!=f->returntype)
+							temp=0;
+						if(f->dim != 0)
+							temp=0;
+						if(f->var != NULL)
+							temp=0;
+						if(temp==0){
+							fprintf(stderr,"ERROR: A function declaration with the same name (%s) already exists with other parameters. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
+						}
+						if($1!=find_func($2)->returntype){	
+							fprintf(stderr,"ERROR: Types mismatch from function %s's declaration. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
+						}
+						set_func_to_decl($2);
+						set_func_scope(find_func($2));
 					}
-					set_func_to_decl($2);
+					else{	
+						fprintf(stderr,"ERROR: A function definition with the same name (%s) already exists. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
+					}
+				}
+				else{										
+					$<func>$=malloc(sizeof(*$<func>$));
+					assert($<func>$!=NULL);
+					$<func>$->funcname=$2;
+					$<func>$->returntype=(int)$1;
+					$<func>$->dim=0;
+					add_func($<func>$->funcname, $<func>$->returntype,$<func>$->dim,NULL);
 					set_func_scope(find_func($2));
 				}
-				else{	
-					fprintf(stderr,"ERROR: A function definition with the same name (%s) already exists. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
-				}
-			}
-			else{										
-				$<func>$=malloc(sizeof(*$<func>$));
-				assert($<func>$!=NULL);
-				$<func>$->funcname=$2;
-				$<func>$->returntype=(int)$1;
-				$<func>$->dim=0;
-				add_func($<func>$->funcname, $<func>$->returntype,$<func>$->dim,NULL);
-				set_func_scope(find_func($2));
-				}
-			gencode_opfunc(opFUNC_DEF, NULL, find_func($2));
+			gencode_opfunc(FUNC_DEF_IR, NULL, find_func($2));
 		}
-		 BRACE_OPEN stmt_list BRACE_CLOSE {gencode_opfunc(opFUNC_DEF_END, NULL, find_func($2));set_func_scope(NULL);backpatch_return();}
+		
+		 BRACE_OPEN stmt_list BRACE_CLOSE {gencode_opfunc(FUNC_DEF_END_IR, NULL, find_func($2));set_func_scope(NULL);backpatch_return();}
 		
      | type ID PARA_OPEN function_parameter_list PARA_CLOSE
      	{	
-     		if(find_func($2)){
-				if(is_func_proto($2)){
-					if(!check_funccallpar(find_func($2), $4)){
+     		if(find_var($2)){
+				varentry_t *v;
+				v=find_var($2);
+				if(v->scope==get_func_scope())
+					fprintf(stderr,"ERROR: This Symbol was already defined as variable(%s), Line: %d Column: %d \n",v->varname, @1.first_line,@1.first_column);
+			}
+			else if(find_func($2)){
+				if(is_func_proto(find_func($2))){
+					int temp=1;
+					funcentry_t *f=find_func($2);
+					if($1!=f->returntype)
+						temp=0;
+					if(f->dim != $4->dim)
+						temp=0;
+					varentry_t *par0 = f->var;
+					varentry_t *par1 = $4->var;
+					for(int i=0;i<f->dim;i++){
+						if(par0->arrdim != par1->arrdim)
+							temp=0;
+						if(par0->vartype != par1->vartype)
+						temp=0;
+						if(par0->hh.next!=NULL)
+							par0 = par0->hh.next;
+						else
+							break;
+						if(par1->hh.next!=NULL)
+							par1 = par1->hh.next;
+						else
+							break;
+					}
+					if(temp==0){
 						fprintf(stderr,"ERROR: Function-Parameter definition does not match the declaration of function %s. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
 					}
 					if($1!=find_func($2)->returntype){
@@ -232,7 +269,7 @@ function_definition
 						delete_func (find_func("temp1"));
 						set_func_to_decl ($2);
 						set_func_scope(find_func($2));
-						gencode_opfunc(opFUNC_DEF, $4, find_func($2));
+						gencode_opfunc(FUNC_DEF_IR, $4, find_func($2));
 					}
 					else{
 						printf("INTERNAL ERROR: Function has not the expected TEMP_NAME!\n");
@@ -250,23 +287,37 @@ function_definition
 					$<func>$->returntype=(int)$1;
 					add_func($<func>$->funcname, $<func>$->returntype,$<func>$->dim,$<func>$->var);
 					delete_func($<func>$);
-					gencode_opfunc(opFUNC_DEF, $4, find_func($2));
+					gencode_opfunc(FUNC_DEF_IR, $4, find_func($2));
 				}
 				else{
 					printf("INTERNAL ERROR: Function has not the expected TEMP_NAME!\n");
 				}
 			}			
 		}
-		 BRACE_OPEN stmt_list BRACE_CLOSE{gencode_opfunc(opFUNC_DEF_END, NULL, find_func($2));set_func_scope(NULL);backpatch_return();}
+		 BRACE_OPEN stmt_list BRACE_CLOSE{gencode_opfunc(FUNC_DEF_END_IR, NULL, find_func($2));set_func_scope(NULL);backpatch_return();}
      ;
 
 function_declaration 
      : type ID PARA_OPEN PARA_CLOSE
 		{
-			if(find_func($2)){
-				fprintf(stderr,"ERROR: A function definition with the same name (%s) already exists. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
-				set_func_to_proto (find_func($2));
-				set_scope_for_pars (find_func($2));
+			if(find_var($2)){
+				varentry_t *v;
+				v=find_var($2);
+				if(v->scope==get_func_scope())
+					fprintf(stderr,"ERROR: This Symbol was already defined as variable(%s), Line: %d Column: %d \n",v->varname, @1.first_line,@1.first_column);
+			}
+			else if(find_func($2)){
+				int temp=1;
+				funcentry_t *f=find_func($2);
+				if($1!=f->returntype)
+					temp=0;
+				if(f->dim != 0)
+					temp=0;
+				if(f->var != NULL)
+					temp=0;
+				if(temp==0){
+					fprintf(stderr,"ERROR: A function declaration with the same name (%s) already exists with other parameters. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
+				}
 			}
 			else{
 				$$=malloc(sizeof(*$$));
@@ -275,19 +326,47 @@ function_declaration
 				$$->returntype=(int)$1;
 				$$->dim=0;
 				add_func($$->funcname, $$->returntype,$$->dim,NULL);
-				set_func_to_proto($$);
-				set_scope_for_pars ($$);
 			}
+			set_func_to_proto (find_func($2));
+			set_scope_for_pars (find_func($2));
 			set_func_scope(NULL);
 		}								
 														
      | type ID PARA_OPEN function_parameter_list PARA_CLOSE 
      	{
-			if(find_func($2)) {
-				fprintf(stderr,"ERROR: A function definition with the same name (%s) already exists. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
-				delete_func ("temp1");
-				set_func_to_proto(find_func($2));
-				set_scope_for_pars (find_func($2));
+     		if(find_var($2)){
+				varentry_t *v;
+				v=find_var($2);
+				if(v->scope==get_func_scope())
+					fprintf(stderr,"ERROR: This Symbol was already defined as variable(%s), Line: %d Column: %d \n",v->varname, @1.first_line,@1.first_column);
+			}
+			else if(find_func($2)) {
+				int temp=1;
+				funcentry_t *f=find_func($2);
+				if($1!=f->returntype)
+					temp=0;
+				if(f->dim != $4->dim)
+					temp=0;
+				varentry_t *par0 = f->var;
+				varentry_t *par1 = $4->var;
+				for(int i=0;i<f->dim;i++){
+					if(par0->arrdim != par1->arrdim)
+						temp=0;
+					if(par0->vartype != par1->vartype)
+						temp=0;
+					if(par0->hh.next!=NULL)
+						par0 = par0->hh.next;
+					else
+						break;
+					if(par1->hh.next!=NULL)
+						par1 = par1->hh.next;
+					else
+						break;
+				}
+				if(temp==0){
+					fprintf(stderr,"ERROR: A function declaration with the same name (%s) already exists with other parameters or type. Line: %d Column: %d \n",$2, @1.first_line,@1.first_column);
+				}
+				delete_func(find_func("temp1"));
 			}
 			else{
 				$$=find_func("temp1");
@@ -295,10 +374,10 @@ function_declaration
 				$$->funcname=$2;
 				$$->returntype=(int)$1;
 				add_func($$->funcname, $$->returntype,$$->dim,$$->var);
-				delete_func($$);				//Deletes the temp function	
-				set_func_to_proto(find_func($2));
-				set_scope_for_pars (find_func($2));															
+				delete_func($$);				//Deletes the temp function															
 			}
+			set_func_to_proto(find_func($2));
+			set_scope_for_pars (find_func($2));
 			set_func_scope(NULL);
 		}
      ;
@@ -310,13 +389,15 @@ function_parameter_list
 			assert($$!=NULL);
 			if(!find_func("temp1"))	{
 				add_func("temp1", 0,0,NULL);
-				$$=find_func("temp1");
 				add_funcpar("temp1",$1->varname, $1->vartype, $1->arrdim);
+				$$=find_func("temp1");
+				$$->dim++;
 				$1->scope=$$;
 			} 
 			else{	
-				$$=find_func("temp1");
 				add_funcpar("temp1",$1->varname, $1->vartype, $1->arrdim);
+				$$=find_func("temp1");
+				$$->dim++;
 				$1->scope=$$;
 			}
 		}
@@ -328,10 +409,12 @@ function_parameter_list
 				add_func("temp1", 0,0,NULL);
 				$$=find_func("temp1");
 				add_funcpar("temp1",$3->varname, $3->vartype, $3->arrdim);
+				$$->dim++;
 			} 
 			else{
 				$$=find_func("temp1");
 				add_funcpar("temp1",$3->varname, $3->vartype, $3->arrdim);
+				$$->dim++;
 				//add_var($3->varname, $3->vartype, $3->arrdim,1,0);
 			}
 		}
@@ -348,11 +431,11 @@ function_parameter
 			} 
 			else {
 				if($2->arrdim>=0){
-					$$->vartype=1;
+					$$->vartype=INT_ARR_;
 					$$->arrdim=$2->arrdim;
 				}
 				else {
-					$$->vartype=0;
+					$$->vartype=INT_;
 					$$->arrdim=NOT_DEFINED;
 				}
 			}
@@ -372,14 +455,20 @@ stmt
      | stmt_loop						{reset_temp_count();}
      | RETURN expression SEMICOLON		{
 										if($2->scope!=NULL){
-											if($2->scope->returntype==2){ 
+											if($2->scope->returntype==VOID_){ 
 												fprintf(stderr,"ERROR: Function was declared as VOID. It can not return a value. Either use \"RETURN;\" or use type int for the func. Line: %d Column: %d \n",	@1.first_line,@1.first_column);
 											}
 										}
-										gencode_op1(opRETURN, $2);
+										gencode_op1(RETURN_IR, $2);
 										{reset_temp_count();}
 										}
-     | RETURN SEMICOLON					{gencode_op1(opRETURN, NULL);{reset_temp_count();}}
+     | RETURN SEMICOLON					{
+										funcentry_t *f=get_func_scope();
+										if(f->returntype==INT_)
+											fprintf(stderr,"ERROR: Function was declared as Integer. It must return an expression. Line: %d Column: %d \n",	@1.first_line,@1.first_column);
+										gencode_op1(RETURN_IR, NULL);
+										{reset_temp_count();}
+										}
      | SEMICOLON 						{reset_temp_count();}
      ;
 
@@ -404,34 +493,39 @@ stmt_loop
      ;
 									
 expression	
-     : expression ASSIGN expression				{$$ = $3;
-												gencode_ass($1, $3);
-												if($1->tempCodePos>-1) {
-													set_code_to_NOP($1->tempCodePos);
-												}}	
-     | expression LOGICAL_OR expression			{$$ = gencode_op2exp(opLOGICAL_OR, $1, $3);}
-     | expression LOGICAL_AND expression		{$$ = gencode_op2exp(opLOGICAL_AND, $1, $3);}
-     | LOGICAL_NOT expression					{$$ = gencode_op1exp(opLOGICAL_NOT, $2);}
-     | expression EQ expression					{$$ = gencode_op2exp(opEQ, $1, $3);}
-     | expression NE expression					{$$ = gencode_op2exp(opNE, $1, $3);}
-     | expression LS expression 				{$$ = gencode_op2exp(opLS, $1, $3);}
-     | expression LSEQ expression 				{
-												struct varentry *t0;struct varentry *t1;
-												t0 = gencode_op2exp(opLS, $1, $3);
-												t1 = gencode_op2exp(opEQ, $1, $3);
-												$$ = gencode_op2exp(opLOGICAL_OR, t0, t1);
+	 : expression ASSIGN expression				{	$$ = $3;
+													gencode_ass($1, $3);
+													if($1->tempCodePos>-1) {
+														set_code_to_NOP($1->tempCodePos);
+													}
+												}	
+     | expression LOGICAL_OR expression			{$$ = gencode_op2exp(LOGICAL_OR_IR, $1, $3);}
+     | expression LOGICAL_AND expression		{$$ = gencode_op2exp(LOGICAL_AND_IR, $1, $3);}
+     | LOGICAL_NOT expression					{$$ = gencode_op1exp(LOGICAL_NOT_IR, $2);}
+     | expression EQ expression					{$$ = gencode_op2exp(EQ_IR, $1, $3);}
+     | expression NE expression					{$$ = gencode_op2exp(NE_IR, $1, $3);}
+     | expression LS expression 				{$$ = gencode_op2exp(LS_IR, $1, $3);}
+     | expression LSEQ expression 				{$$ = gencode_op2exp(LSEQ_IR, $1, $3);
+												//Alternative:
+												/*struct varentry *t0;struct varentry *t1;
+												t0 = gencode_op2exp(LS_IR, $1, $3);
+												t1 = gencode_op2exp(EQ_IR, $1, $3);
+												$$ = gencode_op2exp(LOGICAL_OR_IR, t0, t1);*/
 												}
-     | expression GTEQ expression 				{	
-												struct varentry *t0;struct varentry *t1;
-												t0 = gencode_op2exp(opGT, $1, $3);
-												t1 = gencode_op2exp(opEQ, $1, $3);
-												$$ = gencode_op2exp(opLOGICAL_OR, t0, t1);
+     | expression GTEQ expression 				{$$ = gencode_op2exp(GTEQ_IR, $1, $3);	
+												//Alternative:
+												/*struct varentry *t0;struct varentry *t1;
+												t0 = gencode_op2exp(GT_IR, $1, $3);
+												t1 = gencode_op2exp(EQ_IR, $1, $3);
+												$$ = gencode_op2exp(LOGICAL_OR_IR, t0, t1);*/
 												}
-     | expression GT expression					{$$ = gencode_op2exp(opGT, $1, $3);}
-     | expression PLUS expression				{$$ = gencode_op2exp(opADD, $1, $3);}
-     | expression MINUS expression				{$$ = gencode_op2exp(opSUB, $1, $3);}
-     | expression MUL expression				{$$ = gencode_op2exp(opMUL, $1, $3);}
-     | MINUS expression %prec UNARY_MINUS		{$$ = gencode_op1exp(opMINUS, $2);}
+     | expression GT expression					{$$ = gencode_op2exp(GT_IR, $1, $3);}
+     | expression PLUS expression				{$$ = gencode_op2exp(ADD_IR, $1, $3);}
+     | expression MINUS expression				{$$ = gencode_op2exp(SUB_IR, $1, $3);}
+     | expression MUL expression				{$$ = gencode_op2exp(MUL_IR, $1, $3);}
+	 | expression  SHIFT_LEFT expression		{$$ = gencode_op2exp(SHIFT_LEFT_IR,$1,$3);}
+	 | expression  SHIFT_RIGHT expression		{$$ = gencode_op2exp(SHIFT_RIGHT_IR,$1,$3);}
+     | MINUS expression %prec UNARY_MINUS		{$$ = gencode_op1exp(MINUS_IR, $2);}
      | ID BRACKET_OPEN primary BRACKET_CLOSE	{
 												if(!find_var($1))
 													$$ = gencode_load_arr(find_funcpar2($1), $3);
@@ -441,7 +535,7 @@ expression
 												$$->tempArrPos2=$3;
 												}
      | PARA_OPEN expression PARA_CLOSE			{$$ = $2}
-     | function_call							{$$ = $1}
+     | function_call							{$$ = $1; 	$$->isfunccall=1;}
      | primary									{$$ = $1}
      ;
 
@@ -476,9 +570,10 @@ function_call
       : ID PARA_OPEN PARA_CLOSE
 		{
 			funcentry_t *f;
-			//printf("DEBUG --- Function call regocnised[%s()].\n",$1);
 			if(find_func($1)){
 				f = find_func($1);
+				if(f->dim>0)
+					fprintf(stderr,"ERROR: Functional Call Paramater Check FAILED! Function %s() needs %d parameter(s). Line: %d Column: %d \n",f->funcname, f->dim, @1.first_line,@1.first_column);
 			}
 			else{
 				fprintf(stderr,"ERROR: Function was not declared before the call! Line: %d Column: %d \n", @1.first_line,@1.first_column);
@@ -495,20 +590,16 @@ function_call
 			add_var(s,0,-1,0);
 			v=find_var(s);
 			free(s);
-			$$ = gencode_funccall(opCALL, v, f, opcode_find_FuncDef(f));
+			$$ = gencode_funccall(CALL_IR, v, f, opcode_find_FuncDef(f));
+			$$->vartype=f->returntype;
 		}
       | ID PARA_OPEN function_call_parameters PARA_CLOSE
       	{
 			funcentry_t *f;
-			//printf("DEBUG --- Parameterise Function call regocnised[%s()].\n",$1);
 			if(find_func($1)){
 				f = find_func($1);
-				if(check_funccallpar(f, $3)){
-					//printf("Functional Call Param Check OK!\n");
-				}
-				else{
+				if(!check_funccallpar(f, $3))
 					fprintf(stderr,"ERROR: Functional Call Paramater Check FAILED![%s(%s)] Line: %d Column: %d \n",f->funcname,$3->var->varname, @1.first_line,@1.first_column);
-				}
 			}
 			else{
 				fprintf(stderr,"ERROR: Function was not declared before the call!Line: %d Column: %d \n", @1.first_line,@1.first_column);
@@ -526,7 +617,8 @@ function_call
 			add_var(s,0,-1,$3->count);
 			v=find_var(s);
 			free(s);
-			$$ = gencode_funccall(opCALL, v, f, opcode_find_FuncDef(f));
+			$$ = gencode_funccall(CALL_IR, v, f, opcode_find_FuncDef(f));
+			$$->vartype==f->returntype;
 		}
       ;
 
@@ -534,12 +626,16 @@ function_call_parameters
      : function_call_parameters COMMA expression	
 		{
 			$$->count += 1;
-			gencode_op1(opPARAM, $3);
+			if($3->vartype==VOID_)
+				fprintf(stderr,"ERROR: Parameters can not be of type void (%s). Line: %d Column: %d \n",$3->varname, @1.first_line,@1.first_column);
+			gencode_op1(PARAM_IR, $3);
 		}
      | expression
 		{
 			$$ = create_pars_list($1);
-			gencode_op1(opPARAM, $1);
+			if($1->vartype==VOID_)
+				fprintf(stderr,"ERROR: Parameters can not be of type void (%s). Line: %d Column: %d \n",$1->varname, @1.first_line,@1.first_column);
+			gencode_op1(PARAM_IR, $1);
 		}
      ;
 

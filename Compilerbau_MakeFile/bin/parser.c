@@ -68,7 +68,7 @@
 /* Copy the first part of user declarations.  */
 
 /* Line 189 of yacc.c  */
-#line 7 "src/parser.y"
+#line 8 "src/parser.y"
 
 #include "include/uthash.h";
 #include "symtab.h";
@@ -77,10 +77,10 @@
 #include <stdlib.h>
 
 
-#define NOT_DEFINED -1
-#define GLOBAL 0
-#define LOCAL 1
-#define PARAMETER 2
+#define NOT_DEFINED 	-1
+#define INT_ 			0
+#define INT_ARR_		1
+#define VOID_			2
 
 
 
@@ -158,19 +158,18 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 23 "src/parser.y"
+#line 24 "src/parser.y"
 
-  int 				num;
-  char*				id;
-  struct varentry 	*var;
-  struct funcentry 	*func;
- // struct symentry	*sym;
-  struct funccallparlist *plist;
+  int 						num;
+  char*						id;
+  struct varentry 			*var;
+  struct funcentry 			*func;
+  struct funccallparlist 	*plist;
 
 
 
 /* Line 214 of yacc.c  */
-#line 174 "bin/parser.c"
+#line 173 "bin/parser.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -195,7 +194,7 @@ typedef struct YYLTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 199 "bin/parser.c"
+#line 198 "bin/parser.c"
 
 #ifdef short
 # undef short
@@ -412,16 +411,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  11
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   292
+#define YYLAST   305
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  38
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  28
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  68
+#define YYNRULES  70
 /* YYNRULES -- Number of states.  */
-#define YYNSTATES  128
+#define YYNSTATES  132
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
@@ -475,8 +474,9 @@ static const yytype_uint8 yyprhs[] =
       64,    70,    72,    76,    79,    80,    83,    85,    88,    91,
       93,    95,    99,   102,   104,   108,   109,   116,   118,   119,
      124,   125,   126,   134,   135,   144,   148,   152,   156,   159,
-     163,   167,   171,   175,   179,   183,   187,   191,   195,   198,
-     203,   207,   209,   211,   213,   215,   219,   224,   228
+     163,   167,   171,   175,   179,   183,   187,   191,   195,   199,
+     203,   206,   211,   215,   217,   219,   221,   223,   227,   232,
+     236
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
@@ -501,22 +501,24 @@ static const yytype_int8 yyrhs[] =
       21,    62,    -1,    62,    20,    62,    -1,    62,    25,    62,
       -1,    62,    24,    62,    -1,    62,    23,    62,    -1,    62,
       22,    62,    -1,    62,    29,    62,    -1,    62,    28,    62,
-      -1,    62,    30,    62,    -1,    28,    62,    -1,    15,    37,
-      63,    36,    -1,    35,    62,    34,    -1,    64,    -1,    63,
-      -1,    16,    -1,    15,    -1,    15,    35,    34,    -1,    15,
-      35,    65,    34,    -1,    65,    11,    62,    -1,    62,    -1
+      -1,    62,    30,    62,    -1,    62,    27,    62,    -1,    62,
+      26,    62,    -1,    28,    62,    -1,    15,    37,    63,    36,
+      -1,    35,    62,    34,    -1,    64,    -1,    63,    -1,    16,
+      -1,    15,    -1,    15,    35,    34,    -1,    15,    35,    65,
+      34,    -1,    65,    11,    62,    -1,    62,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    82,    82,    95,    96,   100,   101,   102,   103,   107,
-     108,   112,   127,   152,   172,   195,   194,   222,   221,   264,
-     284,   307,   323,   341,   362,   364,   368,   369,   370,   371,
-     372,   373,   382,   383,   388,   392,   392,   397,   398,   398,
-     402,   402,   402,   403,   403,   407,   412,   413,   414,   415,
-     416,   417,   418,   424,   430,   431,   432,   433,   434,   435,
-     443,   444,   445,   450,   461,   476,   500,   534,   539
+       0,    78,    78,    89,    90,    94,    95,    96,    97,   101,
+     102,   106,   120,   143,   163,   186,   185,   231,   230,   301,
+     335,   386,   404,   424,   445,   447,   451,   452,   453,   454,
+     455,   456,   465,   472,   477,   481,   481,   486,   487,   487,
+     491,   491,   491,   492,   492,   496,   502,   503,   504,   505,
+     506,   507,   508,   515,   522,   523,   524,   525,   526,   527,
+     528,   529,   537,   538,   539,   544,   555,   570,   596,   626,
+     633
 };
 #endif
 
@@ -562,7 +564,8 @@ static const yytype_uint8 yyr1[] =
       52,    52,    52,    52,    53,    55,    54,    56,    57,    56,
       59,    60,    58,    61,    58,    62,    62,    62,    62,    62,
       62,    62,    62,    62,    62,    62,    62,    62,    62,    62,
-      62,    62,    62,    63,    63,    64,    64,    65,    65
+      62,    62,    62,    62,    62,    63,    63,    64,    64,    65,
+      65
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
@@ -573,8 +576,9 @@ static const yytype_uint8 yyr2[] =
        5,     1,     3,     2,     0,     2,     1,     2,     2,     1,
        1,     3,     2,     1,     3,     0,     6,     1,     0,     4,
        0,     0,     7,     0,     8,     3,     3,     3,     2,     3,
-       3,     3,     3,     3,     3,     3,     3,     3,     2,     4,
-       3,     1,     1,     1,     1,     3,     4,     3,     1
+       3,     3,     3,     3,     3,     3,     3,     3,     3,     3,
+       2,     4,     3,     1,     1,     1,     1,     3,     4,     3,
+       1
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -586,23 +590,24 @@ static const yytype_uint8 yydefact[] =
        0,     1,     3,    14,    12,     0,     5,     6,     0,     0,
       14,    11,    15,     0,     0,    21,     0,     0,    23,     0,
       17,    13,    24,    22,     0,     0,    24,    43,    40,     0,
-       0,    33,    24,    16,    64,    63,     0,     0,     0,     0,
-       0,    25,    26,    29,    30,     0,    62,    61,     0,     0,
-       0,     0,    32,     0,     0,     0,     0,    58,    48,     0,
+       0,    33,    24,    16,    66,    65,     0,     0,     0,     0,
+       0,    25,    26,    29,    30,     0,    64,    63,     0,     0,
+       0,     0,    32,     0,     0,     0,     0,    60,    48,     0,
       27,    28,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,    18,     0,     0,    35,    31,    34,
-      65,    68,     0,    64,     0,    60,    45,    46,    47,    50,
-      49,    54,    53,    52,    51,    56,    55,    57,     0,     0,
-       0,     0,    66,    59,     0,    41,     0,    67,     0,     0,
-      37,    36,     0,    42,    38,    44,     0,    39
+       0,     0,     0,     0,     0,     0,    18,     0,     0,    35,
+      31,    34,    67,    70,     0,    66,     0,    62,    45,    46,
+      47,    50,    49,    54,    53,    52,    51,    59,    58,    56,
+      55,    57,     0,     0,     0,     0,    68,    61,     0,    41,
+       0,    69,     0,     0,    37,    36,     0,    42,    38,    44,
+       0,    39
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
-static const yytype_int8 yydefgoto[] =
+static const yytype_int16 yydefgoto[] =
 {
       -1,     4,     5,     6,    49,    50,    14,     9,    27,    34,
-      10,    24,    25,    35,    51,    52,    53,   110,   121,   126,
-      54,    60,   119,    59,    55,    56,    57,    92
+      10,    24,    25,    35,    51,    52,    53,   114,   125,   130,
+      54,    60,   123,    59,    55,    56,    57,    94
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
@@ -610,27 +615,28 @@ static const yytype_int8 yydefgoto[] =
 #define YYPACT_NINF -59
 static const yytype_int16 yypact[] =
 {
-      52,   -59,   -59,   -59,    22,    52,   -59,    15,    36,   -59,
-      39,   -59,   -59,    19,   -59,    42,   -59,   -59,    -5,    50,
-      41,   -59,    61,    42,    -7,   -59,    53,    86,   -59,    55,
-      92,   -59,   -59,   -59,    93,    72,   -59,   -59,   -59,    76,
-      37,   -59,   -59,   -59,    32,   -59,   163,   163,   163,    42,
-      71,   -59,   -59,   -59,   -59,   185,   -59,   -59,   105,   152,
-      94,   163,   -59,   199,   138,   160,   100,   -59,   -59,   213,
-     -59,   -59,   163,   163,   163,   163,   163,   163,   163,   163,
-     163,   163,   163,   163,   -59,   124,   163,    73,   -59,   -59,
-     -59,    73,    -6,   -59,   101,   -59,    73,   -10,   102,   262,
-     262,   106,   106,   106,   106,   109,   109,   -59,   113,   231,
-     110,   163,   -59,   -59,   163,   -59,   152,    73,   249,   152,
-     143,   -59,   146,   -59,   -59,   -59,   152,   -59
+      47,   -59,   -59,   -59,    67,    47,   -59,    34,    12,   -59,
+      61,   -59,   -59,    29,   -59,    62,   -59,   -59,    -5,    92,
+      78,   -59,    98,    62,    -7,   -59,    83,   107,   -59,    79,
+     123,   -59,   -59,   -59,   128,    76,   -59,   -59,   -59,   108,
+      35,   -59,   -59,   -59,   101,   -59,    41,    41,    41,    62,
+      49,   -59,   -59,   -59,   -59,   183,   -59,   -59,   109,   156,
+     113,    41,   -59,   202,   142,   164,   124,   -59,   -59,   216,
+     -59,   -59,    41,    41,    41,    41,    41,    41,    41,    41,
+      41,    41,    41,    41,    41,    41,   -59,   148,    41,   270,
+     -59,   -59,   -59,   270,    -6,   -59,   117,   -59,   270,   -10,
+      73,   104,   104,   275,   275,   275,   275,    77,    77,   132,
+     132,   -59,   131,   234,   133,    41,   -59,   -59,    41,   -59,
+     156,   270,   252,   156,   167,   -59,   162,   -59,   -59,   -59,
+     156,   -59
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-     -59,   -59,   -59,   157,    26,    45,     1,   -59,   -59,   -59,
-     -59,   -59,   134,   -19,   -58,   -59,   -59,   -59,   -59,   -59,
-     -59,   -59,   -59,   -59,   -40,   103,   -59,   -59
+     -59,   -59,   -59,   171,    53,    26,     7,   -59,   -59,   -59,
+     -59,   -59,   149,    10,   -58,   -59,   -59,   -59,   -59,   -59,
+     -59,   -59,   -59,   -59,   -40,   115,   -59,   -59
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -638,72 +644,74 @@ static const yytype_int16 yypgoto[] =
    number is the opposite.  If zero, do what YYDEFACT says.
    If YYTABLE_NINF, syntax error.  */
 #define YYTABLE_NINF -21
-static const yytype_int8 yytable[] =
+static const yytype_int16 yytable[] =
 {
-      63,    85,     1,     2,    29,   111,    67,    68,    69,    74,
-      75,    76,    77,    78,    79,    80,    21,    58,    81,    82,
-      83,    87,    11,    64,    28,    91,     7,    30,   112,    22,
-      13,     7,    96,    97,    98,    99,   100,   101,   102,   103,
-     104,   105,   106,   107,    23,     8,   109,    15,    16,    62,
-       8,    17,    44,    45,    18,    23,    19,    20,   120,     1,
-       2,   123,     1,     2,     3,    46,    26,    65,   127,    66,
-      47,   117,    48,   -19,   118,    37,    38,    39,    19,     1,
-       2,    40,    15,    70,    41,    42,    43,    44,    45,    31,
-      72,    73,    74,    75,    76,    77,    78,    79,    80,    32,
-      46,    81,    82,    83,   -20,    47,    36,    48,    37,    38,
-      39,    61,     1,     2,    40,    93,    45,    41,    42,    84,
-      44,    45,    75,    76,    77,    78,    79,    80,   108,    86,
-      81,    82,    83,    46,    81,    82,    83,   113,    47,    83,
-      48,    37,    38,    39,   116,     1,     2,    40,   114,   124,
-      41,    42,    89,    44,    45,    37,    38,    39,   125,     1,
-       2,    40,    12,    33,    41,    42,    46,    44,    45,    94,
-       0,    47,     0,    48,     0,    44,    45,     0,    44,    45,
-      46,     0,     0,     0,     0,    47,     0,    48,    46,     0,
-       0,    46,     0,    47,    90,    48,    47,    71,    48,     0,
-       0,     0,    72,    73,    74,    75,    76,    77,    78,    79,
-      80,    88,     0,    81,    82,    83,    72,    73,    74,    75,
-      76,    77,    78,    79,    80,     0,     0,    81,    82,    83,
-      72,    73,    74,    75,    76,    77,    78,    79,    80,     0,
-       0,    81,    82,    83,     0,     0,     0,    95,    72,    73,
-      74,    75,    76,    77,    78,    79,    80,     0,     0,    81,
-      82,    83,     0,     0,     0,   115,    72,    73,    74,    75,
-      76,    77,    78,    79,    80,     0,     0,    81,    82,    83,
-       0,     0,     0,   122,    77,    78,    79,    80,     0,     0,
-      81,    82,    83
+      63,    87,     1,     2,    29,   115,    67,    68,    69,    74,
+      75,    76,    77,    78,    79,    80,    81,    82,    83,    84,
+      85,    89,    21,    15,    16,    93,     8,    30,   116,    22,
+      28,     8,    98,    99,   100,   101,   102,   103,   104,   105,
+     106,   107,   108,   109,   110,   111,    58,    62,   113,    13,
+      44,    45,    64,     7,     1,     2,    44,    45,     7,     3,
+      15,    70,   124,    46,    18,   127,    19,    11,    47,    46,
+      48,    23,   131,    17,    47,   121,    48,    20,   122,    37,
+      38,    39,    23,     1,     2,    40,     1,     2,    41,    42,
+      43,    44,    45,    75,    76,    77,    78,    79,    80,    81,
+      82,    83,    84,    85,    46,    83,    84,    85,    26,    47,
+     -19,    48,    37,    38,    39,    19,     1,     2,    40,    31,
+      32,    41,    42,    86,    44,    45,    77,    78,    79,    80,
+      81,    82,    83,    84,    85,   -20,    65,    46,    66,    95,
+      45,    36,    47,    61,    48,    37,    38,    39,    88,     1,
+       2,    40,   112,   117,    41,    42,    91,    44,    45,    37,
+      38,    39,    85,     1,     2,    40,   118,   120,    41,    42,
+      46,    44,    45,   128,   129,    47,    12,    48,    33,    44,
+      45,    96,     0,     0,    46,     0,     0,     0,     0,    47,
+       0,    48,    46,     0,     0,    71,     0,    47,    92,    48,
+      72,    73,    74,    75,    76,    77,    78,    79,    80,    81,
+      82,    83,    84,    85,    90,     0,     0,     0,     0,    72,
+      73,    74,    75,    76,    77,    78,    79,    80,    81,    82,
+      83,    84,    85,    72,    73,    74,    75,    76,    77,    78,
+      79,    80,    81,    82,    83,    84,    85,     0,     0,     0,
+      97,    72,    73,    74,    75,    76,    77,    78,    79,    80,
+      81,    82,    83,    84,    85,     0,     0,     0,   119,    72,
+      73,    74,    75,    76,    77,    78,    79,    80,    81,    82,
+      83,    84,    85,     0,     0,     0,   126,    72,    73,    74,
+      75,    76,    77,    78,    79,    80,    81,    82,    83,    84,
+      85,    81,    82,    83,    84,    85
 };
 
-static const yytype_int8 yycheck[] =
+static const yytype_int16 yycheck[] =
 {
       40,    59,     7,     8,    11,    11,    46,    47,    48,    19,
-      20,    21,    22,    23,    24,    25,    15,    36,    28,    29,
-      30,    61,     0,    42,    23,    65,     0,    34,    34,    34,
-      15,     5,    72,    73,    74,    75,    76,    77,    78,    79,
-      80,    81,    82,    83,    18,     0,    86,    11,    12,    12,
-       5,    12,    15,    16,    35,    29,    37,    15,   116,     7,
-       8,   119,     7,     8,    12,    28,    16,    35,   126,    37,
-      33,   111,    35,    12,   114,     3,     4,     5,    37,     7,
-       8,     9,    11,    12,    12,    13,    14,    15,    16,    36,
-      17,    18,    19,    20,    21,    22,    23,    24,    25,    13,
-      28,    28,    29,    30,    12,    33,    13,    35,     3,     4,
-       5,    35,     7,     8,     9,    15,    16,    12,    13,    14,
-      15,    16,    20,    21,    22,    23,    24,    25,     4,    35,
-      28,    29,    30,    28,    28,    29,    30,    36,    33,    30,
-      35,     3,     4,     5,    34,     7,     8,     9,    35,     6,
-      12,    13,    14,    15,    16,     3,     4,     5,    12,     7,
-       8,     9,     5,    29,    12,    13,    28,    15,    16,    66,
-      -1,    33,    -1,    35,    -1,    15,    16,    -1,    15,    16,
-      28,    -1,    -1,    -1,    -1,    33,    -1,    35,    28,    -1,
-      -1,    28,    -1,    33,    34,    35,    33,    12,    35,    -1,
-      -1,    -1,    17,    18,    19,    20,    21,    22,    23,    24,
-      25,    12,    -1,    28,    29,    30,    17,    18,    19,    20,
-      21,    22,    23,    24,    25,    -1,    -1,    28,    29,    30,
-      17,    18,    19,    20,    21,    22,    23,    24,    25,    -1,
-      -1,    28,    29,    30,    -1,    -1,    -1,    34,    17,    18,
-      19,    20,    21,    22,    23,    24,    25,    -1,    -1,    28,
-      29,    30,    -1,    -1,    -1,    34,    17,    18,    19,    20,
-      21,    22,    23,    24,    25,    -1,    -1,    28,    29,    30,
-      -1,    -1,    -1,    34,    22,    23,    24,    25,    -1,    -1,
-      28,    29,    30
+      20,    21,    22,    23,    24,    25,    26,    27,    28,    29,
+      30,    61,    15,    11,    12,    65,     0,    34,    34,    34,
+      23,     5,    72,    73,    74,    75,    76,    77,    78,    79,
+      80,    81,    82,    83,    84,    85,    36,    12,    88,    15,
+      15,    16,    42,     0,     7,     8,    15,    16,     5,    12,
+      11,    12,   120,    28,    35,   123,    37,     0,    33,    28,
+      35,    18,   130,    12,    33,   115,    35,    15,   118,     3,
+       4,     5,    29,     7,     8,     9,     7,     8,    12,    13,
+      14,    15,    16,    20,    21,    22,    23,    24,    25,    26,
+      27,    28,    29,    30,    28,    28,    29,    30,    16,    33,
+      12,    35,     3,     4,     5,    37,     7,     8,     9,    36,
+      13,    12,    13,    14,    15,    16,    22,    23,    24,    25,
+      26,    27,    28,    29,    30,    12,    35,    28,    37,    15,
+      16,    13,    33,    35,    35,     3,     4,     5,    35,     7,
+       8,     9,     4,    36,    12,    13,    14,    15,    16,     3,
+       4,     5,    30,     7,     8,     9,    35,    34,    12,    13,
+      28,    15,    16,     6,    12,    33,     5,    35,    29,    15,
+      16,    66,    -1,    -1,    28,    -1,    -1,    -1,    -1,    33,
+      -1,    35,    28,    -1,    -1,    12,    -1,    33,    34,    35,
+      17,    18,    19,    20,    21,    22,    23,    24,    25,    26,
+      27,    28,    29,    30,    12,    -1,    -1,    -1,    -1,    17,
+      18,    19,    20,    21,    22,    23,    24,    25,    26,    27,
+      28,    29,    30,    17,    18,    19,    20,    21,    22,    23,
+      24,    25,    26,    27,    28,    29,    30,    -1,    -1,    -1,
+      34,    17,    18,    19,    20,    21,    22,    23,    24,    25,
+      26,    27,    28,    29,    30,    -1,    -1,    -1,    34,    17,
+      18,    19,    20,    21,    22,    23,    24,    25,    26,    27,
+      28,    29,    30,    -1,    -1,    -1,    34,    17,    18,    19,
+      20,    21,    22,    23,    24,    25,    26,    27,    28,    29,
+      30,    26,    27,    28,    29,    30
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -718,11 +726,12 @@ static const yytype_uint8 yystos[] =
       43,    52,    53,    54,    58,    62,    63,    64,    51,    61,
       59,    35,    12,    62,    51,    35,    37,    62,    62,    62,
       12,    12,    17,    18,    19,    20,    21,    22,    23,    24,
-      25,    28,    29,    30,    14,    52,    35,    62,    12,    14,
-      34,    62,    65,    15,    63,    34,    62,    62,    62,    62,
-      62,    62,    62,    62,    62,    62,    62,    62,     4,    62,
-      55,    11,    34,    36,    35,    34,    34,    62,    62,    60,
-      52,    56,    34,    52,     6,    12,    57,    52
+      25,    26,    27,    28,    29,    30,    14,    52,    35,    62,
+      12,    14,    34,    62,    65,    15,    63,    34,    62,    62,
+      62,    62,    62,    62,    62,    62,    62,    62,    62,    62,
+      62,    62,     4,    62,    55,    11,    34,    36,    35,    34,
+      34,    62,    62,    60,    52,    56,    34,    52,     6,    12,
+      57,    52
 };
 
 #define yyerrok		(yyerrstatus = 0)
@@ -1571,76 +1580,71 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 82 "src/parser.y"
+#line 78 "src/parser.y"
     {
-		printf("\n\n----------DEBUG printing all functions and variables----------:\n");
+		/*printf("\n\n----------DEBUG printing all functions and variables----------:\n");
 		printf("<<----------DEBUG Functions---------->>:\n");
 		print_funcs();
 		printf("<<----------DEBUG Variables---------->>:\n");
 		print_vars();
-		printf("<<----------DEBUG IR---------->>:\n");
-		print_all_opcodes();
-		printf("<<----------DEBUG END---------->>:\n\n\n");
+		printf("<<----------DEBUG END---------->>:\n\n\n");*/
 		;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 107 "src/parser.y"
+#line 101 "src/parser.y"
     {(yyval.id)=integer;;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 108 "src/parser.y"
+#line 102 "src/parser.y"
     {(yyval.id)=voidtype;;}
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 113 "src/parser.y"
+#line 107 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof(*(yyval.var)));
 			assert((yyval.var)!=NULL);
 			(yyval.var)->varname=(yyvsp[(3) - (3)].var)->varname;
 			if((yyvsp[(3) - (3)].var)->arrdim>=0){
-					(yyval.var)->vartype=1;
+					(yyval.var)->vartype=INT_ARR_;
 					add_var((yyval.var)->varname, (yyval.var)->vartype,(yyvsp[(3) - (3)].var)->arrdim,NULL);
 				}
 				else {
-					(yyval.var)->vartype=0;
+					(yyval.var)->vartype=INT_;
 					add_var((yyval.var)->varname, (yyval.var)->vartype,NOT_DEFINED,NULL);
 				}
-			//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
 		;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 128 "src/parser.y"
+#line 121 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof(*(yyval.var)));
 			assert((yyval.var)!=NULL);
 			if((yyvsp[(1) - (2)].id)==voidtype) {
 				fprintf(stderr,"ERROR: Variables can not be of type void (%s). Line: %d Column: %d \n",(yyvsp[(2) - (2)].var)->varname, (yylsp[(1) - (2)]).first_line,(yylsp[(1) - (2)]).first_column);
-			} 
+			} 	
+			//Add variable although it is void for the rest of the analysis?
 			else {
 				(yyval.var)->varname=(yyvsp[(2) - (2)].var)->varname;
 				if((yyvsp[(2) - (2)].var)->arrdim>=0){
-					(yyval.var)->vartype=1;
+					(yyval.var)->vartype=INT_ARR_;
 					add_var((yyval.var)->varname, (yyval.var)->vartype,(yyvsp[(2) - (2)].var)->arrdim,NULL);
 				}
-				else {
-					(yyval.var)->vartype=0;
+				else{
+					(yyval.var)->vartype=INT_;
 					add_var((yyval.var)->varname, (yyval.var)->vartype,NOT_DEFINED,NULL);
 				}
-				//printf("DEBUG --- Variable was added to Symboltable: %s\n",$$->varname);
-				//printf("DEBUG --- Symboltable: ");
-				//print_vars();
 			}
 		;}
     break;
@@ -1648,7 +1652,7 @@ yyreduce:
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 153 "src/parser.y"
+#line 144 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof(*(yyval.var)));
 			assert((yyval.var)!=NULL);
@@ -1658,13 +1662,13 @@ yyreduce:
 					fprintf(stderr,"ERROR: This Symbol was already defined (%s), Line: %d Column: %d \n",(yyval.var)->varname, (yylsp[(1) - (4)]).first_line,(yylsp[(1) - (4)]).first_column);
 				else{
 					(yyval.var)->varname=(yyvsp[(1) - (4)].id);
-					(yyval.var)->vartype=1;
+					(yyval.var)->vartype=INT_ARR_;
 					(yyval.var)->arrdim= (yyvsp[(3) - (4)].num);
 				}
 			}	
 			else{
 				(yyval.var)->varname=(yyvsp[(1) - (4)].id);
-				(yyval.var)->vartype=1;
+				(yyval.var)->vartype=INT_ARR_;
 				(yyval.var)->arrdim= (yyvsp[(3) - (4)].num);
 			}
 		;}
@@ -1673,7 +1677,7 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 173 "src/parser.y"
+#line 164 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof(*(yyval.var)));
 			assert((yyval.var)!=NULL);
@@ -1697,48 +1701,93 @@ yyreduce:
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 195 "src/parser.y"
+#line 186 "src/parser.y"
     {
-			if(find_func((yyvsp[(2) - (4)].id))){
-				if(is_func_proto((yyvsp[(2) - (4)].id))){
-					if((yyvsp[(1) - (4)].id)!=find_func((yyvsp[(2) - (4)].id))->returntype){	
-						fprintf(stderr,"ERROR: Types mismatch from function %s's declaration. Line: %d Column: %d \n",(yyvsp[(2) - (4)].id), (yylsp[(1) - (4)]).first_line,(yylsp[(1) - (4)]).first_column);
+			if(find_var((yyvsp[(2) - (4)].id))){
+				varentry_t *v;
+				v=find_var((yyvsp[(2) - (4)].id));
+				if(v->scope==get_func_scope())
+					fprintf(stderr,"ERROR: This Symbol was already defined as variable(%s), Line: %d Column: %d \n",v->varname, (yylsp[(1) - (4)]).first_line,(yylsp[(1) - (4)]).first_column);
+			}
+			else if(find_func((yyvsp[(2) - (4)].id))){
+					if(is_func_proto(find_func((yyvsp[(2) - (4)].id)))){
+						int temp=1;
+						funcentry_t *f=find_func((yyvsp[(2) - (4)].id));
+						if((yyvsp[(1) - (4)].id)!=f->returntype)
+							temp=0;
+						if(f->dim != 0)
+							temp=0;
+						if(f->var != NULL)
+							temp=0;
+						if(temp==0){
+							fprintf(stderr,"ERROR: A function declaration with the same name (%s) already exists with other parameters. Line: %d Column: %d \n",(yyvsp[(2) - (4)].id), (yylsp[(1) - (4)]).first_line,(yylsp[(1) - (4)]).first_column);
+						}
+						if((yyvsp[(1) - (4)].id)!=find_func((yyvsp[(2) - (4)].id))->returntype){	
+							fprintf(stderr,"ERROR: Types mismatch from function %s's declaration. Line: %d Column: %d \n",(yyvsp[(2) - (4)].id), (yylsp[(1) - (4)]).first_line,(yylsp[(1) - (4)]).first_column);
+						}
+						set_func_to_decl((yyvsp[(2) - (4)].id));
+						set_func_scope(find_func((yyvsp[(2) - (4)].id)));
 					}
-					set_func_to_decl((yyvsp[(2) - (4)].id));
+					else{	
+						fprintf(stderr,"ERROR: A function definition with the same name (%s) already exists. Line: %d Column: %d \n",(yyvsp[(2) - (4)].id), (yylsp[(1) - (4)]).first_line,(yylsp[(1) - (4)]).first_column);
+					}
+				}
+				else{										
+					(yyval.func)=malloc(sizeof(*(yyval.func)));
+					assert((yyval.func)!=NULL);
+					(yyval.func)->funcname=(yyvsp[(2) - (4)].id);
+					(yyval.func)->returntype=(int)(yyvsp[(1) - (4)].id);
+					(yyval.func)->dim=0;
+					add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,NULL);
 					set_func_scope(find_func((yyvsp[(2) - (4)].id)));
 				}
-				else{	
-					fprintf(stderr,"ERROR: A function definition with the same name (%s) already exists. Line: %d Column: %d \n",(yyvsp[(2) - (4)].id), (yylsp[(1) - (4)]).first_line,(yylsp[(1) - (4)]).first_column);
-				}
-			}
-			else{										
-				(yyval.func)=malloc(sizeof(*(yyval.func)));
-				assert((yyval.func)!=NULL);
-				(yyval.func)->funcname=(yyvsp[(2) - (4)].id);
-				(yyval.func)->returntype=(int)(yyvsp[(1) - (4)].id);
-				(yyval.func)->dim=0;
-				add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,NULL);
-				set_func_scope(find_func((yyvsp[(2) - (4)].id)));
-				}
-			gencode_opfunc(opFUNC_DEF, NULL, find_func((yyvsp[(2) - (4)].id)));
+			gencode_opfunc(FUNC_DEF_IR, NULL, find_func((yyvsp[(2) - (4)].id)));
 		;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 219 "src/parser.y"
-    {gencode_opfunc(opFUNC_DEF_END, NULL, find_func((yyvsp[(2) - (8)].id)));set_func_scope(NULL);backpatch_return();;}
+#line 228 "src/parser.y"
+    {gencode_opfunc(FUNC_DEF_END_IR, NULL, find_func((yyvsp[(2) - (8)].id)));set_func_scope(NULL);backpatch_return();;}
     break;
 
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 222 "src/parser.y"
+#line 231 "src/parser.y"
     {	
-     		if(find_func((yyvsp[(2) - (5)].id))){
-				if(is_func_proto((yyvsp[(2) - (5)].id))){
-					if(!check_funccallpar(find_func((yyvsp[(2) - (5)].id)), (yyvsp[(4) - (5)].func))){
+     		if(find_var((yyvsp[(2) - (5)].id))){
+				varentry_t *v;
+				v=find_var((yyvsp[(2) - (5)].id));
+				if(v->scope==get_func_scope())
+					fprintf(stderr,"ERROR: This Symbol was already defined as variable(%s), Line: %d Column: %d \n",v->varname, (yylsp[(1) - (5)]).first_line,(yylsp[(1) - (5)]).first_column);
+			}
+			else if(find_func((yyvsp[(2) - (5)].id))){
+				if(is_func_proto(find_func((yyvsp[(2) - (5)].id)))){
+					int temp=1;
+					funcentry_t *f=find_func((yyvsp[(2) - (5)].id));
+					if((yyvsp[(1) - (5)].id)!=f->returntype)
+						temp=0;
+					if(f->dim != (yyvsp[(4) - (5)].func)->dim)
+						temp=0;
+					varentry_t *par0 = f->var;
+					varentry_t *par1 = (yyvsp[(4) - (5)].func)->var;
+					for(int i=0;i<f->dim;i++){
+						if(par0->arrdim != par1->arrdim)
+							temp=0;
+						if(par0->vartype != par1->vartype)
+						temp=0;
+						if(par0->hh.next!=NULL)
+							par0 = par0->hh.next;
+						else
+							break;
+						if(par1->hh.next!=NULL)
+							par1 = par1->hh.next;
+						else
+							break;
+					}
+					if(temp==0){
 						fprintf(stderr,"ERROR: Function-Parameter definition does not match the declaration of function %s. Line: %d Column: %d \n",(yyvsp[(2) - (5)].id), (yylsp[(1) - (5)]).first_line,(yylsp[(1) - (5)]).first_column);
 					}
 					if((yyvsp[(1) - (5)].id)!=find_func((yyvsp[(2) - (5)].id))->returntype){
@@ -1748,7 +1797,7 @@ yyreduce:
 						delete_func (find_func("temp1"));
 						set_func_to_decl ((yyvsp[(2) - (5)].id));
 						set_func_scope(find_func((yyvsp[(2) - (5)].id)));
-						gencode_opfunc(opFUNC_DEF, (yyvsp[(4) - (5)].func), find_func((yyvsp[(2) - (5)].id)));
+						gencode_opfunc(FUNC_DEF_IR, (yyvsp[(4) - (5)].func), find_func((yyvsp[(2) - (5)].id)));
 					}
 					else{
 						printf("INTERNAL ERROR: Function has not the expected TEMP_NAME!\n");
@@ -1766,7 +1815,7 @@ yyreduce:
 					(yyval.func)->returntype=(int)(yyvsp[(1) - (5)].id);
 					add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->var);
 					delete_func((yyval.func));
-					gencode_opfunc(opFUNC_DEF, (yyvsp[(4) - (5)].func), find_func((yyvsp[(2) - (5)].id)));
+					gencode_opfunc(FUNC_DEF_IR, (yyvsp[(4) - (5)].func), find_func((yyvsp[(2) - (5)].id)));
 				}
 				else{
 					printf("INTERNAL ERROR: Function has not the expected TEMP_NAME!\n");
@@ -1778,19 +1827,33 @@ yyreduce:
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 260 "src/parser.y"
-    {gencode_opfunc(opFUNC_DEF_END, NULL, find_func((yyvsp[(2) - (9)].id)));set_func_scope(NULL);backpatch_return();;}
+#line 297 "src/parser.y"
+    {gencode_opfunc(FUNC_DEF_END_IR, NULL, find_func((yyvsp[(2) - (9)].id)));set_func_scope(NULL);backpatch_return();;}
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 265 "src/parser.y"
+#line 302 "src/parser.y"
     {
-			if(find_func((yyvsp[(2) - (4)].id))){
-				fprintf(stderr,"ERROR: A function definition with the same name (%s) already exists. Line: %d Column: %d \n",(yyvsp[(2) - (4)].id), (yylsp[(1) - (4)]).first_line,(yylsp[(1) - (4)]).first_column);
-				set_func_to_proto (find_func((yyvsp[(2) - (4)].id)));
-				set_scope_for_pars (find_func((yyvsp[(2) - (4)].id)));
+			if(find_var((yyvsp[(2) - (4)].id))){
+				varentry_t *v;
+				v=find_var((yyvsp[(2) - (4)].id));
+				if(v->scope==get_func_scope())
+					fprintf(stderr,"ERROR: This Symbol was already defined as variable(%s), Line: %d Column: %d \n",v->varname, (yylsp[(1) - (4)]).first_line,(yylsp[(1) - (4)]).first_column);
+			}
+			else if(find_func((yyvsp[(2) - (4)].id))){
+				int temp=1;
+				funcentry_t *f=find_func((yyvsp[(2) - (4)].id));
+				if((yyvsp[(1) - (4)].id)!=f->returntype)
+					temp=0;
+				if(f->dim != 0)
+					temp=0;
+				if(f->var != NULL)
+					temp=0;
+				if(temp==0){
+					fprintf(stderr,"ERROR: A function declaration with the same name (%s) already exists with other parameters. Line: %d Column: %d \n",(yyvsp[(2) - (4)].id), (yylsp[(1) - (4)]).first_line,(yylsp[(1) - (4)]).first_column);
+				}
 			}
 			else{
 				(yyval.func)=malloc(sizeof(*(yyval.func)));
@@ -1799,9 +1862,9 @@ yyreduce:
 				(yyval.func)->returntype=(int)(yyvsp[(1) - (4)].id);
 				(yyval.func)->dim=0;
 				add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,NULL);
-				set_func_to_proto((yyval.func));
-				set_scope_for_pars ((yyval.func));
 			}
+			set_func_to_proto (find_func((yyvsp[(2) - (4)].id)));
+			set_scope_for_pars (find_func((yyvsp[(2) - (4)].id)));
 			set_func_scope(NULL);
 		;}
     break;
@@ -1809,13 +1872,41 @@ yyreduce:
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 285 "src/parser.y"
+#line 336 "src/parser.y"
     {
-			if(find_func((yyvsp[(2) - (5)].id))) {
-				fprintf(stderr,"ERROR: A function definition with the same name (%s) already exists. Line: %d Column: %d \n",(yyvsp[(2) - (5)].id), (yylsp[(1) - (5)]).first_line,(yylsp[(1) - (5)]).first_column);
-				delete_func ("temp1");
-				set_func_to_proto(find_func((yyvsp[(2) - (5)].id)));
-				set_scope_for_pars (find_func((yyvsp[(2) - (5)].id)));
+     		if(find_var((yyvsp[(2) - (5)].id))){
+				varentry_t *v;
+				v=find_var((yyvsp[(2) - (5)].id));
+				if(v->scope==get_func_scope())
+					fprintf(stderr,"ERROR: This Symbol was already defined as variable(%s), Line: %d Column: %d \n",v->varname, (yylsp[(1) - (5)]).first_line,(yylsp[(1) - (5)]).first_column);
+			}
+			else if(find_func((yyvsp[(2) - (5)].id))) {
+				int temp=1;
+				funcentry_t *f=find_func((yyvsp[(2) - (5)].id));
+				if((yyvsp[(1) - (5)].id)!=f->returntype)
+					temp=0;
+				if(f->dim != (yyvsp[(4) - (5)].func)->dim)
+					temp=0;
+				varentry_t *par0 = f->var;
+				varentry_t *par1 = (yyvsp[(4) - (5)].func)->var;
+				for(int i=0;i<f->dim;i++){
+					if(par0->arrdim != par1->arrdim)
+						temp=0;
+					if(par0->vartype != par1->vartype)
+						temp=0;
+					if(par0->hh.next!=NULL)
+						par0 = par0->hh.next;
+					else
+						break;
+					if(par1->hh.next!=NULL)
+						par1 = par1->hh.next;
+					else
+						break;
+				}
+				if(temp==0){
+					fprintf(stderr,"ERROR: A function declaration with the same name (%s) already exists with other parameters or type. Line: %d Column: %d \n",(yyvsp[(2) - (5)].id), (yylsp[(1) - (5)]).first_line,(yylsp[(1) - (5)]).first_column);
+				}
+				delete_func(find_func("temp1"));
 			}
 			else{
 				(yyval.func)=find_func("temp1");
@@ -1823,10 +1914,10 @@ yyreduce:
 				(yyval.func)->funcname=(yyvsp[(2) - (5)].id);
 				(yyval.func)->returntype=(int)(yyvsp[(1) - (5)].id);
 				add_func((yyval.func)->funcname, (yyval.func)->returntype,(yyval.func)->dim,(yyval.func)->var);
-				delete_func((yyval.func));				//Deletes the temp function	
-				set_func_to_proto(find_func((yyvsp[(2) - (5)].id)));
-				set_scope_for_pars (find_func((yyvsp[(2) - (5)].id)));															
+				delete_func((yyval.func));				//Deletes the temp function															
 			}
+			set_func_to_proto(find_func((yyvsp[(2) - (5)].id)));
+			set_scope_for_pars (find_func((yyvsp[(2) - (5)].id)));
 			set_func_scope(NULL);
 		;}
     break;
@@ -1834,19 +1925,21 @@ yyreduce:
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 308 "src/parser.y"
+#line 387 "src/parser.y"
     {
 			(yyval.func)=malloc(sizeof(*(yyval.func)));
 			assert((yyval.func)!=NULL);
 			if(!find_func("temp1"))	{
 				add_func("temp1", 0,0,NULL);
-				(yyval.func)=find_func("temp1");
 				add_funcpar("temp1",(yyvsp[(1) - (1)].var)->varname, (yyvsp[(1) - (1)].var)->vartype, (yyvsp[(1) - (1)].var)->arrdim);
+				(yyval.func)=find_func("temp1");
+				(yyval.func)->dim++;
 				(yyvsp[(1) - (1)].var)->scope=(yyval.func);
 			} 
 			else{	
-				(yyval.func)=find_func("temp1");
 				add_funcpar("temp1",(yyvsp[(1) - (1)].var)->varname, (yyvsp[(1) - (1)].var)->vartype, (yyvsp[(1) - (1)].var)->arrdim);
+				(yyval.func)=find_func("temp1");
+				(yyval.func)->dim++;
 				(yyvsp[(1) - (1)].var)->scope=(yyval.func);
 			}
 		;}
@@ -1855,7 +1948,7 @@ yyreduce:
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 324 "src/parser.y"
+#line 405 "src/parser.y"
     {
 			(yyval.func)=malloc(sizeof(*(yyval.func)));
 			assert((yyval.func)!=NULL);
@@ -1863,10 +1956,12 @@ yyreduce:
 				add_func("temp1", 0,0,NULL);
 				(yyval.func)=find_func("temp1");
 				add_funcpar("temp1",(yyvsp[(3) - (3)].var)->varname, (yyvsp[(3) - (3)].var)->vartype, (yyvsp[(3) - (3)].var)->arrdim);
+				(yyval.func)->dim++;
 			} 
 			else{
 				(yyval.func)=find_func("temp1");
 				add_funcpar("temp1",(yyvsp[(3) - (3)].var)->varname, (yyvsp[(3) - (3)].var)->vartype, (yyvsp[(3) - (3)].var)->arrdim);
+				(yyval.func)->dim++;
 				//add_var($3->varname, $3->vartype, $3->arrdim,1,0);
 			}
 		;}
@@ -1875,7 +1970,7 @@ yyreduce:
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 342 "src/parser.y"
+#line 425 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof(*(yyval.var)));
 			assert((yyval.var)!=NULL);
@@ -1885,11 +1980,11 @@ yyreduce:
 			} 
 			else {
 				if((yyvsp[(2) - (2)].var)->arrdim>=0){
-					(yyval.var)->vartype=1;
+					(yyval.var)->vartype=INT_ARR_;
 					(yyval.var)->arrdim=(yyvsp[(2) - (2)].var)->arrdim;
 				}
 				else {
-					(yyval.var)->vartype=0;
+					(yyval.var)->vartype=INT_;
 					(yyval.var)->arrdim=NOT_DEFINED;
 				}
 			}
@@ -1899,42 +1994,42 @@ yyreduce:
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 369 "src/parser.y"
+#line 452 "src/parser.y"
     {reset_temp_count();;}
     break;
 
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 370 "src/parser.y"
+#line 453 "src/parser.y"
     {reset_temp_count();;}
     break;
 
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 371 "src/parser.y"
+#line 454 "src/parser.y"
     {reset_temp_count();;}
     break;
 
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 372 "src/parser.y"
+#line 455 "src/parser.y"
     {reset_temp_count();;}
     break;
 
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 373 "src/parser.y"
+#line 456 "src/parser.y"
     {
 										if((yyvsp[(2) - (3)].var)->scope!=NULL){
-											if((yyvsp[(2) - (3)].var)->scope->returntype==2){ 
+											if((yyvsp[(2) - (3)].var)->scope->returntype==VOID_){ 
 												fprintf(stderr,"ERROR: Function was declared as VOID. It can not return a value. Either use \"RETURN;\" or use type int for the func. Line: %d Column: %d \n",	(yylsp[(1) - (3)]).first_line,(yylsp[(1) - (3)]).first_column);
 											}
 										}
-										gencode_op1(opRETURN, (yyvsp[(2) - (3)].var));
+										gencode_op1(RETURN_IR, (yyvsp[(2) - (3)].var));
 										{reset_temp_count();}
 										;}
     break;
@@ -1942,196 +2037,219 @@ yyreduce:
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 382 "src/parser.y"
-    {gencode_op1(opRETURN, NULL);{reset_temp_count();};}
+#line 465 "src/parser.y"
+    {
+										funcentry_t *f=get_func_scope();
+										if(f->returntype==INT_)
+											fprintf(stderr,"ERROR: Function was declared as Integer. It must return an expression. Line: %d Column: %d \n",	(yylsp[(1) - (2)]).first_line,(yylsp[(1) - (2)]).first_column);
+										gencode_op1(RETURN_IR, NULL);
+										{reset_temp_count();}
+										;}
     break;
 
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 383 "src/parser.y"
+#line 472 "src/parser.y"
     {reset_temp_count();;}
     break;
 
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 392 "src/parser.y"
+#line 481 "src/parser.y"
     {genif((yyvsp[(3) - (3)].var));genif_goto();;}
     break;
 
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 397 "src/parser.y"
+#line 486 "src/parser.y"
     {backpatch_if(0);;}
     break;
 
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 398 "src/parser.y"
+#line 487 "src/parser.y"
     {backpatch_if(1);genif_goto();;}
     break;
 
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 398 "src/parser.y"
+#line 487 "src/parser.y"
     {backpatch_if(0);;}
     break;
 
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 402 "src/parser.y"
+#line 491 "src/parser.y"
     {genwhile_begin();;}
     break;
 
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 402 "src/parser.y"
+#line 491 "src/parser.y"
     {genwhile((yyvsp[(4) - (5)].var));genwhile_gotobegin();;}
     break;
 
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 402 "src/parser.y"
+#line 491 "src/parser.y"
     {backpatch_while();;}
     break;
 
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 403 "src/parser.y"
+#line 492 "src/parser.y"
     {gendowhile();;}
     break;
 
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 403 "src/parser.y"
+#line 492 "src/parser.y"
     {gendowhile_end((yyvsp[(6) - (8)].var));;}
     break;
 
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 407 "src/parser.y"
-    {(yyval.var) = (yyvsp[(3) - (3)].var);
-												gencode_ass((yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
-												if((yyvsp[(1) - (3)].var)->tempCodePos>-1) {
-													set_code_to_NOP((yyvsp[(1) - (3)].var)->tempCodePos);
-												};}
+#line 496 "src/parser.y"
+    {	(yyval.var) = (yyvsp[(3) - (3)].var);
+													gencode_ass((yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
+													if((yyvsp[(1) - (3)].var)->tempCodePos>-1) {
+														set_code_to_NOP((yyvsp[(1) - (3)].var)->tempCodePos);
+													}
+												;}
     break;
 
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 412 "src/parser.y"
-    {(yyval.var) = gencode_op2exp(opLOGICAL_OR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 502 "src/parser.y"
+    {(yyval.var) = gencode_op2exp(LOGICAL_OR_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 413 "src/parser.y"
-    {(yyval.var) = gencode_op2exp(opLOGICAL_AND, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 503 "src/parser.y"
+    {(yyval.var) = gencode_op2exp(LOGICAL_AND_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 414 "src/parser.y"
-    {(yyval.var) = gencode_op1exp(opLOGICAL_NOT, (yyvsp[(2) - (2)].var));;}
+#line 504 "src/parser.y"
+    {(yyval.var) = gencode_op1exp(LOGICAL_NOT_IR, (yyvsp[(2) - (2)].var));;}
     break;
 
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 415 "src/parser.y"
-    {(yyval.var) = gencode_op2exp(opEQ, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 505 "src/parser.y"
+    {(yyval.var) = gencode_op2exp(EQ_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 416 "src/parser.y"
-    {(yyval.var) = gencode_op2exp(opNE, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 506 "src/parser.y"
+    {(yyval.var) = gencode_op2exp(NE_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 417 "src/parser.y"
-    {(yyval.var) = gencode_op2exp(opLS, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 507 "src/parser.y"
+    {(yyval.var) = gencode_op2exp(LS_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 418 "src/parser.y"
-    {
-												struct varentry *t0;struct varentry *t1;
-												t0 = gencode_op2exp(opLS, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
-												t1 = gencode_op2exp(opEQ, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
-												(yyval.var) = gencode_op2exp(opLOGICAL_OR, t0, t1);
+#line 508 "src/parser.y"
+    {(yyval.var) = gencode_op2exp(LSEQ_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
+												//Alternative:
+												/*struct varentry *t0;struct varentry *t1;
+												t0 = gencode_op2exp(LS_IR, $1, $3);
+												t1 = gencode_op2exp(EQ_IR, $1, $3);
+												$$ = gencode_op2exp(LOGICAL_OR_IR, t0, t1);*/
 												;}
     break;
 
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 424 "src/parser.y"
-    {	
-												struct varentry *t0;struct varentry *t1;
-												t0 = gencode_op2exp(opGT, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
-												t1 = gencode_op2exp(opEQ, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
-												(yyval.var) = gencode_op2exp(opLOGICAL_OR, t0, t1);
+#line 515 "src/parser.y"
+    {(yyval.var) = gencode_op2exp(GTEQ_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));	
+												//Alternative:
+												/*struct varentry *t0;struct varentry *t1;
+												t0 = gencode_op2exp(GT_IR, $1, $3);
+												t1 = gencode_op2exp(EQ_IR, $1, $3);
+												$$ = gencode_op2exp(LOGICAL_OR_IR, t0, t1);*/
 												;}
     break;
 
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 430 "src/parser.y"
-    {(yyval.var) = gencode_op2exp(opGT, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 522 "src/parser.y"
+    {(yyval.var) = gencode_op2exp(GT_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 431 "src/parser.y"
-    {(yyval.var) = gencode_op2exp(opADD, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 523 "src/parser.y"
+    {(yyval.var) = gencode_op2exp(ADD_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 56:
 
 /* Line 1455 of yacc.c  */
-#line 432 "src/parser.y"
-    {(yyval.var) = gencode_op2exp(opSUB, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 524 "src/parser.y"
+    {(yyval.var) = gencode_op2exp(SUB_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 433 "src/parser.y"
-    {(yyval.var) = gencode_op2exp(opMUL, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
+#line 525 "src/parser.y"
+    {(yyval.var) = gencode_op2exp(MUL_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 58:
 
 /* Line 1455 of yacc.c  */
-#line 434 "src/parser.y"
-    {(yyval.var) = gencode_op1exp(opMINUS, (yyvsp[(2) - (2)].var));;}
+#line 526 "src/parser.y"
+    {(yyval.var) = gencode_op2exp(SHIFT_LEFT_IR,(yyvsp[(1) - (3)].var),(yyvsp[(3) - (3)].var));;}
     break;
 
   case 59:
 
 /* Line 1455 of yacc.c  */
-#line 435 "src/parser.y"
+#line 527 "src/parser.y"
+    {(yyval.var) = gencode_op2exp(SHIFT_RIGHT_IR,(yyvsp[(1) - (3)].var),(yyvsp[(3) - (3)].var));;}
+    break;
+
+  case 60:
+
+/* Line 1455 of yacc.c  */
+#line 528 "src/parser.y"
+    {(yyval.var) = gencode_op1exp(MINUS_IR, (yyvsp[(2) - (2)].var));;}
+    break;
+
+  case 61:
+
+/* Line 1455 of yacc.c  */
+#line 529 "src/parser.y"
     {
 												if(!find_var((yyvsp[(1) - (4)].id)))
 													(yyval.var) = gencode_load_arr(find_funcpar2((yyvsp[(1) - (4)].id)), (yyvsp[(3) - (4)].var));
@@ -2142,31 +2260,31 @@ yyreduce:
 												;}
     break;
 
-  case 60:
-
-/* Line 1455 of yacc.c  */
-#line 443 "src/parser.y"
-    {(yyval.var) = (yyvsp[(2) - (3)].var);}
-    break;
-
-  case 61:
-
-/* Line 1455 of yacc.c  */
-#line 444 "src/parser.y"
-    {(yyval.var) = (yyvsp[(1) - (1)].func);}
-    break;
-
   case 62:
 
 /* Line 1455 of yacc.c  */
-#line 445 "src/parser.y"
-    {(yyval.var) = (yyvsp[(1) - (1)].var);}
+#line 537 "src/parser.y"
+    {(yyval.var) = (yyvsp[(2) - (3)].var);}
     break;
 
   case 63:
 
 /* Line 1455 of yacc.c  */
-#line 450 "src/parser.y"
+#line 538 "src/parser.y"
+    {(yyval.var) = (yyvsp[(1) - (1)].var); 	(yyval.var)->isfunccall=1;;}
+    break;
+
+  case 64:
+
+/* Line 1455 of yacc.c  */
+#line 539 "src/parser.y"
+    {(yyval.var) = (yyvsp[(1) - (1)].var);}
+    break;
+
+  case 65:
+
+/* Line 1455 of yacc.c  */
+#line 544 "src/parser.y"
     {								//random id for primary-NUMs
 			char *s;
 			s=malloc(20);
@@ -2180,10 +2298,10 @@ yyreduce:
 			;}
     break;
 
-  case 64:
+  case 66:
 
 /* Line 1455 of yacc.c  */
-#line 461 "src/parser.y"
+#line 555 "src/parser.y"
     {	
 			if(find_var((yyvsp[(1) - (1)].id))) {
 				(yyval.var) = find_var((yyvsp[(1) - (1)].id));
@@ -2199,15 +2317,16 @@ yyreduce:
 	  ;}
     break;
 
-  case 65:
+  case 67:
 
 /* Line 1455 of yacc.c  */
-#line 477 "src/parser.y"
+#line 571 "src/parser.y"
     {
 			funcentry_t *f;
-			//printf("DEBUG --- Function call regocnised[%s()].\n",$1);
 			if(find_func((yyvsp[(1) - (3)].id))){
 				f = find_func((yyvsp[(1) - (3)].id));
+				if(f->dim>0)
+					fprintf(stderr,"ERROR: Functional Call Paramater Check FAILED! Function %s() needs %d parameter(s). Line: %d Column: %d \n",f->funcname, f->dim, (yylsp[(1) - (3)]).first_line,(yylsp[(1) - (3)]).first_column);
 			}
 			else{
 				fprintf(stderr,"ERROR: Function was not declared before the call! Line: %d Column: %d \n", (yylsp[(1) - (3)]).first_line,(yylsp[(1) - (3)]).first_column);
@@ -2224,25 +2343,21 @@ yyreduce:
 			add_var(s,0,-1,0);
 			v=find_var(s);
 			free(s);
-			(yyval.func) = gencode_funccall(opCALL, v, f, opcode_find_FuncDef(f));
+			(yyval.var) = gencode_funccall(CALL_IR, v, f, opcode_find_FuncDef(f));
+			(yyval.var)->vartype=f->returntype;
 		;}
     break;
 
-  case 66:
+  case 68:
 
 /* Line 1455 of yacc.c  */
-#line 501 "src/parser.y"
+#line 597 "src/parser.y"
     {
 			funcentry_t *f;
-			//printf("DEBUG --- Parameterise Function call regocnised[%s()].\n",$1);
 			if(find_func((yyvsp[(1) - (4)].id))){
 				f = find_func((yyvsp[(1) - (4)].id));
-				if(check_funccallpar(f, (yyvsp[(3) - (4)].plist))){
-					//printf("Functional Call Param Check OK!\n");
-				}
-				else{
+				if(!check_funccallpar(f, (yyvsp[(3) - (4)].plist)))
 					fprintf(stderr,"ERROR: Functional Call Paramater Check FAILED![%s(%s)] Line: %d Column: %d \n",f->funcname,(yyvsp[(3) - (4)].plist)->var->varname, (yylsp[(1) - (4)]).first_line,(yylsp[(1) - (4)]).first_column);
-				}
 			}
 			else{
 				fprintf(stderr,"ERROR: Function was not declared before the call!Line: %d Column: %d \n", (yylsp[(1) - (4)]).first_line,(yylsp[(1) - (4)]).first_column);
@@ -2260,34 +2375,39 @@ yyreduce:
 			add_var(s,0,-1,(yyvsp[(3) - (4)].plist)->count);
 			v=find_var(s);
 			free(s);
-			(yyval.func) = gencode_funccall(opCALL, v, f, opcode_find_FuncDef(f));
+			(yyval.var) = gencode_funccall(CALL_IR, v, f, opcode_find_FuncDef(f));
+			(yyval.var)->vartype==f->returntype;
 		;}
     break;
 
-  case 67:
+  case 69:
 
 /* Line 1455 of yacc.c  */
-#line 535 "src/parser.y"
+#line 627 "src/parser.y"
     {
 			(yyval.plist)->count += 1;
-			gencode_op1(opPARAM, (yyvsp[(3) - (3)].var));
+			if((yyvsp[(3) - (3)].var)->vartype==VOID_)
+				fprintf(stderr,"ERROR: Parameters can not be of type void (%s). Line: %d Column: %d \n",(yyvsp[(3) - (3)].var)->varname, (yylsp[(1) - (3)]).first_line,(yylsp[(1) - (3)]).first_column);
+			gencode_op1(PARAM_IR, (yyvsp[(3) - (3)].var));
 		;}
     break;
 
-  case 68:
+  case 70:
 
 /* Line 1455 of yacc.c  */
-#line 540 "src/parser.y"
+#line 634 "src/parser.y"
     {
 			(yyval.plist) = create_pars_list((yyvsp[(1) - (1)].var));
-			gencode_op1(opPARAM, (yyvsp[(1) - (1)].var));
+			if((yyvsp[(1) - (1)].var)->vartype==VOID_)
+				fprintf(stderr,"ERROR: Parameters can not be of type void (%s). Line: %d Column: %d \n",(yyvsp[(1) - (1)].var)->varname, (yylsp[(1) - (1)]).first_line,(yylsp[(1) - (1)]).first_column);
+			gencode_op1(PARAM_IR, (yyvsp[(1) - (1)].var));
 		;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 2291 "bin/parser.c"
+#line 2411 "bin/parser.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2506,7 +2626,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 546 "src/parser.y"
+#line 642 "src/parser.y"
 
 
 void yyerror (const char *msg)
