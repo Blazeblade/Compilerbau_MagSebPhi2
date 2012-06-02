@@ -25,9 +25,9 @@ typedef struct varentry				//Variables
 	int val;						//Used for Var value and array stepping
 	int offset;						//Offset of variable in symtab
 	int memory;						//Necessary Memory for this variable
-	int tempArrPos;					//For array stepping
-	struct varentry *tempArrPos2;	//
-	int tempCodePos;				//Position in IR Code
+	int var_arr_loc;						//For array stepping
+	struct varentry *var_arr_loc_struct;	//---"---
+	int var_cpos;					//Position in IR Code
 	int isfunccall;					//helper
     UT_hash_handle hh;				//Hash Table Handler
 } varentry_t;
@@ -81,6 +81,7 @@ int is_func_proto (funcentry_t *f);
 void set_func_to_proto (funcentry_t *f);
 void set_func_to_decl (char *func_name);
 void set_func_scope (funcentry_t *f);
+//void find_protos();
 funcentry_t *get_func_scope ();
 void set_scope_for_pars (funcentry_t *f);
 void print_vars_ir();

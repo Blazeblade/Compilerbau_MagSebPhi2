@@ -17,8 +17,9 @@
 #define INT_ 			0
 #define INT_ARR_		1
 #define VOID_			2
-
-
+#define NO_PARAMS		NULL
+int 		prim_count=0;	//count for primaries (numbers)
+int 		call_count=0;	//count for call variables
 %}
 
 %union {
@@ -28,6 +29,7 @@
   struct funcentry 			*func;
   struct funccallparlist 	*plist;
 }
+
  
 %debug
 %locations
@@ -82,6 +84,7 @@ program
 		printf("<<----------DEBUG Variables---------->>:\n");
 		print_vars();
 		printf("<<----------DEBUG END---------->>:\n\n\n");*/
+		//find_protos();
 		}
      ;
 
@@ -94,7 +97,7 @@ program_element
      : variable_declaration SEMICOLON
      | function_declaration SEMICOLON
      | function_definition
-     | SEMICOLON
+     | SEMICOLON 	{fprintf(stderr,"WARNING: Single Semicolon can be deleted. Line: %d Column: %d \n", @1.first_line,@1.first_column);}
      ;
 									
 type
@@ -219,7 +222,7 @@ function_definition
 					$<func>$->funcname=$2;
 					$<func>$->returntype=(int)$1;
 					$<func>$->dim=0;
-					add_func($<func>$->funcname, $<func>$->returntype,$<func>$->dim,NULL);
+					add_func($<func>$->funcname, $<func>$->returntype,$<func>$->dim,NO_PARAMS);
 					set_func_scope(find_func($2));
 				}
 			gencode_opfunc(FUNC_DEF_IR, NULL, find_func($2));
@@ -325,7 +328,7 @@ function_declaration
 				$$->funcname=$2;
 				$$->returntype=(int)$1;
 				$$->dim=0;
-				add_func($$->funcname, $$->returntype,$$->dim,NULL);
+				add_func($$->funcname, $$->returntype,$$->dim,NO_PARAMS);
 			}
 			set_func_to_proto (find_func($2));
 			set_scope_for_pars (find_func($2));
@@ -388,7 +391,7 @@ function_parameter_list
 			$$=malloc(sizeof(*$$));
 			assert($$!=NULL);
 			if(!find_func("temp1"))	{
-				add_func("temp1", 0,0,NULL);
+				add_func("temp1", 0,0,NO_PARAMS);
 				add_funcpar("temp1",$1->varname, $1->vartype, $1->arrdim);
 				$$=find_func("temp1");
 				$$->dim++;
@@ -406,7 +409,7 @@ function_parameter_list
 			$$=malloc(sizeof(*$$));
 			assert($$!=NULL);
 			if(!find_func("temp1")){
-				add_func("temp1", 0,0,NULL);
+				add_func("temp1", 0,0,NO_PARAMS);
 				$$=find_func("temp1");
 				add_funcpar("temp1",$3->varname, $3->vartype, $3->arrdim);
 				$$->dim++;
@@ -456,7 +459,7 @@ stmt
      | RETURN expression SEMICOLON		{
 										if($2->scope!=NULL){
 											if($2->scope->returntype==VOID_){ 
-												fprintf(stderr,"ERROR: Function was declared as VOID. It can not return a value. Either use \"RETURN;\" or use type int for the func. Line: %d Column: %d \n",	@1.first_line,@1.first_column);
+												fprintf(stderr,"ERROR: Function was declared as VOID. It can not return a value. Either use \"return;\" or use type int for the func. Line: %d Column: %d \n",	@1.first_line,@1.first_column);
 											}
 										}
 										gencode_op1(RETURN_IR, $2);
@@ -469,7 +472,9 @@ stmt
 										gencode_op1(RETURN_IR, NULL);
 										{reset_temp_count();}
 										}
-     | SEMICOLON 						{reset_temp_count();}
+     | SEMICOLON 						{reset_temp_count();
+										fprintf(stderr,"WARNING: Single Semicolon can be deleted. Line: %d Column: %d \n", @1.first_line,@1.first_column);
+										}
      ;
 
 
@@ -495,8 +500,8 @@ stmt_loop
 expression	
 	 : expression ASSIGN expression				{	$$ = $3;
 													gencode_ass($1, $3);
-													if($1->tempCodePos>-1) {
-														set_code_to_NOP($1->tempCodePos);
+													if($1->var_cpos>-1) {
+														set_code_to_NOP($1->var_cpos);
 													}
 												}	
      | expression LOGICAL_OR expression			{$$ = gencode_op2exp(LOGICAL_OR_IR, $1, $3);}
@@ -531,8 +536,8 @@ expression
 													$$ = gencode_load_arr(find_funcpar2($1), $3);
 												else
 													$$ = gencode_load_arr(find_var($1), $3);
-												$$->tempArrPos=$3->val;
-												$$->tempArrPos2=$3;
+												$$->var_arr_loc=$3->val;
+												$$->var_arr_loc_struct=$3;
 												}
      | PARA_OPEN expression PARA_CLOSE			{$$ = $2}
      | function_call							{$$ = $1; 	$$->isfunccall=1;}
@@ -541,13 +546,12 @@ expression
 
 
 primary
-     : NUM {								//random id for primary-NUMs
+     : NUM {								
 			char *s;
 			s=malloc(20);
-			do{
-				int i=rand()%1000;
+			//int i=rand()%1000;	//random id for primary-NUMs
+			int i= prim_count++;
 			sprintf(s,"int_prim%d",i);
-			}while(find_var(s));
 			add_var(s,0, NOT_DEFINED, $1);
 			$$ = find_var(s);
 			free(s);
@@ -577,16 +581,15 @@ function_call
 			}
 			else{
 				fprintf(stderr,"ERROR: Function was not declared before the call! Line: %d Column: %d \n", @1.first_line,@1.first_column);
-				add_func("undeclared1",0,0,NULL);
+				add_func("undeclared1",0,0,NO_PARAMS);
 				f=find_func("undeclared1");
 			}
 			varentry_t *v;
 			char *s;
 			s=malloc(20);
-			do{
-			int i=rand()%100;
+			//int i=rand()%1000;
+			int i= 	call_count++;
 			sprintf(s,"int_call%d",i);
-			}while(find_var(s));
 			add_var(s,0,-1,0);
 			v=find_var(s);
 			free(s);
@@ -603,17 +606,18 @@ function_call
 			}
 			else{
 				fprintf(stderr,"ERROR: Function was not declared before the call!Line: %d Column: %d \n", @1.first_line,@1.first_column);
-				add_func("undeclared1",0,0,NULL);
+				add_func("undeclared1",0,0,NO_PARAMS);
 				f=find_func("undeclared1");
 				
 			}
 			varentry_t *v;
 			char *s;
 			s=malloc(20);
-			do{
-				int i=rand()%100;
+			//do{
+			//	int i=rand()%1000;
+			int i=call_count++;
 			sprintf(s,"int_call%d",i);
-			}while(find_var(s));
+			//}while(find_var(s));
 			add_var(s,0,-1,$3->count);
 			v=find_var(s);
 			free(s);

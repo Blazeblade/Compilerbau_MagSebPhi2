@@ -3,6 +3,8 @@
  * @date	Created on: 10 Apr 2012
  * @author	Sebastian Boehm, Magnus Bruehl, Philipp Goetze
  * @brief	Functions for intermediate code generation
+ * Remark: 	We decided to print the IR Code to the file (if p arg is given),
+ * 			even if there was an error!
  *
  */
 #include "ir_code_gen.h"
@@ -80,13 +82,16 @@ void gencode(enum code_operations operation, varentry_t *var0, varentry_t *var1,
 * @param var1 The pointer to the structure of the variable right of the assignment
 */
 void gencode_ass(varentry_t *var0, varentry_t *var1){
-	if(var0->tempArrPos>-1)
-		gencode(MEM_ST_IR, (struct varentry *) var0->hh.next,var0->tempArrPos2 , var1 , NULL, -1);
+	if(var0->var_arr_loc>-1)
+		gencode(MEM_ST_IR, (struct varentry *) var0->hh.next,var0->var_arr_loc_struct , var1 , NULL, -1);
 	else{
 		if((var0->vartype==1) && (var1->vartype!=1))
 			yyerror ("Type mismatch! Array without indexing can not get assigned a value");
+		if(var1->vartype==1)
+			if(var0->vartype==0 && var1->var_arr_loc==-1)
+				yyerror ("Type mismatch! Array without indexing can not be assigned an Integer");
 		if(var1->vartype==2)
-				yyerror ("Operands can not be of type VOID");
+						yyerror ("Operands can not be of type VOID");
 		gencode(ASSIGN_IR, var0, var1, NULL, NULL, -1);
 	}
 	temp_reg_count = 0;
@@ -106,7 +111,7 @@ varentry_t *gencode_op1exp(enum code_operations operation, varentry_t *var1){
 	if(var1->vartype==1){
 		varentry_t *temp;
 		temp=(struct varentry *) var1->hh.next;
-		if(temp->tempArrPos==-1)
+		if(temp->var_arr_loc==-1)
 			yyerror ("Operand must have an array index");
 	}
 	gencode(operation, v, var1, NULL, NULL, -1);
@@ -125,19 +130,18 @@ varentry_t *gencode_op2exp(enum code_operations operation, varentry_t *var1, var
 	v = ir_temp_var();
 	if(var1->vartype==2 || var2->vartype==2)
 		yyerror ("Operands can not be of type VOID");
-	gencode(operation, v, var1, var2, NULL, -1);
-
 	varentry_t *temp;
 	if(var1->vartype==1){
 		temp=(struct varentry *) var1->hh.next;
-		if(temp->tempArrPos==-1)
+		if(temp->var_arr_loc==-1)
 			yyerror ("First Operand must have an array index");
 	}
 	if(var2->vartype==1){
 		temp=(struct varentry *) var2->hh.next;
-		if(temp->tempArrPos==-1)
+		if(temp->var_arr_loc==-1)
 			yyerror ("Second Operand must have an array index");
 	}
+	gencode(operation, v, var1, var2, NULL, -1);
 	return v;
 }
 
@@ -149,7 +153,7 @@ varentry_t *gencode_op2exp(enum code_operations operation, varentry_t *var1, var
 void gencode_op1(enum code_operations operation, varentry_t *var0){
 	if(operation==RETURN_IR)
 		gencode(operation, var0, NULL, NULL, NULL, MARK1);
-	else
+	else if(operation==PARAM_IR)
 		gencode(operation, var0, NULL, NULL, NULL, -1);
 }
 
@@ -162,10 +166,10 @@ void gencode_op1(enum code_operations operation, varentry_t *var0){
 varentry_t * gencode_load_arr(varentry_t *var1, varentry_t *var2){
 	varentry_t *v;
 	v = ir_temp_var();
-	var1->tempArrPos =	var2->val;
+	var1->var_arr_loc =	var2->val;
 	v->hh.next = var1;
 	gencode(MEM_LD_IR, v, var1, var2, NULL, -1);
-	v->tempCodePos = code_count -1 ;
+	v->var_cpos = code_count -1 ;
 	return v;
 }
 
@@ -308,13 +312,10 @@ void backpatch_while(){
 		if(c->op==GOTO_IR){
 			if(c->jmpTo==MARK1){
 				c->jmpTo = code_count+1;
-				break;
+				//break;
 			}
 		}
-	}
-	for(int i=code_count-1;i>=0;i--){
-		c = &code[i];
-		if(c->op==WHILE_BEGIN_IR){
+		else if(c->op==WHILE_BEGIN_IR){
 			if(c->jmpTo==MARK1){
 				gencode(GOTO_IR, NULL, NULL, NULL, NULL, i);
 				c->jmpTo=-1;
@@ -336,7 +337,7 @@ void backpatch_while(){
 * @return The temporary variable structure
 */
 varentry_t *ir_temp_var(){
-	temp_reg_count += 1;
+	temp_reg_count++;
 	char buffer [5];
 	sprintf (buffer, ".t%d", temp_reg_count);
 	varentry_t *v;
@@ -511,16 +512,16 @@ void generate_ir_code(){
 			add_str(s);
 			break;
 		case IF_IR:
-			jmpLabel_count = jmpLabel_count + 1;
+			jmpLabel_count++;
 			if(!set_jmpLabel(c->jmpTo, jmpLabel_count)){
-				jmpLabel_count = jmpLabel_count - 1;
+				jmpLabel_count--;
 			}
 			c->jmpTo = jmpLabel_count;
 			sprintf (s, "IF %s GOTO .l%d", c->var0->varname,c->jmpTo);
 			add_str(s);
 			break;
 		case GOTO_IR:
-			jmpLabel_count = jmpLabel_count + 1;					//backpatch ausgleich
+			jmpLabel_count++;								//backpatch enhancement
 			if(!set_jmpLabel(c->jmpTo, jmpLabel_count)){
 				struct code_struct  *c2;
 				int count2=-1;
@@ -534,7 +535,7 @@ void generate_ir_code(){
 				}
 				code[temp].jmpLabel=-1;
 				if(count2==-1){
-					jmpLabel_count = jmpLabel_count - 1;
+					jmpLabel_count--;
 					c->jmpTo = jmpLabel_count;
 				}
 				else
@@ -546,21 +547,21 @@ void generate_ir_code(){
 			add_str(s);
 			break;
 		case WHILE_BEGIN_IR:
-			jmpLabel_count = jmpLabel_count + 1;
-			if(!set_jmpLabel(i, jmpLabel_count)){
+			jmpLabel_count++;
+			/*if(!set_jmpLabel(i, jmpLabel_count)){
 				jmpLabel_count = jmpLabel_count - 1;
-			}
-			c->jmpTo = jmpLabel_count;
-			sprintf (s, ".l%d:\n", c->jmpTo);
+			}*/
+			c->jmpLabel = jmpLabel_count;
+			sprintf (s, ".l%d:\n", c->jmpLabel);
 			add_str(s);
 			break;
 		case DO_WHILE_BEGIN_IR:
-			jmpLabel_count = jmpLabel_count + 1;
-			if(!set_jmpLabel(i, jmpLabel_count)){
-				jmpLabel_count = jmpLabel_count - 1;
-			}
-			c->jmpTo = jmpLabel_count;
-			sprintf (s, ".l%d:\n", c->jmpTo);
+			jmpLabel_count++;
+			/*if(!set_jmpLabel(i, jmpLabel_count)){
+				//jmpLabel_count = jmpLabel_count - 1;
+			}*/
+			c->jmpLabel = jmpLabel_count;
+			sprintf (s, ".l%d:\n", c->jmpLabel);
 			add_str(s);
 			break;
 		case RETURN_IR:

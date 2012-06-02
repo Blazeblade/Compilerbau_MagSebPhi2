@@ -18,6 +18,7 @@
 #include <stdlib.h>  /* atoi, malloc */
 #include <string.h>  /* strcpy */
 
+
 /*
  * The Pointer to the beginning of the symbol table (variables)
  */
@@ -67,9 +68,9 @@ void add_var(char *varname, enum type vartype,int arrdim, int value) {
     v->arrdim=arrdim;
     v->scope=currfunc;
     v->val=value;
-	v->tempArrPos=-1;
-	v->tempArrPos2=NULL;
-	v->tempCodePos=-1;
+	v->var_arr_loc=-1;
+	v->var_arr_loc_struct=NULL;
+	v->var_cpos=-1;
 	v->isfunccall=0;
 	if(arrdim>-1)
 		v->memory=arrdim*4;
@@ -131,9 +132,9 @@ void add_funcpar(char *funcname,char *varname, enum type vartype, int arrdim) {
 	p->vartype=vartype;
 	p->arrdim=arrdim;
 	p->scope=currfunc;
-	p->tempArrPos=-1;
-	p->tempArrPos2=NULL;
-	p->tempCodePos=-1;
+	p->var_arr_loc=-1;
+	p->var_arr_loc_struct=NULL;
+	p->var_cpos=-1;
 	if(arrdim>-1)
 		p->memory=arrdim*4;
 	else
@@ -517,9 +518,9 @@ struct varentry *temp_var (char *var_name){
 	strcpy (v->varname,var_name);
 	v->arrdim = -1;
 	v->scope = NULL;
-	v->tempArrPos = -1;
-	v->tempArrPos2=NULL;
-	v->tempCodePos=-1;
+	v->var_arr_loc = -1;
+	v->var_arr_loc_struct=NULL;
+	v->var_cpos=-1;
 	return v;
 }
 
@@ -564,6 +565,15 @@ void set_func_to_decl (char *func_name){
 void set_func_scope (funcentry_t *f){
 	currfunc = f;
 }
+
+/*void find_protos(){
+	funcentry_t *f, *tmp;
+	HASH_ITER(hh, funcentries, f, tmp) {
+		if(f->isPrototype)
+			fprintf(stderr,"WARNING: Unused declaration of function %s\n",f->funcname);
+	}
+}
+*/
 
 /**
 * Gets the current function (scope) to the passed function
