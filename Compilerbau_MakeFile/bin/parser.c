@@ -73,7 +73,8 @@
 #include "include/uthash.h";
 #include "symtab.h";
 #include "ir_code_gen.h";
-#include <assert.h>
+#include "diag.h";
+//#include <assert.h>
 #include <stdlib.h>
 
 
@@ -87,7 +88,7 @@ int 		call_count=0;	//count for call variables
 
 
 /* Line 189 of yacc.c  */
-#line 91 "bin/parser.c"
+#line 92 "bin/parser.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -159,7 +160,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 25 "src/parser.y"
+#line 26 "src/parser.y"
 
   int 						num;
   char*						id;
@@ -170,7 +171,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 174 "bin/parser.c"
+#line 175 "bin/parser.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -195,7 +196,7 @@ typedef struct YYLTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 199 "bin/parser.c"
+#line 200 "bin/parser.c"
 
 #ifdef short
 # undef short
@@ -512,14 +513,14 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    80,    80,    92,    93,    97,    98,    99,   100,   104,
-     105,   109,   123,   146,   166,   189,   188,   234,   233,   304,
-     338,   389,   407,   427,   448,   450,   454,   455,   456,   457,
-     458,   459,   468,   475,   482,   486,   486,   491,   492,   492,
-     496,   496,   496,   497,   497,   501,   507,   508,   509,   510,
-     511,   512,   513,   520,   527,   528,   529,   530,   531,   532,
-     533,   534,   542,   543,   544,   549,   559,   574,   599,   630,
-     637
+       0,    81,    81,    93,    94,    98,    99,   100,   101,   105,
+     106,   110,   128,   155,   179,   206,   205,   255,   254,   325,
+     363,   414,   436,   460,   485,   487,   491,   492,   493,   494,
+     495,   496,   505,   512,   519,   523,   523,   528,   529,   529,
+     533,   533,   533,   534,   534,   538,   544,   545,   546,   547,
+     548,   549,   550,   557,   564,   565,   566,   567,   568,   569,
+     570,   571,   579,   580,   581,   586,   600,   615,   644,   679,
+     686
 };
 #endif
 
@@ -1581,7 +1582,7 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 80 "src/parser.y"
+#line 81 "src/parser.y"
     {
 		/*printf("\n\n----------DEBUG printing all functions and variables----------:\n");
 		printf("<<----------DEBUG Functions---------->>:\n");
@@ -1596,31 +1597,35 @@ yyreduce:
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 100 "src/parser.y"
+#line 101 "src/parser.y"
     {fprintf(stderr,"WARNING: Single Semicolon can be deleted. Line: %d Column: %d \n", (yylsp[(1) - (1)]).first_line,(yylsp[(1) - (1)]).first_column);;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 104 "src/parser.y"
+#line 105 "src/parser.y"
     {(yyval.id)=integer;;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 105 "src/parser.y"
+#line 106 "src/parser.y"
     {(yyval.id)=voidtype;;}
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 110 "src/parser.y"
+#line 111 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof(*(yyval.var)));
-			assert((yyval.var)!=NULL);
+			if ((yyval.var) == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "variable_declaration -> malloc");
+				return;
+			}
+			//assert($$!=NULL);
 			(yyval.var)->varname=(yyvsp[(3) - (3)].var)->varname;
 			if((yyvsp[(3) - (3)].var)->arrdim>=0){
 					(yyval.var)->vartype=INT_ARR_;
@@ -1636,10 +1641,14 @@ yyreduce:
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 124 "src/parser.y"
+#line 129 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof(*(yyval.var)));
-			assert((yyval.var)!=NULL);
+			if ((yyval.var) == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "variable_declaration -> malloc");
+				return;
+			}
+			//assert($$!=NULL);
 			if((yyvsp[(1) - (2)].id)==voidtype) {
 				fprintf(stderr,"ERROR: Variables can not be of type void (%s). Line: %d Column: %d \n",(yyvsp[(2) - (2)].var)->varname, (yylsp[(1) - (2)]).first_line,(yylsp[(1) - (2)]).first_column);
 			} 	
@@ -1661,10 +1670,14 @@ yyreduce:
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 147 "src/parser.y"
+#line 156 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof(*(yyval.var)));
-			assert((yyval.var)!=NULL);
+			if ((yyval.var) == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "identifier_declaration -> malloc");
+				return;
+			}
+			//assert($$!=NULL);
 			if(find_var((yyvsp[(1) - (4)].id))){
 				(yyval.var)=find_var((yyvsp[(1) - (4)].id));
 				if((yyval.var)->scope==get_func_scope())
@@ -1686,10 +1699,14 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 167 "src/parser.y"
+#line 180 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof(*(yyval.var)));
-			assert((yyval.var)!=NULL);
+			if ((yyval.var) == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "identifier_declaration -> malloc");
+				return;
+			}
+			//assert($$!=NULL);
 			if(find_var((yyvsp[(1) - (1)].id))){
 				(yyval.var)=find_var((yyvsp[(1) - (1)].id));
 				if((yyval.var)->scope==get_func_scope())
@@ -1710,7 +1727,7 @@ yyreduce:
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 189 "src/parser.y"
+#line 206 "src/parser.y"
     {
 			if(find_var((yyvsp[(2) - (4)].id))){
 				varentry_t *v;
@@ -1743,7 +1760,11 @@ yyreduce:
 				}
 				else{										
 					(yyval.func)=malloc(sizeof(*(yyval.func)));
-					assert((yyval.func)!=NULL);
+					if ((yyval.func) == NULL) {
+						FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "function_definition -> malloc");
+						return;
+					}
+					//assert($<func>$!=NULL);
 					(yyval.func)->funcname=(yyvsp[(2) - (4)].id);
 					(yyval.func)->returntype=(int)(yyvsp[(1) - (4)].id);
 					(yyval.func)->dim=0;
@@ -1757,14 +1778,14 @@ yyreduce:
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 231 "src/parser.y"
+#line 252 "src/parser.y"
     {gencode_opfunc(FUNC_DEF_END_IR, NULL, find_func((yyvsp[(2) - (8)].id)));set_func_scope(NULL);backpatch_return();;}
     break;
 
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 234 "src/parser.y"
+#line 255 "src/parser.y"
     {	
      		if(find_var((yyvsp[(2) - (5)].id))){
 				varentry_t *v;
@@ -1836,14 +1857,14 @@ yyreduce:
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 300 "src/parser.y"
+#line 321 "src/parser.y"
     {gencode_opfunc(FUNC_DEF_END_IR, NULL, find_func((yyvsp[(2) - (9)].id)));set_func_scope(NULL);backpatch_return();;}
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 305 "src/parser.y"
+#line 326 "src/parser.y"
     {
 			if(find_var((yyvsp[(2) - (4)].id))){
 				varentry_t *v;
@@ -1866,7 +1887,11 @@ yyreduce:
 			}
 			else{
 				(yyval.func)=malloc(sizeof(*(yyval.func)));
-				assert((yyval.func)!=NULL);
+				if ((yyval.func) == NULL) {
+					FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "function_declaration -> malloc");
+					return;
+				}
+				//assert($$!=NULL);
 				(yyval.func)->funcname=(yyvsp[(2) - (4)].id);
 				(yyval.func)->returntype=(int)(yyvsp[(1) - (4)].id);
 				(yyval.func)->dim=0;
@@ -1881,7 +1906,7 @@ yyreduce:
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 339 "src/parser.y"
+#line 364 "src/parser.y"
     {
      		if(find_var((yyvsp[(2) - (5)].id))){
 				varentry_t *v;
@@ -1934,10 +1959,14 @@ yyreduce:
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 390 "src/parser.y"
+#line 415 "src/parser.y"
     {
 			(yyval.func)=malloc(sizeof(*(yyval.func)));
-			assert((yyval.func)!=NULL);
+			if ((yyval.func) == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "function_parameter_list -> malloc");
+				return;
+			}
+			//assert($$!=NULL);
 			if(!find_func("temp1"))	{
 				add_func("temp1", 0,0,NO_PARAMS);
 				add_funcpar("temp1",(yyvsp[(1) - (1)].var)->varname, (yyvsp[(1) - (1)].var)->vartype, (yyvsp[(1) - (1)].var)->arrdim);
@@ -1957,10 +1986,14 @@ yyreduce:
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 408 "src/parser.y"
+#line 437 "src/parser.y"
     {
 			(yyval.func)=malloc(sizeof(*(yyval.func)));
-			assert((yyval.func)!=NULL);
+			if ((yyval.func) == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "function_parameter_list -> malloc");
+				return;
+			}
+			//assert($$!=NULL);
 			if(!find_func("temp1")){
 				add_func("temp1", 0,0,NO_PARAMS);
 				(yyval.func)=find_func("temp1");
@@ -1979,10 +2012,14 @@ yyreduce:
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 428 "src/parser.y"
+#line 461 "src/parser.y"
     {
 			(yyval.var)=malloc(sizeof(*(yyval.var)));
-			assert((yyval.var)!=NULL);
+			if ((yyval.var) == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "function_parameter -> malloc");
+				return;
+			}
+			//assert($$!=NULL);
 			(yyval.var)->varname = (yyvsp[(2) - (2)].var)->varname; 
 			if((yyvsp[(1) - (2)].id)==voidtype) { 
 				fprintf(stderr,"ERROR: Function parameters can not be of type void. Line: %d Column: %d \n", (yylsp[(1) - (2)]).first_line,(yylsp[(1) - (2)]).first_column); 
@@ -2003,35 +2040,35 @@ yyreduce:
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 455 "src/parser.y"
+#line 492 "src/parser.y"
     {reset_temp_count();;}
     break;
 
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 456 "src/parser.y"
+#line 493 "src/parser.y"
     {reset_temp_count();;}
     break;
 
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 457 "src/parser.y"
+#line 494 "src/parser.y"
     {reset_temp_count();;}
     break;
 
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 458 "src/parser.y"
+#line 495 "src/parser.y"
     {reset_temp_count();;}
     break;
 
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 459 "src/parser.y"
+#line 496 "src/parser.y"
     {
 										if((yyvsp[(2) - (3)].var)->scope!=NULL){
 											if((yyvsp[(2) - (3)].var)->scope->returntype==VOID_){ 
@@ -2046,7 +2083,7 @@ yyreduce:
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 468 "src/parser.y"
+#line 505 "src/parser.y"
     {
 										funcentry_t *f=get_func_scope();
 										if(f->returntype==INT_)
@@ -2059,7 +2096,7 @@ yyreduce:
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 475 "src/parser.y"
+#line 512 "src/parser.y"
     {reset_temp_count();
 										fprintf(stderr,"WARNING: Single Semicolon can be deleted. Line: %d Column: %d \n", (yylsp[(1) - (1)]).first_line,(yylsp[(1) - (1)]).first_column);
 										;}
@@ -2068,70 +2105,70 @@ yyreduce:
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 486 "src/parser.y"
+#line 523 "src/parser.y"
     {genif((yyvsp[(3) - (3)].var));genif_goto();;}
     break;
 
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 491 "src/parser.y"
+#line 528 "src/parser.y"
     {backpatch_if(0);;}
     break;
 
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 492 "src/parser.y"
+#line 529 "src/parser.y"
     {backpatch_if(1);genif_goto();;}
     break;
 
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 492 "src/parser.y"
-    {backpatch_if(0);;}
+#line 529 "src/parser.y"
+    {backpatch_if(2);;}
     break;
 
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 496 "src/parser.y"
+#line 533 "src/parser.y"
     {genwhile_begin();;}
     break;
 
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 496 "src/parser.y"
+#line 533 "src/parser.y"
     {genwhile((yyvsp[(4) - (5)].var));genwhile_gotobegin();;}
     break;
 
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 496 "src/parser.y"
+#line 533 "src/parser.y"
     {backpatch_while();;}
     break;
 
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 497 "src/parser.y"
+#line 534 "src/parser.y"
     {gendowhile();;}
     break;
 
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 497 "src/parser.y"
+#line 534 "src/parser.y"
     {gendowhile_end((yyvsp[(6) - (8)].var));;}
     break;
 
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 501 "src/parser.y"
+#line 538 "src/parser.y"
     {	(yyval.var) = (yyvsp[(3) - (3)].var);
 													gencode_ass((yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
 													if((yyvsp[(1) - (3)].var)->var_cpos>-1) {
@@ -2143,49 +2180,49 @@ yyreduce:
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 507 "src/parser.y"
+#line 544 "src/parser.y"
     {(yyval.var) = gencode_op2exp(LOGICAL_OR_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 508 "src/parser.y"
+#line 545 "src/parser.y"
     {(yyval.var) = gencode_op2exp(LOGICAL_AND_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 509 "src/parser.y"
+#line 546 "src/parser.y"
     {(yyval.var) = gencode_op1exp(LOGICAL_NOT_IR, (yyvsp[(2) - (2)].var));;}
     break;
 
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 510 "src/parser.y"
+#line 547 "src/parser.y"
     {(yyval.var) = gencode_op2exp(EQ_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 511 "src/parser.y"
+#line 548 "src/parser.y"
     {(yyval.var) = gencode_op2exp(NE_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 512 "src/parser.y"
+#line 549 "src/parser.y"
     {(yyval.var) = gencode_op2exp(LS_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 513 "src/parser.y"
+#line 550 "src/parser.y"
     {(yyval.var) = gencode_op2exp(LSEQ_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));
 												//Alternative:
 												/*struct varentry *t0;struct varentry *t1;
@@ -2198,7 +2235,7 @@ yyreduce:
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 520 "src/parser.y"
+#line 557 "src/parser.y"
     {(yyval.var) = gencode_op2exp(GTEQ_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));	
 												//Alternative:
 												/*struct varentry *t0;struct varentry *t1;
@@ -2211,56 +2248,56 @@ yyreduce:
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 527 "src/parser.y"
+#line 564 "src/parser.y"
     {(yyval.var) = gencode_op2exp(GT_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 528 "src/parser.y"
+#line 565 "src/parser.y"
     {(yyval.var) = gencode_op2exp(ADD_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 56:
 
 /* Line 1455 of yacc.c  */
-#line 529 "src/parser.y"
+#line 566 "src/parser.y"
     {(yyval.var) = gencode_op2exp(SUB_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 530 "src/parser.y"
+#line 567 "src/parser.y"
     {(yyval.var) = gencode_op2exp(MUL_IR, (yyvsp[(1) - (3)].var), (yyvsp[(3) - (3)].var));;}
     break;
 
   case 58:
 
 /* Line 1455 of yacc.c  */
-#line 531 "src/parser.y"
+#line 568 "src/parser.y"
     {(yyval.var) = gencode_op2exp(SHIFT_LEFT_IR,(yyvsp[(1) - (3)].var),(yyvsp[(3) - (3)].var));;}
     break;
 
   case 59:
 
 /* Line 1455 of yacc.c  */
-#line 532 "src/parser.y"
+#line 569 "src/parser.y"
     {(yyval.var) = gencode_op2exp(SHIFT_RIGHT_IR,(yyvsp[(1) - (3)].var),(yyvsp[(3) - (3)].var));;}
     break;
 
   case 60:
 
 /* Line 1455 of yacc.c  */
-#line 533 "src/parser.y"
+#line 570 "src/parser.y"
     {(yyval.var) = gencode_op1exp(MINUS_IR, (yyvsp[(2) - (2)].var));;}
     break;
 
   case 61:
 
 /* Line 1455 of yacc.c  */
-#line 534 "src/parser.y"
+#line 571 "src/parser.y"
     {
 												if(!find_var((yyvsp[(1) - (4)].id)))
 													(yyval.var) = gencode_load_arr(find_funcpar2((yyvsp[(1) - (4)].id)), (yyvsp[(3) - (4)].var));
@@ -2274,31 +2311,35 @@ yyreduce:
   case 62:
 
 /* Line 1455 of yacc.c  */
-#line 542 "src/parser.y"
+#line 579 "src/parser.y"
     {(yyval.var) = (yyvsp[(2) - (3)].var);}
     break;
 
   case 63:
 
 /* Line 1455 of yacc.c  */
-#line 543 "src/parser.y"
+#line 580 "src/parser.y"
     {(yyval.var) = (yyvsp[(1) - (1)].var); 	(yyval.var)->isfunccall=1;;}
     break;
 
   case 64:
 
 /* Line 1455 of yacc.c  */
-#line 544 "src/parser.y"
+#line 581 "src/parser.y"
     {(yyval.var) = (yyvsp[(1) - (1)].var);}
     break;
 
   case 65:
 
 /* Line 1455 of yacc.c  */
-#line 549 "src/parser.y"
+#line 586 "src/parser.y"
     {								
 			char *s;
 			s=malloc(20);
+			if (s == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "s -> malloc");
+				return;
+			}
 			//int i=rand()%1000;	//random id for primary-NUMs
 			int i= prim_count++;
 			sprintf(s,"int_prim%d",i);
@@ -2311,7 +2352,7 @@ yyreduce:
   case 66:
 
 /* Line 1455 of yacc.c  */
-#line 559 "src/parser.y"
+#line 600 "src/parser.y"
     {	
 			if(find_var((yyvsp[(1) - (1)].id))) {
 				(yyval.var) = find_var((yyvsp[(1) - (1)].id));
@@ -2330,7 +2371,7 @@ yyreduce:
   case 67:
 
 /* Line 1455 of yacc.c  */
-#line 575 "src/parser.y"
+#line 616 "src/parser.y"
     {
 			funcentry_t *f;
 			if(find_func((yyvsp[(1) - (3)].id))){
@@ -2346,6 +2387,10 @@ yyreduce:
 			varentry_t *v;
 			char *s;
 			s=malloc(20);
+			if (s == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "s -> malloc");
+				return;
+			}
 			//int i=rand()%1000;
 			int i= 	call_count++;
 			sprintf(s,"int_call%d",i);
@@ -2360,7 +2405,7 @@ yyreduce:
   case 68:
 
 /* Line 1455 of yacc.c  */
-#line 600 "src/parser.y"
+#line 645 "src/parser.y"
     {
 			funcentry_t *f;
 			if(find_func((yyvsp[(1) - (4)].id))){
@@ -2377,6 +2422,10 @@ yyreduce:
 			varentry_t *v;
 			char *s;
 			s=malloc(20);
+			if (s == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "s -> malloc");
+				return;
+			}
 			//do{
 			//	int i=rand()%1000;
 			int i=call_count++;
@@ -2393,7 +2442,7 @@ yyreduce:
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 631 "src/parser.y"
+#line 680 "src/parser.y"
     {
 			(yyval.plist)->count += 1;
 			if((yyvsp[(3) - (3)].var)->vartype==VOID_)
@@ -2405,7 +2454,7 @@ yyreduce:
   case 70:
 
 /* Line 1455 of yacc.c  */
-#line 638 "src/parser.y"
+#line 687 "src/parser.y"
     {
 			(yyval.plist) = create_pars_list((yyvsp[(1) - (1)].var));
 			if((yyvsp[(1) - (1)].var)->vartype==VOID_)
@@ -2417,7 +2466,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 2421 "bin/parser.c"
+#line 2470 "bin/parser.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2636,7 +2685,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 646 "src/parser.y"
+#line 695 "src/parser.y"
 
 
 void yyerror (const char *msg)

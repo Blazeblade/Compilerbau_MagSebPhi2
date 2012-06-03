@@ -13,10 +13,11 @@
 
 #include "symtab.h"
 #include "ir_code_gen.h"
-#include <assert.h>
+//#include <assert.h>
 #include <stdio.h>   /* gets,printf */
 #include <stdlib.h>  /* atoi, malloc */
 #include <string.h>  /* strcpy */
+#include "diag.h"
 
 
 /*
@@ -60,9 +61,17 @@ void init_table (){
 void add_var(char *varname, enum type vartype,int arrdim, int value) {
     varentry_t *v;
     v = malloc(sizeof(varentry_t));
-	assert(v!=NULL);
+    if (v == NULL) {
+    	FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "v -> malloc");
+        return;
+    }
+	//assert(v!=NULL);
     v->varname = malloc(strlen(varname)+1);
-	assert(v->varname!=NULL);
+    if (v->varname == NULL) {
+      	FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "v->varname -> malloc");
+      	return;
+    }
+	//assert(v->varname!=NULL);
     strcpy(v->varname, varname);
     v->vartype=vartype;
     v->arrdim=arrdim;
@@ -99,9 +108,17 @@ void add_var(char *varname, enum type vartype,int arrdim, int value) {
 void add_func(char *funcname, enum type returntype,int dim,varentry_t *var) {
     funcentry_t *f;
     f = malloc(sizeof(funcentry_t));
-	assert(f!=NULL);
+    if (f == NULL) {
+		FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "f -> malloc");
+		return;
+	}
+	//assert(f!=NULL);
 	f->funcname = malloc(strlen(funcname)+1);
-	assert(f->funcname!=NULL);
+	if (f->funcname == NULL) {
+		FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "f->funcname -> malloc");
+		return;
+	}
+	//assert(f->funcname!=NULL);
     strcpy(f->funcname, funcname);
     f->returntype= returntype;
     f->dim = dim;
@@ -125,9 +142,17 @@ void add_funcpar(char *funcname,char *varname, enum type vartype, int arrdim) {
 	varentry_t *p;
 	funcentry_t *f;
 	p = malloc(sizeof(varentry_t));
-	assert(p!=NULL);
+	if (p == NULL) {
+		FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "p -> malloc");
+		return;
+	}
+	//assert(p!=NULL);
 	p->varname = malloc(strlen(varname)+1);
-	assert(p->varname!=NULL);
+	if (p->varname == NULL) {
+		FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "p->varname -> malloc");
+		return;
+	}
+	//assert(p->varname!=NULL);
 	strcpy(p->varname, varname);
 	p->vartype=vartype;
 	p->arrdim=arrdim;
@@ -142,7 +167,11 @@ void add_funcpar(char *funcname,char *varname, enum type vartype, int arrdim) {
 	p->offset=p->scope->offset_cnt;
 	p->scope->offset_cnt+=p->memory;
 	HASH_FIND(hh,funcentries, funcname,strlen(funcname), f);
-	assert(f!=NULL);
+	if (f == NULL) {
+		FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "f -> HASH FIND");
+		return;
+	}
+	//assert(f!=NULL);
     HASH_ADD_KEYPTR(hh, f->var, p->varname, strlen(p->varname), p);
     return;
 }
@@ -300,7 +329,10 @@ unsigned int count_funcs(){
 unsigned int count_pars(char *func_name) {
 	struct funcentry *f;
 	HASH_FIND(hh,funcentries, func_name,strlen(func_name), f);
-	assert(f!=NULL);
+	if (f == NULL) {
+		FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "f -> HASH FIND");
+		return -1;
+	}
 	return HASH_COUNT(f->var);
 }
 
@@ -495,7 +527,11 @@ unsigned int check_funccallpar(funcentry_t *func, struct funccallparlist *pars){
 struct funccallparlist *create_pars_list(varentry_t *var){
 	struct funccallparlist *par;
 	par = (struct funccallparlist *) malloc (sizeof (struct funccallparlist));
-	assert(par!=NULL);
+	if (par == NULL) {
+		FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "par -> malloc");
+		return NULL;
+	}
+	//assert(par!=NULL);
 	par->count = 1;
 	par->var = var;
 	return par;
@@ -512,9 +548,17 @@ struct funccallparlist *create_pars_list(varentry_t *var){
 struct varentry *temp_var (char *var_name){
 	struct varentry *v;
     v = malloc(sizeof(varentry_t));
-	assert(v!=NULL);
+	if (v == NULL) {
+		FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "v -> malloc");
+		return NULL;
+	}
+	//assert(v!=NULL);
     v->varname = malloc(strlen(var_name)+1);
-	assert(v->varname!=NULL);
+	if (v->varname == NULL) {
+		FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "v->varname -> malloc");
+		return NULL;
+	}
+	//assert(v->varname!=NULL);
 	strcpy (v->varname,var_name);
 	v->arrdim = -1;
 	v->scope = NULL;

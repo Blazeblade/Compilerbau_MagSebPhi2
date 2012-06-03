@@ -3,6 +3,10 @@
  * @date	Created on: 10 Apr 2012
  * @author	Sebastian Boehm, Magnus Bruehl, Philipp Goetze
  * @brief	Structures, enumerations and functions (definition) for intermediate code generation
+ *		ir_code_gen was created with the help of
+ * 		http://foja.dcs.fmph.uniba.sk/kompilatory/docs/compiler.pdf
+ * 		And
+ * 		Samuel Schneider
  *
  */
 
@@ -12,11 +16,7 @@
 #include <stdio.h>
 #include "include/uthash.h"
 
-/**	ir_code_gen was created with the help of
- * 		http://foja.dcs.fmph.uniba.sk/kompilatory/docs/compiler.pdf
- * 		And
- * 		Samuel Schneider
-**/
+
 
 /**
  * Enumeration for 3-adress code representation, same operators as in scanner.l

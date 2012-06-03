@@ -291,6 +291,7 @@ int main (int argc, char *argv[]) {
   yyin=fopen(cc_options.input_file,"r");
   if(yyin==NULL){
 	  printf("Main: Input Error!\n");
+	  return -1;
   }
   else{
 	  //Start Parsing
@@ -301,6 +302,10 @@ int main (int argc, char *argv[]) {
 	  //Optional Generate IR Code
 	  if (cc_options.print_ir == 1){
 		  FILE *ir_file = fopen(cc_options.ir_file, "w");
+		  if(ir_file==NULL) {
+              printf("ERROR! Could not open input file.\n");
+              return -1;
+			  }
 		  init_ir_code(ir_file);
 		  generate_ir_code();
 		  fclose(ir_file);

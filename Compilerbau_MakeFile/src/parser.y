@@ -9,7 +9,8 @@
 #include "include/uthash.h";
 #include "symtab.h";
 #include "ir_code_gen.h";
-#include <assert.h>
+#include "diag.h";
+//#include <assert.h>
 #include <stdlib.h>
 
 
@@ -109,7 +110,11 @@ variable_declaration
      : variable_declaration COMMA identifier_declaration
 		{
 			$$=malloc(sizeof(*$$));
-			assert($$!=NULL);
+			if ($$ == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "variable_declaration -> malloc");
+				return;
+			}
+			//assert($$!=NULL);
 			$$->varname=$3->varname;
 			if($3->arrdim>=0){
 					$$->vartype=INT_ARR_;
@@ -123,7 +128,11 @@ variable_declaration
      | type identifier_declaration 
 		{
 			$$=malloc(sizeof(*$$));
-			assert($$!=NULL);
+			if ($$ == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "variable_declaration -> malloc");
+				return;
+			}
+			//assert($$!=NULL);
 			if($1==voidtype) {
 				fprintf(stderr,"ERROR: Variables can not be of type void (%s). Line: %d Column: %d \n",$2->varname, @1.first_line,@1.first_column);
 			} 	
@@ -146,7 +155,11 @@ identifier_declaration
      : ID BRACKET_OPEN NUM BRACKET_CLOSE
 		{
 			$$=malloc(sizeof(*$$));
-			assert($$!=NULL);
+			if ($$ == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "identifier_declaration -> malloc");
+				return;
+			}
+			//assert($$!=NULL);
 			if(find_var($1)){
 				$$=find_var($1);
 				if($$->scope==get_func_scope())
@@ -166,7 +179,11 @@ identifier_declaration
      | ID 
 		{
 			$$=malloc(sizeof(*$$));
-			assert($$!=NULL);
+			if ($$ == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "identifier_declaration -> malloc");
+				return;
+			}
+			//assert($$!=NULL);
 			if(find_var($1)){
 				$$=find_var($1);
 				if($$->scope==get_func_scope())
@@ -218,7 +235,11 @@ function_definition
 				}
 				else{										
 					$<func>$=malloc(sizeof(*$<func>$));
-					assert($<func>$!=NULL);
+					if ($<func>$ == NULL) {
+						FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "function_definition -> malloc");
+						return;
+					}
+					//assert($<func>$!=NULL);
 					$<func>$->funcname=$2;
 					$<func>$->returntype=(int)$1;
 					$<func>$->dim=0;
@@ -324,7 +345,11 @@ function_declaration
 			}
 			else{
 				$$=malloc(sizeof(*$$));
-				assert($$!=NULL);
+				if ($$ == NULL) {
+					FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "function_declaration -> malloc");
+					return;
+				}
+				//assert($$!=NULL);
 				$$->funcname=$2;
 				$$->returntype=(int)$1;
 				$$->dim=0;
@@ -389,7 +414,11 @@ function_parameter_list
      : function_parameter
 		{
 			$$=malloc(sizeof(*$$));
-			assert($$!=NULL);
+			if ($$ == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "function_parameter_list -> malloc");
+				return;
+			}
+			//assert($$!=NULL);
 			if(!find_func("temp1"))	{
 				add_func("temp1", 0,0,NO_PARAMS);
 				add_funcpar("temp1",$1->varname, $1->vartype, $1->arrdim);
@@ -407,7 +436,11 @@ function_parameter_list
      | function_parameter_list COMMA function_parameter
 		{
 			$$=malloc(sizeof(*$$));
-			assert($$!=NULL);
+			if ($$ == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "function_parameter_list -> malloc");
+				return;
+			}
+			//assert($$!=NULL);
 			if(!find_func("temp1")){
 				add_func("temp1", 0,0,NO_PARAMS);
 				$$=find_func("temp1");
@@ -427,7 +460,11 @@ function_parameter
      : type identifier_declaration
 		{
 			$$=malloc(sizeof(*$$));
-			assert($$!=NULL);
+			if ($$ == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "function_parameter -> malloc");
+				return;
+			}
+			//assert($$!=NULL);
 			$$->varname = $2->varname; 
 			if($1==voidtype) { 
 				fprintf(stderr,"ERROR: Function parameters can not be of type void. Line: %d Column: %d \n", @1.first_line,@1.first_column); 
@@ -489,7 +526,7 @@ stmt_conditional
      
 stmt_conditional_r
      : stmt {backpatch_if(0);}
-     | stmt ELSE {backpatch_if(1);genif_goto();} stmt {backpatch_if(0);}
+     | stmt ELSE {backpatch_if(1);genif_goto();} stmt {backpatch_if(2);}
      ;
 									
 stmt_loop
@@ -549,6 +586,10 @@ primary
      : NUM {								
 			char *s;
 			s=malloc(20);
+			if (s == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "s -> malloc");
+				return;
+			}
 			//int i=rand()%1000;	//random id for primary-NUMs
 			int i= prim_count++;
 			sprintf(s,"int_prim%d",i);
@@ -587,6 +628,10 @@ function_call
 			varentry_t *v;
 			char *s;
 			s=malloc(20);
+			if (s == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "s -> malloc");
+				return;
+			}
 			//int i=rand()%1000;
 			int i= 	call_count++;
 			sprintf(s,"int_call%d",i);
@@ -613,6 +658,10 @@ function_call
 			varentry_t *v;
 			char *s;
 			s=malloc(20);
+			if (s == NULL) {
+				FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "s -> malloc");
+				return;
+			}
 			//do{
 			//	int i=rand()%1000;
 			int i=call_count++;

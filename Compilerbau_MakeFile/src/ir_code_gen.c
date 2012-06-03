@@ -10,9 +10,10 @@
 #include "ir_code_gen.h"
 #include "symtab.h"
 #include "parser.h"
+#include "diag.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
+//#include <assert.h>
 
 extern void yyerror (const char *msg);
 
@@ -65,7 +66,11 @@ FILE *ir_file;
 void gencode(enum code_operations operation, varentry_t *var0, varentry_t *var1, varentry_t *var2, funcentry_t *func, int jmpTo){
 	code_count += 1;
 	struct code_struct *codebuffer = (struct code_struct*) realloc (code, code_count * sizeof(struct code_struct));
-	assert(codebuffer!=NULL);
+	if (codebuffer == NULL) {
+		FATAL_OS_ERROR(OUT_OF_MEMORY, 0, "codebuffer -> realloc");
+		return;
+	}
+	//assert(codebuffer!=NULL);
 	code = codebuffer;
 	code[code_count-1].op = operation;
 	code[code_count-1].var0 = var0;
@@ -280,12 +285,20 @@ void backpatch_if(int shift){
 		c = &code[i];
 		if(c->op==GOTO_IR){
 			if(c->jmpTo==MARK1){
-				c->jmpTo = code_count + shift;
-				break;
+				if(shift!=2){
+					c->jmpTo = code_count + shift;
+					break;
+				}
+				else{
+					c->jmpTo = code_count;
+					c->jmpLabel = -3;
+					break;
+				}
 			}
 		}
 	}
 }
+
 
 /**
 * Sets the operation which have the marker (MARK1) to the now known jump address (for return statements)
@@ -533,10 +546,33 @@ void generate_ir_code(){
 						temp=j;
 					}
 				}
-				code[temp].jmpLabel=-1;
+				if(temp!=-1)
+					code[temp].jmpLabel=-1;
 				if(count2==-1){
+					if(c->jmpLabel==-3){
+						temp=-1;
+						for(int j=0;j<i;j++){
+							c2 = &code[j];
+							if(c2->op==IF_IR){
+								count2=code[j+1].jmpTo+1;
+								temp=j+1;
+								break;
+							}
+						}
+						if(count2==-1){
+							jmpLabel_count--;
+							c->jmpTo = jmpLabel_count;
+						}
+						else{
+							code[temp].jmpTo=-1;
+							c->jmpTo=count2;
+						}
+						c->jmpLabel=-1;
+					}
+					else{
 					jmpLabel_count--;
 					c->jmpTo = jmpLabel_count;
+					}
 				}
 				else
 					c->jmpTo=count2;
