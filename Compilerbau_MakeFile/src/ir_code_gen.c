@@ -285,15 +285,8 @@ void backpatch_if(int shift){
 		c = &code[i];
 		if(c->op==GOTO_IR){
 			if(c->jmpTo==MARK1){
-				if(shift!=2){
 					c->jmpTo = code_count + shift;
 					break;
-				}
-				else{
-					c->jmpTo = code_count;
-					c->jmpLabel = -3;
-					break;
-				}
 			}
 		}
 	}
@@ -528,57 +521,23 @@ void generate_ir_code(){
 			jmpLabel_count++;
 			if(!set_jmpLabel(c->jmpTo, jmpLabel_count)){
 				jmpLabel_count--;
+				c->jmpTo=code[c->jmpTo].jmpLabel;
 			}
-			c->jmpTo = jmpLabel_count;
+			else{
+				c->jmpTo = jmpLabel_count;
+			}
 			sprintf (s, "IF %s GOTO .l%d", c->var0->varname,c->jmpTo);
 			add_str(s);
 			break;
 		case GOTO_IR:
-			jmpLabel_count++;								//backpatch enhancement
+			jmpLabel_count++;
 			if(!set_jmpLabel(c->jmpTo, jmpLabel_count)){
-				struct code_struct  *c2;
-				int count2=-1;
-				int temp=-1;
-				for(int j=0;j<i;j++){
-					c2 = &code[j];
-					if(c2->op==WHILE_BEGIN_IR && c2->jmpLabel!=-1){
-						count2=c2->jmpLabel;
-						temp=j;
-					}
-				}
-				if(temp!=-1)
-					code[temp].jmpLabel=-1;
-				if(count2==-1){
-					if(c->jmpLabel==-3){
-						temp=-1;
-						for(int j=0;j<i;j++){
-							c2 = &code[j];
-							if(c2->op==IF_IR){
-								count2=code[j+1].jmpTo+1;
-								temp=j+1;
-								break;
-							}
-						}
-						if(count2==-1){
-							jmpLabel_count--;
-							c->jmpTo = jmpLabel_count;
-						}
-						else{
-							code[temp].jmpTo=-1;
-							c->jmpTo=count2;
-						}
-						c->jmpLabel=-1;
-					}
-					else{
-					jmpLabel_count--;
-					c->jmpTo = jmpLabel_count;
-					}
-				}
-				else
-					c->jmpTo=count2;
+				jmpLabel_count--;
+				c->jmpTo=code[c->jmpTo].jmpLabel;
 			}
-			else
+			else{
 				c->jmpTo = jmpLabel_count;
+			}
 			sprintf (s, "GOTO .l%d", c->jmpTo);
 			add_str(s);
 			break;

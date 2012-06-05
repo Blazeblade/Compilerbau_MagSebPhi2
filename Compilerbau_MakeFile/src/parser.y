@@ -526,7 +526,7 @@ stmt_conditional
      
 stmt_conditional_r
      : stmt {backpatch_if(0);}
-     | stmt ELSE {backpatch_if(1);genif_goto();} stmt {backpatch_if(2);}
+     | stmt ELSE {backpatch_if(1);genif_goto();} stmt {backpatch_if(0);}
      ;
 									
 stmt_loop

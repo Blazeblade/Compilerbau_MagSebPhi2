@@ -2127,7 +2127,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 529 "src/parser.y"
-    {backpatch_if(2);;}
+    {backpatch_if(0);;}
     break;
 
   case 40:
